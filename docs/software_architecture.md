@@ -31,7 +31,7 @@
 | Input | Keyboard + gamepad (remappable) |
 | Art style | 16-bit pixel art (SNES era), hard pixel edges, no anti-aliasing |
 | Audio formats | .ogg, .mp3, .wav |
-| Save format | JSON, single local file, single slot |
+| Save format | JSON, single local file, single slot (decided, Issue #13; extensible to multiple slots) |
 | Docstrings | Google style |
 | Tests | Small, concise tests for all implementations |
 | Assets | Placeholder shapes during development; hot-swappable with real assets |
@@ -681,11 +681,18 @@ class EconomySystem:
 **Data owned**: Stone count, full economy configuration (loaded from JSON).
 **Dependencies**: EventBus (subscribes to stone_collected, enemy_killed, shop_purchase).
 
+> **Decided** (Issue #11): Hot-reload scope is limited to `economy.json` and `audio_config.json` only. For other data files (levels, enemies, masks, dialogue), restart the level or game. This avoids the complexity of file watchers and state inconsistencies during development.
+
 ### 3.11 SaveSystem
+
+> **Decided** (Issue #13): Single save slot for now. The SaveSystem takes `save_path` as a constructor parameter, so adding multiple slots later is a UI-only change (slot selection screen passes a different path). No multi-slot infrastructure is built upfront.
 
 ```python
 class SaveSystem:
     """JSON-based save/load with per-level completion tracking.
+
+    Uses a single save slot (decided, Issue #13). The save_path parameter
+    makes multi-slot extension trivial: pass a different path per slot.
 
     Save is triggered automatically at the end of each level and after
     post-boss mask acquisition. Save data is a single JSON file.
@@ -852,9 +859,15 @@ class SpecialAmmoSystem:
 
 ### 3.14 ConsumableSystem
 
+> **Decided** (Issue #12): Consumables are used exclusively via the pause menu. There is no quick-use keybind. This keeps the tension loop intact and prevents consumable spam during combat. The `use_item` interface is keybind-agnostic -- if a quick-use keybind is needed later, it can call `use_item` directly from the gameplay scene without refactoring the ConsumableSystem.
+
 ```python
 class ConsumableSystem:
     """Manages consumable items: inventory, usage, active buffs, and refunds.
+
+    Consumables are used from the pause menu only (decided, Issue #12).
+    The use_item method is input-agnostic: it can be called from any context
+    (pause menu scene, or a future quick-use keybind) without changes.
 
     On death, all consumables used during the failed attempt are refunded
     (restored to the level-entry state). Active buff timers are tracked here.
@@ -864,7 +877,12 @@ class ConsumableSystem:
     def __init__(self, event_bus: EventBus, economy_data: dict) -> None: ...
 
     def use_item(self, item_id: str, player: Player) -> bool:
-        """Use a consumable. Returns False if none in inventory."""
+        """Use a consumable. Returns False if none in inventory.
+
+        This method is input-agnostic. Currently called from the PauseScene
+        items menu. Can be called from a quick-use keybind handler in
+        GameplayScene if that feature is added later.
+        """
         ...
 
     def update(self, dt: float) -> None:
@@ -1205,6 +1223,8 @@ class Game:
 All data files live under `sa_fona/data/`. JSON is the universal format for human-editable game data.
 
 ### 4.1 Level Format (`data/levels/worldN/level_X_Y.json`)
+
+> **Decided** (Issue #10): Custom JSON is the level file format. No runtime TMX parsing. If a visual map editor (e.g., Tiled) is needed later, a Tiled-to-JSON converter script can be added without changing the engine.
 
 ```json
 {
@@ -2139,7 +2159,7 @@ scenes/shop.py
   |-- systems/economy.py
   |-- systems/mask_system.py
 
-scenes/pause.py (overlay)
+scenes/pause.py (overlay, consumable usage entry point -- Issue #12)
   |-- ui/menu_ui.py
   |-- systems/consumable_system.py
 
@@ -2275,6 +2295,30 @@ Each extension point describes how to add new content without modifying existing
 1. Edit the tile arrays in `data/levels/worldN/level_N_X.json`
 2. Move/add/remove entity spawn points and triggers
 3. All changes take effect on next level load
+
+### 6.10 Adding a Quick-Use Keybind for Consumables (Future)
+
+> Currently consumables are pause-menu only (Issue #12). This extension point documents how to add quick-use without refactoring.
+
+**Steps (minimal code changes)**:
+
+1. Add a `consumable_use_pressed` action to `InputState` in `core/input_handler.py`
+2. Add the keybind to `data/controls_default.json`
+3. In `scenes/gameplay.py`, when `input_state.consumable_use_pressed` is True, call `consumable_system.use_item(selected_consumable, player)` directly
+4. Optionally add a consumable selection cycling keybind (similar to mask cycling)
+5. No changes needed to `ConsumableSystem` itself -- `use_item()` is already input-agnostic
+
+### 6.11 Adding Multiple Save Slots (Future)
+
+> Currently a single save slot (Issue #13). This extension point documents how to add multi-slot support.
+
+**Steps (minimal code changes)**:
+
+1. Create a `SlotSelectScene` in `scenes/` that presents slot choices (e.g., 3 slots)
+2. Each slot maps to a different `save_path` (e.g., `saves/save_slot_1.json`, `saves/save_slot_2.json`)
+3. Pass the selected slot's path to `SaveSystem.__init__(save_path)`
+4. The `MainMenuScene` pushes `SlotSelectScene` before loading or starting a game
+5. No changes needed to `SaveSystem` itself -- it already takes `save_path` as a parameter
 
 ---
 

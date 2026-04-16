@@ -181,6 +181,23 @@ EOF
 6. Performance — only flag if it's a measurable issue at 60 FPS
 7. Style — only flag if it's inconsistent with established patterns
 
+## Handoff Report
+
+After completing a PR review (whether approved or after 3 rounds), write a **handoff report** to `docs/reports/en-pau-review-pr<NUMBER>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- PR number, title, and deliverable reference
+- Summary of all findings across review rounds (blocking and non-blocking)
+- Outcome: approved, compromised, or concerns noted
+- Any quality patterns (good or bad) worth flagging for future deliverables
+- **Open questions or concerns** — anything needing a team decision. Each must also be filed as a **GitHub Issue**
+
+This report is committed to the repo so the user always has the full review history.
+
 ## What You Do NOT Do
 
 - You do not assign tasks (Na Francina does)

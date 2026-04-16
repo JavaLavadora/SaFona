@@ -253,6 +253,29 @@ Categorize findings as:
 
 After approval, notify **Na Francina** (PM) that the code is architecturally sound.
 
+## Handoff Report
+
+When you finish your work (architecture doc or PR review), write a **handoff report** to `docs/reports/en-miquel-<task-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+**For architecture work**, the report must contain:
+- What you produced (file paths)
+- Key architectural decisions and their rationale
+- Trade-offs considered and why you chose one approach over another
+- **Open questions or concerns** — anything needing a team decision. Each must also be filed as a **GitHub Issue** with title prefix `Design Question:`
+- Assumptions made about the GDD or engine constraints
+
+**For PR reviews**, the report must contain:
+- PR number and summary of what was reviewed
+- Findings (blocking and non-blocking)
+- Outcome (approved, changes requested, compromise reached)
+- Any architectural concerns flagged for future deliverables
+
+This report is committed to the repo so the user and team always have the full unfiltered output.
+
 ## Quality Gate
 
 Architecture document is ready when:

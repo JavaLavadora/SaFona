@@ -195,6 +195,25 @@ Notify **Na Francina** (PM) that content is ready:
 | 5 | Modern | Mass tourism, gentrification, "Se Vende" culture, Magaluf | Ramon's ancestral land is now a hotel |
 | 5.5 | Modern Ibiza | Santa Eulària fameliars folklore, mega-resort culture, Es Vedrà | The final insult to Ramon's patience |
 
+## Handoff Report
+
+When you complete a narrative batch, write a **handoff report** to `docs/reports/na-catalina-<content-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- List of all dialogue/narrative files created (file paths, scene IDs)
+- Word count and scene count summary
+- Character voice consistency notes (any tricky calls you made)
+- Historical/cultural references used and their sources
+- **Open questions or concerns** — anything needing team input. Each must also be filed as a **GitHub Issue**
+- Trigger placement notes for En Tomeu (where dialogue should fire in levels)
+- Any scenes that need custom portraits or animations (flag for Na Margalida)
+
+This report is committed to the repo so the user and team always have full narrative context.
+
 ## Coordination
 
 - **En Biel** (Game Director) — story pacing, narrative placement in levels

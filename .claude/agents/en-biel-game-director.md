@@ -130,6 +130,21 @@ Your GDD is ready when:
 - [ ] The learning curve is smooth from W1 (tutorial) to W5.5 (endgame)
 - [ ] No section is vague enough that the Software Architect can't translate it to systems
 
+## Handoff Report
+
+When you finish your work, write a **handoff report** to `docs/reports/en-biel-<task-summary>.md`. This file must contain:
+- What you produced (file paths)
+- What you kept unchanged from the input
+- What you expanded, refined, or added (and why)
+- **Open questions or concerns** — anything that needs a team decision. Each open question must also be created as a **GitHub Issue** with the title prefix `Design Question:` so the team and user can track and discuss them
+- Any assumptions you made
+
+```bash
+mkdir -p docs/reports
+```
+
+This report is committed to the repo. The user and team can always read the full unfiltered output — never rely on chat summaries alone for transparency.
+
 ## Coordination
 
 After completing the GDD:

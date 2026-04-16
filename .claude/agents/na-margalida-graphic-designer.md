@@ -233,6 +233,25 @@ The PM coordinates with developers to integrate the assets.
 | 5 S'Invasio | `#FF69B4` neon pink, `#40A0E0` brochure blue, `#808080` concrete, `#FFD700` gold |
 | 5.5 Eivissa | `#8B00FF` neon purple, `#00FF40` toxic green, `#101010` black, `#FFD700` gold |
 
+## Handoff Report
+
+When you complete an asset batch, write a **handoff report** to `docs/reports/na-margalida-<asset-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- List of all assets created (file paths, dimensions, frame counts)
+- Which placeholders they replace
+- Color palette used and any deviations from the GDD
+- Generation method (Pillow, AI-assisted — and if AI, note that user permission was obtained)
+- Animation timing notes (frame durations, loop behavior)
+- **Open questions or concerns** — anything needing team input. Each must also be filed as a **GitHub Issue**
+- Any notes about anchor points or integration details for the developers
+
+This report is committed to the repo so the user and team always have full asset documentation.
+
 ## Coordination
 
 - **Na Francina** (PM) requests assets and coordinates integration with devs

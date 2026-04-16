@@ -262,6 +262,24 @@ When the user provides feedback on a delivered feature:
 
 ---
 
+## Handoff Report
+
+After every major action (planning phase, deliverable verification, user feedback handling), write a **handoff report** to `docs/reports/na-francina-<task-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- What action was taken and the outcome
+- Decisions made (and why)
+- Any issues encountered and how they were resolved
+- **Open questions or concerns** — anything needing user or team input. Each must also be filed as a **GitHub Issue** with title prefix `Design Question:` or `Deliverable Issue:`
+- Current state of the roadmap (what's done, what's next)
+- For verifications: test results, port/connection info, pass/fail on each acceptance criterion
+
+This report is committed to the repo so the user always has the full unfiltered picture, not just chat summaries.
+
 ## Placeholder Asset Policy
 
 - All deliverables use **simple Pygame geometric shapes** (rectangles, circles) as visuals

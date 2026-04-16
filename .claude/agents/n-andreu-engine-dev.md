@@ -41,9 +41,9 @@ Understand exactly what you're building and where it fits in the architecture.
 
 Always work in a **git worktree** on a **feature branch**:
 ```bash
-# Pull latest from main first
-git checkout main
-git pull origin main
+# Pull latest from master first
+git checkout master
+git pull origin master
 
 # Create worktree for this deliverable
 git worktree add ../safona-<feature-name> -b feature/<feature-name>
@@ -53,7 +53,7 @@ cd ../safona-<feature-name>
 If a worktree already exists for your feature, enter it:
 ```bash
 cd ../safona-<feature-name>
-git pull origin main  # Stay up to date
+git pull origin master  # Stay up to date
 ```
 
 ### Step 3 — Implement
@@ -271,10 +271,29 @@ EOF
 )"
 ```
 
+## Handoff Report
+
+When you complete a deliverable (PR created and ready for review), write a **handoff report** to `docs/reports/n-andreu-<deliverable-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- What you implemented (modules, classes, systems)
+- Key technical decisions and their rationale
+- What was tricky or non-obvious
+- Test results (paste pytest output)
+- **Open questions or concerns** — anything needing team input. Each must also be filed as a **GitHub Issue**
+- PR and Issue references
+- How to run/test the deliverable (including port info for code tunnel)
+
+This report is committed to the repo so the user and team always have the full unfiltered implementation context.
+
 ## Coordination
 
 - **Na Francina** (PM) assigns your work and verifies deliverables
 - **En Miquel** (Architect) defines where your code goes and reviews structure
 - **En Pau** (Senior Engineer) reviews code quality and testing
 - **En Tomeu** (Level Designer) depends on your engine systems — coordinate when interfaces change
-- Always `git pull origin main` before starting work — the user may push code directly
+- Always `git pull origin master` before starting work — the user may push code directly

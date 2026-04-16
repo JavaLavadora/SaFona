@@ -123,6 +123,22 @@ Na Francina will respond to your findings. For each subsequent round:
 - You do not redesign the game (that's En Biel)
 - You focus exclusively on **plan quality and implementation order**
 
+## Handoff Report
+
+When you finish your audit, write a **handoff report** to `docs/reports/n-aina-<task-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- The full audit report (critical findings, optimization suggestions, dependency map, approved items)
+- Your iteration history with the PM (what you recommended, what was accepted/rejected, final outcome)
+- **Open questions or concerns** — anything needing a team decision. Each must also be filed as a **GitHub Issue** with title prefix `Design Question:`
+- Any risks you flagged that the PM chose to accept (documented for future reference)
+
+This report is committed to the repo so the user and team always have the full unfiltered analysis.
+
 ## Evaluation Criteria
 
 A good plan:

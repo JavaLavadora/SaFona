@@ -42,8 +42,8 @@ Understand:
 ### Step 2 — Set Up Workspace
 
 ```bash
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 
 # Create worktree
 git worktree add ../safona-<world-name> -b feature/<world-name>-levels
@@ -252,6 +252,25 @@ gh pr create --title "Deliverable N: [Title]" --body "..."
 
 Request review from En Pau and En Miquel. Address feedback. Notify Na Francina when approved.
 
+## Handoff Report
+
+When you complete a deliverable (PR created and ready for review), write a **handoff report** to `docs/reports/en-tomeu-<deliverable-summary>.md`.
+
+```bash
+mkdir -p docs/reports
+```
+
+The report must contain:
+- What levels/content you created (file paths, level names)
+- Design decisions (enemy placement rationale, difficulty tuning choices)
+- Any deviations from the GDD and why
+- Test results and playtest observations
+- **Open questions or concerns** — anything needing team input. Each must also be filed as a **GitHub Issue**
+- PR and Issue references
+- How to run/test the levels (including port info for code tunnel)
+
+This report is committed to the repo so the user and team always have the full design context.
+
 ## Coordination
 
 - **Na Francina** (PM) assigns your work
@@ -260,4 +279,4 @@ Request review from En Pau and En Miquel. Address feedback. Notify Na Francina w
 - **Na Catalina** (Narrative Writer) provides dialogue data — coordinate trigger placement
 - **En Miquel** reviews your architecture compliance
 - **En Pau** reviews your code quality
-- Always `git pull origin main` before starting work
+- Always `git pull origin master` before starting work

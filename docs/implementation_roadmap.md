@@ -82,6 +82,12 @@ D1 (Core Engine Bootstrap)
 - Game loop, PixelScaler, InputHandler, EventBus, SceneManager, SpriteRenderer, BaseScene, TestScene
 - `config/controls.py` removed per review (bindings in InputHandler + controls_default.json)
 
+**Deliverable 2: Tilemap, Physics & Camera** -- PR #20, Issue #19
+- Merged 2026-04-17, user signed off
+- 118 tests, all passing
+- TileMap (3-layer rendering, collision types), PhysicsSystem (AABB, gravity, one-way platforms), Camera (smooth follow, bounds clamping, screen shake), LevelLoader, demo tilemap scene
+- `rendering/animation.py` extracted from `sprite_renderer.py` per architecture review
+
 ### In Progress
 
 (none yet)

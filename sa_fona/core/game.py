@@ -28,7 +28,6 @@ from sa_fona.core.scene_manager import SceneManager
 from sa_fona.rendering.pixel_scaler import PixelScaler
 from sa_fona.rendering.sprite_renderer import SpriteRenderer
 from sa_fona.scenes.demo_tilemap_scene import DemoTilemapScene
-from sa_fona.scenes.test_scene import TestScene
 
 
 class Game:

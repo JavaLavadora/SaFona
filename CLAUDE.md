@@ -54,7 +54,20 @@ Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame
 9. User signs off via GitHub Issues
 
 ## Running the Game
-The game runs via pygame. When running for verification or user testing, always print the display/connection info. The user connects via **code tunnel** and needs the port info to access the game window.
+The game runs via pygame. The user connects via **code tunnel** and needs port forwarding to see the window.
+
+**Display setup** (required before running the game):
+```bash
+conda activate safona
+Xvfb :99 -screen 0 1152x648x24 &
+x11vnc -display :99 -nopw -forever -shared -rfbport 5900 &
+websockify --web /usr/share/novnc 6080 localhost:5900 &
+DISPLAY=:99 python -m sa_fona.main
+```
+User forwards **port 6080** and opens `http://localhost:6080/vnc.html` in their browser.
+
+## GitHub Communication
+All agents share the same GitHub account. When posting comments on Issues or PRs, **always start with the agent's name and role** (e.g., "**Na Francina (PM):**") so the user can identify who is speaking.
 
 ## Asset Pipeline
 - Development uses simple geometric shapes as placeholders

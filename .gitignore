@@ -1,2 +1,23 @@
 # Previously excluded reports; now tracked per project workflow
 # docs/reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Pytest
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Saves (generated at runtime)
+saves/

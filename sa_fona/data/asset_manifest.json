@@ -1,0 +1,42 @@
+{
+  "sprites": {
+    "ramon_idle": {
+      "path": "assets/sprites/ramon/idle.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 4
+    },
+    "ramon_walk": {
+      "path": "assets/sprites/ramon/walk.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 6
+    },
+    "ramon_jump": {
+      "path": "assets/sprites/ramon/jump.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
+    "bep_idle": {
+      "path": "assets/sprites/bep/idle.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 4
+    },
+    "enemy_possessed_sheep": {
+      "path": "assets/sprites/enemies/possessed_sheep.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 4
+    }
+  },
+  "tilesets": {
+    "world1": {
+      "path": "assets/tilesets/world1/tileset.png",
+      "tile_size": 16
+    }
+  },
+  "backgrounds": {},
+  "ui": {}
+}

@@ -1,0 +1,25 @@
+{
+  "keyboard": {
+    "move_left": ["a", "left"],
+    "move_right": ["d", "right"],
+    "jump": ["space"],
+    "attack": ["j", "z"],
+    "mask_power": ["k", "x"],
+    "mask_cycle_left": ["q"],
+    "mask_cycle_right": ["e"],
+    "special_ammo_toggle": ["l", "c"],
+    "pause": ["escape"],
+    "interact": ["return"]
+  },
+  "gamepad": {
+    "move": "left_stick_or_dpad",
+    "jump": "button_a",
+    "attack": "button_x",
+    "mask_power": "button_y",
+    "mask_cycle_left": "left_bumper",
+    "mask_cycle_right": "right_bumper",
+    "special_ammo_toggle": "button_b",
+    "pause": "start",
+    "interact": "button_a"
+  }
+}

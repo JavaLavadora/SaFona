@@ -5,7 +5,8 @@ from __future__ import annotations
 import pygame
 import pytest
 
-from sa_fona.rendering.sprite_renderer import Animation, SpriteRenderer
+from sa_fona.rendering.animation import Animation
+from sa_fona.rendering.sprite_renderer import SpriteRenderer
 
 
 @pytest.fixture(autouse=True)

@@ -139,6 +139,13 @@ The report must contain:
 
 This report is committed to the repo so the user and team always have the full unfiltered analysis.
 
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role**:
+```
+**N'Aina (Auditor):** [your comment here]
+```
+
 ## Evaluation Criteria
 
 A good plan:

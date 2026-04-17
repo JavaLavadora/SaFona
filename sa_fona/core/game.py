@@ -60,7 +60,7 @@ class Game:
         pygame.display.set_caption(GAME_TITLE)
 
         self.scaler = PixelScaler()
-        self.clock = pygame.Clock()
+        self.clock = pygame.time.Clock()
         self.running: bool = True
 
         # Core systems.

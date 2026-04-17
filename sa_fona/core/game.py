@@ -27,7 +27,7 @@ from sa_fona.core.input_handler import InputHandler
 from sa_fona.core.scene_manager import SceneManager
 from sa_fona.rendering.pixel_scaler import PixelScaler
 from sa_fona.rendering.sprite_renderer import SpriteRenderer
-from sa_fona.scenes.demo_tilemap_scene import DemoTilemapScene
+from sa_fona.scenes.gameplay import GameplayScene
 
 
 class Game:
@@ -75,11 +75,11 @@ class Game:
             full_manifest = json.load(fh)
         self.sprite_renderer = SpriteRenderer(full_manifest.get("sprites", {}))
 
-        # Push the demo tilemap scene as the initial scene.
-        demo_scene = DemoTilemapScene(
+        # Push the gameplay scene as the initial scene.
+        gameplay_scene = GameplayScene(
             BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
         )
-        self.scene_manager.push(demo_scene)
+        self.scene_manager.push(gameplay_scene)
 
         self._print_display_info(window_width, window_height)
 

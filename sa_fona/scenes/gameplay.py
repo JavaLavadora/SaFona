@@ -13,7 +13,9 @@ from sa_fona.config.settings import (
     BASE_HEIGHT,
     BASE_WIDTH,
     DATA_DIR,
+    GAMEPLAY_BG_COLOR,
     PLAYER_GRAVITY,
+    PLAYER_WALL_CHECK_MARGIN,
 )
 from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
@@ -73,7 +75,7 @@ class GameplayScene(BaseScene):
         # Player spawn (tile coords -> pixel coords).
         spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
         spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
-        self._player = Player(spawn_x, spawn_y, self._physics)
+        self._player = Player(spawn_x, spawn_y)
 
         # Input state cache.
         self._input_state: InputState = InputState()
@@ -105,6 +107,10 @@ class GameplayScene(BaseScene):
     def on_enter(self) -> None:
         """Scene entered -- nothing to set up beyond __init__."""
 
+    def on_exit(self) -> None:
+        """Clean up EventBus subscriptions when the scene is removed."""
+        self._event_bus.unsubscribe("screen_shake", self._on_screen_shake)
+
     def handle_input(self, input_state: InputState) -> None:
         """Forward input to the player and handle scene-level actions.
 
@@ -128,10 +134,31 @@ class GameplayScene(BaseScene):
     def update(self, dt: float) -> None:
         """Advance simulation by one frame.
 
+        Orchestrates the update_intent -> physics -> post_physics
+        flow so the Player never depends on PhysicsSystem directly.
+
         Args:
             dt: Delta time in seconds since the last frame.
         """
-        self._player.update(dt)
+        # 1. Player processes input and computes movement intent.
+        self._player.update_intent(dt)
+
+        # 2. Physics system resolves movement and collisions.
+        self._player.rect, self._player.velocity, on_ground = (
+            self._physics.update_rect(
+                self._player.rect,
+                self._player.velocity,
+                dt,
+                self._player.on_ground,
+            )
+        )
+
+        # 3. Probe for wall contact.
+        wall_left, wall_right = self._check_wall_contact(self._player.rect)
+
+        # 4. Feed physics results back to the player.
+        self._player.post_physics(on_ground, wall_left, wall_right)
+
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
@@ -141,7 +168,7 @@ class GameplayScene(BaseScene):
         Args:
             surface: The pygame Surface to draw on.
         """
-        surface.fill((30, 30, 50))
+        surface.fill(GAMEPLAY_BG_COLOR)
         cam_offset = self._camera.offset
 
         # Back-to-front layer rendering.
@@ -153,6 +180,39 @@ class GameplayScene(BaseScene):
 
         # Foreground on top.
         self._tilemap.render_layer(surface, "foreground", cam_offset)
+
+    # ── Physics helpers ────────────────────────────────────────────
+
+    def _check_wall_contact(
+        self, rect: pygame.Rect
+    ) -> tuple[bool, bool]:
+        """Probe the tilemap for wall contact on left and right sides.
+
+        Args:
+            rect: The entity's bounding box to probe around.
+
+        Returns:
+            Tuple of ``(wall_left, wall_right)`` booleans.
+        """
+        margin = PLAYER_WALL_CHECK_MARGIN
+
+        left_probe = pygame.Rect(
+            rect.left - margin,
+            rect.top + 2,
+            margin,
+            rect.height - 4,
+        )
+        wall_left = len(self._physics.check_collision(left_probe, "solid")) > 0
+
+        right_probe = pygame.Rect(
+            rect.right,
+            rect.top + 2,
+            margin,
+            rect.height - 4,
+        )
+        wall_right = len(self._physics.check_collision(right_probe, "solid")) > 0
+
+        return wall_left, wall_right
 
     # ── Event callbacks ────────────────────────────────────────────
 

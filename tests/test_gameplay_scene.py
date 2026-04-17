@@ -76,3 +76,20 @@ class TestGameplaySceneRender:
         bus.publish("screen_shake", intensity=5.0, duration=0.2)
         # Should not crash.
         scene.update(1.0 / 60.0)
+
+
+class TestGameplaySceneLifecycle:
+    """Tests for scene lifecycle hooks."""
+
+    def test_on_exit_unsubscribes_event_bus(self) -> None:
+        """Verify on_exit cleans up EventBus subscriptions."""
+        bus = EventBus()
+        scene = GameplayScene(BASE_WIDTH, BASE_HEIGHT, event_bus=bus)
+        scene.on_enter()
+        # Confirm it works before exit.
+        bus.publish("screen_shake", intensity=1.0, duration=0.1)
+
+        scene.on_exit()
+
+        # After exit, the subscriber list for screen_shake should be empty.
+        assert len(bus._subscribers["screen_shake"]) == 0

@@ -37,7 +37,7 @@ PLAYER_WALL_JUMP_FORCE_Y: float = -260.0  # px/s upward impulse on wall jump
 PLAYER_WALL_JUMP_LOCKOUT: float = 0.12    # seconds of input lockout after wall jump
 PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
-PLAYER_GRAVITY: float = 800.0             # px/s^2 (matches PhysicsSystem default)
+PLAYER_GRAVITY: float = 800.0             # px/s^2
 PLAYER_WALL_CHECK_MARGIN: int = 2         # pixels to probe for wall contact
 
 # ── Player State Colors (placeholder rendering) ────────────────
@@ -49,6 +49,9 @@ PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {
     "wall_sliding": (50, 200, 200),# cyan
     "wall_jumping": (200, 50, 200),# magenta
 }
+
+# ── Scene Colors ───────────────────────────────────────────────
+GAMEPLAY_BG_COLOR: tuple[int, int, int] = (30, 30, 50)
 
 # ── Filesystem Paths ────────────────────────────────────────────
 # Package root is the sa_fona/ directory.

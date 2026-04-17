@@ -76,43 +76,17 @@ D1 (Core Engine Bootstrap)
 
 ### Completed
 
-(none yet)
+**Deliverable 1: Core Engine Bootstrap** -- PR #18, Issue #17
+- Merged 2026-04-17, user signed off
+- 70 tests, all passing
+- Game loop, PixelScaler, InputHandler, EventBus, SceneManager, SpriteRenderer, BaseScene, TestScene
+- `config/controls.py` removed per review (bindings in InputHandler + controls_default.json)
 
 ### In Progress
 
-(none yet -- awaiting approval)
+(none yet)
 
 ### Upcoming
-
----
-
-### Deliverable 1: Core Engine Bootstrap
-
-**Purpose**: Establish the foundational game loop, window, rendering pipeline, input system, scene management, and event bus so that all subsequent deliverables have a stable platform to build on.
-
-**Depends on**: Nothing (first deliverable)
-
-**Assigned to**: N'Andreu (Engine Programmer)
-
-**Acceptance criteria**:
-- [ ] Pygame window opens at 384x216 base resolution, integer-scaled to the display
-- [ ] Main game loop runs at 60 FPS with delta-time calculation
-- [ ] `config/settings.py` contains all global constants (resolution, FPS, colors, paths)
-- [ ] `config/controls.py` contains default key/gamepad bindings
-- [ ] `controls_default.json` data file exists with default bindings
-- [ ] InputHandler processes keyboard and gamepad into an InputState dataclass
-- [ ] EventBus implements publish/subscribe with string event types
-- [ ] SceneManager implements push/pop/replace with BaseScene lifecycle (on_enter, on_exit, on_resume, handle_input, update, render)
-- [ ] PixelScaler renders a 384x216 surface scaled to the window
-- [ ] A placeholder "test scene" displays a colored rectangle and responds to input (proof of life)
-- [ ] SpriteRenderer loads placeholder surfaces and caches them (no real sprite sheets yet -- generates colored rectangles by asset ID)
-- [ ] `data/asset_manifest.json` exists with placeholder entries
-- [ ] The game launches and runs without errors
-- [ ] Tests exist for: EventBus, InputHandler, SceneManager, PixelScaler
-
-**Estimated complexity**: Large
-
-**Architecture references**: `core/game.py`, `core/scene_manager.py`, `core/input_handler.py`, `core/event_bus.py`, `rendering/pixel_scaler.py`, `rendering/sprite_renderer.py`, `config/settings.py`, `config/controls.py`
 
 ---
 

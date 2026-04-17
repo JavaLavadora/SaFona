@@ -253,6 +253,13 @@ Categorize findings as:
 
 After approval, notify **Na Francina** (PM) that the code is architecturally sound.
 
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role**:
+```
+**En Miquel (Software Architect):** [your comment here]
+```
+
 ## Handoff Report
 
 When you finish your work (architecture doc or PR review), write a **handoff report** to `docs/reports/en-miquel-<task-summary>.md`.

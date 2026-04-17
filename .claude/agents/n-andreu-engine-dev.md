@@ -294,6 +294,13 @@ The report must contain:
 
 This report is committed to the repo so the user and team always have the full unfiltered implementation context.
 
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role**:
+```
+**N'Andreu (Engine Programmer):** [your comment here]
+```
+
 ## Coordination
 
 - **Na Francina** (PM) assigns your work and verifies deliverables

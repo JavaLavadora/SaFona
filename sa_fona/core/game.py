@@ -27,7 +27,7 @@ from sa_fona.core.input_handler import InputHandler
 from sa_fona.core.scene_manager import SceneManager
 from sa_fona.rendering.pixel_scaler import PixelScaler
 from sa_fona.rendering.sprite_renderer import SpriteRenderer
-from sa_fona.scenes.test_scene import TestScene
+from sa_fona.scenes.demo_tilemap_scene import DemoTilemapScene
 
 
 class Game:
@@ -75,9 +75,11 @@ class Game:
             full_manifest = json.load(fh)
         self.sprite_renderer = SpriteRenderer(full_manifest.get("sprites", {}))
 
-        # Push the test scene as the initial scene.
-        test_scene = TestScene(BASE_WIDTH, BASE_HEIGHT)
-        self.scene_manager.push(test_scene)
+        # Push the demo tilemap scene as the initial scene.
+        demo_scene = DemoTilemapScene(
+            BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
+        )
+        self.scene_manager.push(demo_scene)
 
         self._print_display_info(window_width, window_height)
 
@@ -116,9 +118,9 @@ class Game:
         if not self.scene_manager.is_empty:
             self.scene_manager.active_scene.handle_input(input_state)
 
-            # Check if the test scene wants to quit.
+            # Check if the active scene wants to quit.
             active = self.scene_manager.active_scene
-            if isinstance(active, TestScene) and active.quit_requested:
+            if hasattr(active, "quit_requested") and active.quit_requested:
                 self.running = False
 
     def _update(self, dt: float) -> None:

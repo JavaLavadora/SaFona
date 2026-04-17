@@ -185,52 +185,66 @@ Edit docs/implementation_roadmap.md — move deliverable to "In Progress", add I
 
 ---
 
-## MODE C: Deliverable Verification
+## MODE C: Review Coordination & Deliverable Verification
 
-### Step 1 — Read the PR and Changes
+### Step 1 — Read Review Comments
+After En Pau and En Miquel post their reviews on the PR:
 ```bash
-gh pr view <PR_NUMBER>
-gh pr diff <PR_NUMBER>
-```
-Read the deliverable's Issue for acceptance criteria.
-
-### Step 2 — Verify Review Status
-Confirm that both **En Pau** and **En Miquel** have approved the PR.
-```bash
-gh pr checks <PR_NUMBER>
-gh pr reviews <PR_NUMBER>
+gh pr view <PR_NUMBER> --comments
 ```
 
-### Step 3 — Merge and Test
+### Step 2 — Analyze Review Feedback
+Read all review comments carefully. For each comment, categorize:
+- **[BLOCKING]** — must be fixed before merge
+- **[SUGGESTION]** — nice to have, not blocking
+- **[FUTURE]** — acceptable now but must be addressed in a future deliverable
+
+**For [FUTURE] items**: Update the roadmap or relevant deliverable's acceptance criteria to track these. For example, if a reviewer says "this API deviation is fine for D2 but must be fixed in D5", add a note to D5's section in the roadmap.
+
+### Step 3 — Coordinate Fixes with Developers
+**You do NOT fix review issues yourself.** Instead:
+1. Spawn the developer agent (N'Andreu or En Tomeu) who wrote the code
+2. In the prompt, list all [BLOCKING] issues with:
+   - The reviewer's comment (quote or link to it)
+   - The file and line number
+   - What needs to change
+3. The developer fixes, runs tests, pushes, and comments on the PR
+4. **Max 3 review rounds** — if issues persist after 3 rounds, escalate to the user
+
+### Step 4 — Confirm Reviews Pass
+After fixes are pushed, check that both reviewers are satisfied:
+- If reviews were APPROVE with one blocking fix, verify the fix addresses it
+- If reviews were REQUEST CHANGES, consider spawning reviewers again for re-review
+- Once both are satisfied, proceed to verification
+
+### Step 5 — Verify the Deliverable
+**Check out the PR branch** (do NOT merge yet) and run the game:
 ```bash
-gh pr merge <PR_NUMBER> --merge
-git pull
+git fetch origin
+git checkout <BRANCH_NAME>
+conda activate safona
+Xvfb :99 -screen 0 1152x648x24 &
+x11vnc -display :99 -nopw -forever -shared -rfbport 5900 &
+websockify --web /usr/share/novnc 6080 localhost:5900 &
+DISPLAY=:99 python -m sa_fona.main
 ```
-
-### Step 4 — Run the Game
-
-**You MUST actually run the game** to verify the deliverable works:
-```bash
-cd /home/jovyan/projects/SaFona
-python -m sa_fona.main  # or whatever the entry point is
-```
-
-Report the display/port info so the user can connect via code tunnel.
 
 Test:
 - Does the game launch without errors?
 - Does the new feature work as described in the acceptance criteria?
 - Does previous functionality still work? (quick regression check)
 
-### Step 5 — Accept or Reject
+Report to the user: forward **port 6080**, open `http://localhost:6080/vnc.html`.
+
+### Step 6 — Accept or Reject
 
 **If the deliverable meets requirements:**
-1. Update the GitHub Issue with a completion summary
-2. Close the Issue
+1. Merge the PR: `gh pr merge <PR_NUMBER> --merge`
+2. Update the GitHub Issue with a completion summary and close it
 3. Update `docs/implementation_roadmap.md` — move to "Completed" with PR/commit references
 4. Notify the user:
    - What was delivered
-   - How to test it (port/connection info)
+   - How to test it (port 6080 + vnc.html)
    - What's next on the roadmap
 
 **If the deliverable has problems:**
@@ -286,6 +300,13 @@ This report is committed to the repo so the user always has the full unfiltered 
 - Do NOT spend time on art unless the user specifically asks
 - All placeholder rendering must be structured so that swapping in real sprites requires **zero code changes** — just drop files in the right folder
 - If the user asks for real assets on a specific deliverable, coordinate with **Na Margalida**
+
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role** so the user can identify who is speaking:
+```
+**Na Francina (PM):** [your comment here]
+```
 
 ## Communication Style
 

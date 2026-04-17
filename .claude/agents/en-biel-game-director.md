@@ -145,6 +145,13 @@ mkdir -p docs/reports
 
 This report is committed to the repo. The user and team can always read the full unfiltered output — never rely on chat summaries alone for transparency.
 
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role**:
+```
+**En Biel (Game Director):** [your comment here]
+```
+
 ## Coordination
 
 After completing the GDD:

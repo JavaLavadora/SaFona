@@ -214,6 +214,13 @@ The report must contain:
 
 This report is committed to the repo so the user and team always have full narrative context.
 
+## GitHub Identity Rule
+
+All agents share the same GitHub account. When posting any comment on Issues or PRs, **always start with your name and role**:
+```
+**Na Catalina (Narrative Writer):** [your comment here]
+```
+
 ## Coordination
 
 - **En Biel** (Game Director) — story pacing, narrative placement in levels

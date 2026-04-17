@@ -1,2 +1,16 @@
 # Previously excluded reports; now tracked per project workflow
 # docs/reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Pytest
+.pytest_cache/
+
+# Saves (generated at runtime)
+saves/

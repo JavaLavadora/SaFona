@@ -9,7 +9,8 @@
     "mask_cycle_right": ["e"],
     "special_ammo_toggle": ["l", "c"],
     "pause": ["escape"],
-    "interact": ["return"]
+    "interact": ["return"],
+    "reset": ["r"]
   },
   "gamepad": {
     "move": "left_stick_or_dpad",

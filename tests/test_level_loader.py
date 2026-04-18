@@ -32,10 +32,10 @@ class TestLevelDataContents:
     """Verify contents of loaded LevelData."""
 
     def test_player_spawn(self, level_data: LevelData) -> None:
-        assert level_data.player_spawn == (2, 12)
+        assert level_data.player_spawn == (3, 12)
 
     def test_companion_spawn(self, level_data: LevelData) -> None:
-        assert level_data.companion_spawn == (3, 12)
+        assert level_data.companion_spawn == (4, 12)
 
     def test_tilemap_dimensions(self, level_data: LevelData) -> None:
         assert level_data.tilemap.width_tiles == 60

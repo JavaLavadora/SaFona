@@ -45,6 +45,7 @@ class InputState:
     special_ammo_toggle: bool = False
     pause_pressed: bool = False
     interact_pressed: bool = False
+    reset_pressed: bool = False
     move_x: float = 0.0
 
 
@@ -126,6 +127,7 @@ _PRESS_ONLY_ACTIONS = {
     "special_ammo_toggle",
     "pause",
     "interact",
+    "reset",
 }
 
 # Actions that are continuous (held = True while key is down).

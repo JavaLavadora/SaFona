@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pygame
 
+from sa_fona.config.settings import PLAYER_GRAVITY
 from sa_fona.level.tilemap import TileMap
 
 
@@ -18,12 +19,13 @@ class PhysicsSystem:
         gravity: Vertical acceleration in pixels per second squared.
     """
 
-    def __init__(self, tilemap: TileMap, gravity: float = 800.0) -> None:
+    def __init__(self, tilemap: TileMap, gravity: float = PLAYER_GRAVITY) -> None:
         """Initialise the physics system.
 
         Args:
             tilemap: The level's tile geometry used for collision queries.
-            gravity: Downward acceleration in px/s^2. Defaults to 800.
+            gravity: Downward acceleration in px/s^2.
+                Defaults to ``PLAYER_GRAVITY`` from settings.
         """
         self._tilemap = tilemap
         self._gravity = gravity

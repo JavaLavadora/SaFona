@@ -111,6 +111,38 @@ class EnemyBehavior(ABC):
             spawn_x: The enemy's spawn X position for patrol anchoring.
         """
 
+    @staticmethod
+    def check_edge_ahead(
+        enemy_rect: pygame.Rect,
+        direction: float,
+        tilemap: TileMap | None,
+    ) -> bool:
+        """Check if there is solid ground one tile ahead of the enemy.
+
+        Args:
+            enemy_rect: The enemy's current bounding box.
+            direction: Movement direction (-1.0 or 1.0).
+            tilemap: The level tilemap (None skips the check).
+
+        Returns:
+            True if there is NO ground ahead (ledge detected).
+        """
+        if tilemap is None:
+            return False
+
+        from sa_fona.level.tilemap import TILE_SIZE
+
+        if direction > 0:
+            probe_x_px = enemy_rect.right + 1
+        else:
+            probe_x_px = enemy_rect.left - 1
+
+        probe_y_px = enemy_rect.bottom
+        tile_x = probe_x_px // TILE_SIZE
+        tile_y = probe_y_px // TILE_SIZE
+
+        return not tilemap.is_solid_at(tile_x, tile_y)
+
 
 class PatrolBehavior(EnemyBehavior):
     """Walk back and forth within a patrol range.
@@ -203,46 +235,6 @@ class PatrolBehavior(EnemyBehavior):
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
 
-    def _check_edge_ahead(
-        self,
-        enemy_rect: pygame.Rect,
-        direction: float,
-        tilemap: TileMap | None,
-    ) -> bool:
-        """Check if there is solid ground one tile ahead of the enemy.
-
-        Probes the tile one step ahead horizontally and one tile below
-        the enemy's feet.  If no solid tile exists there, the enemy is
-        at a ledge.
-
-        Args:
-            enemy_rect: The enemy's current bounding box.
-            direction: Movement direction (-1.0 or 1.0).
-            tilemap: The level tilemap (None skips the check).
-
-        Returns:
-            True if there is NO ground ahead (i.e., the enemy is at
-            a ledge and should reverse).
-        """
-        if tilemap is None:
-            return False
-
-        from sa_fona.level.tilemap import TILE_SIZE
-
-        # Tile coordinate of the enemy's leading edge.
-        if direction > 0:
-            probe_x_px = enemy_rect.right + 1
-        else:
-            probe_x_px = enemy_rect.left - 1
-
-        # One tile below the enemy's feet.
-        probe_y_px = enemy_rect.bottom
-
-        tile_x = probe_x_px // TILE_SIZE
-        tile_y = probe_y_px // TILE_SIZE
-
-        return not tilemap.is_solid_at(tile_x, tile_y)
-
     def update(
         self,
         enemy_rect: pygame.Rect,
@@ -314,7 +306,7 @@ class PatrolBehavior(EnemyBehavior):
                 and tell_time > 0
             ):
                 pass  # Fall through to attack state machine below.
-            elif self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
+            elif self.check_edge_ahead(enemy_rect, chase_dir, tilemap):
                 self._direction = chase_dir
                 self._hesitation_timer = self._LEDGE_HESITATION
                 self._aggro_timer = 0.0
@@ -360,7 +352,7 @@ class PatrolBehavior(EnemyBehavior):
                 result.move_x = 1.0
 
             # Edge detection: reverse at ledges.
-            if self._check_edge_ahead(enemy_rect, self._direction, tilemap):
+            if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
                 self._direction *= -1.0
                 result.move_x = self._direction
 
@@ -441,6 +433,7 @@ class ChaseBehavior(EnemyBehavior):
     """
 
     _AGGRO_DURATION: float = 3.0
+    _LEDGE_HESITATION: float = 0.6
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
@@ -461,18 +454,26 @@ class ChaseBehavior(EnemyBehavior):
         # Aggro: temporarily extends chase range when damaged.
         self._aggro_timer: float = 0.0
 
+        # Ledge retreat.
+        self._origin_x: float = 0.0
+        self._retreating: bool = False
+        self._hesitation_timer: float = 0.0
+
     def reset(self, spawn_x: float) -> None:
         """Reset chase behavior.
 
         Args:
-            spawn_x: Unused for chase (no patrol anchor).
+            spawn_x: The enemy's spawn X position.
         """
+        self._origin_x = spawn_x
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
         self._cooldown_timer = 0.0
         self._block_timer = 0.0
         self._is_blocking = False
         self._aggro_timer = 0.0
+        self._retreating = False
+        self._hesitation_timer = 0.0
 
     def on_damaged(self, player_x: float, player_y: float) -> None:
         """React to damage by extending chase range temporarily.
@@ -481,6 +482,8 @@ class ChaseBehavior(EnemyBehavior):
             player_x: The player's X position in world pixels.
             player_y: The player's Y position in world pixels.
         """
+        if self._retreating or self._hesitation_timer > 0:
+            return
         self._aggro_timer = self._AGGRO_DURATION
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
@@ -506,6 +509,28 @@ class ChaseBehavior(EnemyBehavior):
             return True
         return False
 
+    def _apply_edge_check(
+        self,
+        result: BehaviorResult,
+        enemy_rect: pygame.Rect,
+        tilemap: TileMap | None,
+    ) -> BehaviorResult | None:
+        """If result has movement toward a ledge, trigger retreat instead.
+
+        Returns a replacement BehaviorResult if at a ledge, or None to
+        keep the original result.
+        """
+        if result.move_x == 0.0 or tilemap is None:
+            return None
+        direction = 1.0 if result.move_x > 0 else -1.0
+        if self.check_edge_ahead(enemy_rect, direction, tilemap):
+            self._hesitation_timer = self._LEDGE_HESITATION
+            ledge_result = BehaviorResult()
+            ledge_result.move_x = 0.0
+            ledge_result.speed = 0.0
+            return ledge_result
+        return None
+
     def update(
         self,
         enemy_rect: pygame.Rect,
@@ -515,11 +540,14 @@ class ChaseBehavior(EnemyBehavior):
     ) -> BehaviorResult:
         """Chase the player; attack when close enough.
 
+        Includes edge detection to prevent walking off ledges and
+        ledge retreat to return to spawn when stuck at a gap.
+
         Args:
             enemy_rect: The enemy's current bounding box.
             player_rect: The player's current bounding box.
             dt: Delta time in seconds.
-            tilemap: Optional tilemap (unused by chase behavior).
+            tilemap: Optional tilemap for edge detection.
 
         Returns:
             BehaviorResult with movement and attack data.
@@ -541,10 +569,28 @@ class ChaseBehavior(EnemyBehavior):
         if self._aggro_timer > 0:
             self._aggro_timer -= dt
 
+        # ── Ledge retreat ─────────────────────────────────────────
+        if self._hesitation_timer > 0:
+            self._hesitation_timer -= dt
+            result.move_x = 0.0
+            result.speed = 0.0
+            if self._hesitation_timer <= 0:
+                self._retreating = True
+            return result
+
+        if self._retreating:
+            dx_to_origin = self._origin_x - float(enemy_rect.x)
+            if abs(dx_to_origin) < 4.0:
+                self._retreating = False
+            else:
+                retreat_dir = 1.0 if dx_to_origin > 0 else -1.0
+                result.move_x = retreat_dir
+                result.speed = self._speed
+                return result
+
         dx_to_player = player_rect.centerx - enemy_rect.centerx
         dist_to_player = abs(dx_to_player)
 
-        # Determine facing direction toward player.
         face_dir = 1.0 if dx_to_player > 0 else -1.0
 
         # When aggroed, ignore chase_range limit.
@@ -557,17 +603,18 @@ class ChaseBehavior(EnemyBehavior):
         # Attack state machine.
         if self._attack_state == AttackState.IDLE:
             if dist_to_player < self._attack_range and self._cooldown_timer <= 0:
-                # In attack range -- attack immediately.
                 self._attack_state = AttackState.ATTACKING
-                self._attack_timer = 0.3  # Brief attack duration.
+                self._attack_timer = 0.3
                 result.attack_state = AttackState.ATTACKING
                 result.wants_attack = True
                 result.move_x = 0.0
                 result.speed = 0.0
             else:
-                # Chase toward player.
                 result.move_x = face_dir
                 result.speed = self._speed
+                ledge = self._apply_edge_check(result, enemy_rect, tilemap)
+                if ledge is not None:
+                    return ledge
 
         elif self._attack_state == AttackState.ATTACKING:
             self._attack_timer -= dt
@@ -582,9 +629,12 @@ class ChaseBehavior(EnemyBehavior):
 
         elif self._attack_state == AttackState.COOLDOWN:
             result.attack_state = AttackState.COOLDOWN
-            # Continue chasing during cooldown.
             result.move_x = face_dir
             result.speed = self._speed
+
+            ledge = self._apply_edge_check(result, enemy_rect, tilemap)
+            if ledge is not None:
+                return ledge
 
             if self._cooldown_timer <= 0:
                 self._attack_state = AttackState.IDLE

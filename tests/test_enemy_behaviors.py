@@ -563,6 +563,57 @@ class TestChaseBehavior:
         assert result.attack_state == AttackState.IDLE
         assert result.move_x == 1.0
 
+    def test_chase_stops_at_ledge(self):
+        """Chase should not walk off ledges."""
+        from unittest.mock import MagicMock
+        from sa_fona.level.tilemap import TILE_SIZE
+
+        params = {"chase_range": 6, "speed": 50}
+        chase = ChaseBehavior(params)
+        chase.reset(2 * TILE_SIZE)
+
+        tilemap = MagicMock()
+        def is_solid(tx, ty):
+            if ty == 3: return tx <= 2
+            return False
+        tilemap.is_solid_at = is_solid
+
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, 16, 16)
+        player_rect = pygame.Rect(5 * TILE_SIZE, 2 * TILE_SIZE, 24, 32)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+        assert result.move_x == 0.0
+        assert result.speed == 0.0
+
+    def test_chase_retreats_after_ledge_hesitation(self):
+        """Chase should retreat to origin after hesitating at ledge."""
+        from unittest.mock import MagicMock
+        from sa_fona.level.tilemap import TILE_SIZE
+
+        params = {"chase_range": 6, "speed": 50}
+        chase = ChaseBehavior(params)
+        chase.reset(0.0)
+
+        tilemap = MagicMock()
+        def is_solid(tx, ty):
+            if ty == 3: return tx <= 2
+            return False
+        tilemap.is_solid_at = is_solid
+
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, 16, 16)
+        player_rect = pygame.Rect(5 * TILE_SIZE, 2 * TILE_SIZE, 24, 32)
+
+        # Hit ledge, enter hesitation.
+        chase.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Advance past hesitation.
+        for _ in range(40):
+            result = chase.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Should be retreating toward origin (x=0).
+        assert result.move_x == -1.0
+        assert result.speed == 50
+
 
 class TestBehaviorFactory:
     """Tests for the behavior creation factory function."""

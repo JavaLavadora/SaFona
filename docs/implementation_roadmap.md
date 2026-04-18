@@ -1,6 +1,6 @@
 # Sa Fona -- Implementation Roadmap
 
-**Last updated**: 2026-04-17
+**Last updated**: 2026-04-18
 **Status**: Approved — In Progress
 **Maintained by**: Na Francina (Project Manager)
 
@@ -115,9 +115,14 @@ D1 (Core Engine Bootstrap)
 - DialogueBox (letter-by-letter reveal), DialogueScene (overlay), TriggerSystem (dialogue/level_end/save_point), Companion Bep (follow AI)
 - Dialogue data in JSON, interact key E/K, sample dialogue in test level
 
-### In Progress
-
-(none yet)
+**Deliverable 6: Enemies & Combat Integration** -- PR #30, Issue #29
+- Merged 2026-04-18, user signed off
+- 411 tests, all passing
+- Enemy base entity, EnemyFactory (JSON-driven), W1 enemies (possessed_sheep, rival_warrior, stone_guardian)
+- PatrolBehavior and ChaseBehavior with aggro, edge detection, ledge retreat, return-to-origin
+- CombatSystem (projectile/melee/contact damage, invincibility frames, block mechanic)
+- Sub-pixel movement accumulator, blocked-shot aggro trigger
+- GameOverScene, pickup drops on death
 
 ### Upcoming
 

@@ -8,8 +8,6 @@ into a playable experience.
 
 from __future__ import annotations
 
-import json
-
 import pygame
 
 from sa_fona.config.settings import (
@@ -101,9 +99,8 @@ class GameplayScene(BaseScene):
         # Economy system (load from data/economy.json).
         self._economy = EconomySystem(self._event_bus)
 
-        # Sling combat system.
-        economy_data = self._load_economy_data()
-        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        # Sling combat system (uses EconomySystem config as single source of truth).
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
         self._projectiles: list[Projectile] = []
         self._charge_indicator = ChargeIndicator()
 
@@ -423,23 +420,6 @@ class GameplayScene(BaseScene):
         # Remove inactive projectiles.
         self._projectiles = [p for p in self._projectiles if p.active]
 
-    # ── Economy data loading ───────────────────────────────────────
-
-    @staticmethod
-    def _load_economy_data() -> dict:
-        """Load economy.json from the data directory.
-
-        Returns:
-            Parsed JSON dict with economy configuration.
-        """
-        economy_path = DATA_DIR / "economy.json"
-        try:
-            with open(economy_path, "r") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            # Return minimal defaults if file is missing.
-            return {"sling": {}}
-
     # ── Level reset ────────────────────────────────────────────────
 
     def _reset_level(self) -> None:
@@ -466,9 +446,8 @@ class GameplayScene(BaseScene):
         self._player = Player(spawn_x, spawn_y)
         self._input_state = InputState()
 
-        # Reset combat state.
-        economy_data = self._load_economy_data()
-        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        # Reset combat state (reuse EconomySystem config).
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
 

@@ -195,6 +195,28 @@ class TileMap:
             return _TILE_COLORS.get(category, _DEFAULT_TILE_COLOR)
         return _DEFAULT_TILE_COLOR
 
+    # ── Collision helpers ─────────────────────────────────────────
+
+    def is_solid_at(self, tile_x: int, tile_y: int) -> bool:
+        """Check whether the tile at grid position (tile_x, tile_y) is solid.
+
+        Looks up the midground layer tile and checks if its ID belongs to
+        the "solid" collision category.
+
+        Args:
+            tile_x: Column index (0-based).
+            tile_y: Row index (0-based).
+
+        Returns:
+            True if the tile is solid, False otherwise (including out of
+            bounds, which counts as non-solid / air).
+        """
+        tile_id = self.get_tile_at(tile_x, tile_y, "midground")
+        if tile_id == 0:
+            return False
+        solid_ids = self._collision_types.get("solid", set())
+        return tile_id in solid_ids
+
     # ── Dimension properties ───────────────────────────────────────
 
     @property

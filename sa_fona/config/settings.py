@@ -29,11 +29,11 @@ COLORS: dict[str, tuple[int, int, int]] = {
 PLAYER_WIDTH: int = 24
 PLAYER_HEIGHT: int = 32
 PLAYER_MOVE_SPEED: float = 120.0          # px/s horizontal
-PLAYER_JUMP_FORCE: float = -280.0         # px/s upward impulse
+PLAYER_JUMP_FORCE: float = -330.0         # px/s upward impulse
 PLAYER_VARIABLE_JUMP_CUTOFF: float = 0.5  # multiply vy when jump released early
 PLAYER_WALL_SLIDE_SPEED: float = 40.0     # px/s max downward speed on wall
 PLAYER_WALL_JUMP_FORCE_X: float = 160.0   # px/s horizontal push off wall
-PLAYER_WALL_JUMP_FORCE_Y: float = -260.0  # px/s upward impulse on wall jump
+PLAYER_WALL_JUMP_FORCE_Y: float = -310.0  # px/s upward impulse on wall jump
 PLAYER_WALL_JUMP_LOCKOUT: float = 0.40    # seconds of input lockout after wall jump
 PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
@@ -49,6 +49,10 @@ PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {
     "wall_sliding": (50, 200, 200),# cyan
     "wall_jumping": (200, 50, 200),# magenta
 }
+
+# ── Combat ─────────────────────────────────────────────────────
+PLAYER_INVINCIBILITY_DURATION: float = 1.0   # seconds after taking damage
+PLAYER_BLINK_INTERVAL: float = 0.08          # seconds per blink toggle
 
 # ── Scene Colors ───────────────────────────────────────────────
 GAMEPLAY_BG_COLOR: tuple[int, int, int] = (30, 30, 50)

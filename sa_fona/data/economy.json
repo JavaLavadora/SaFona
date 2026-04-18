@@ -37,7 +37,10 @@
     "furniture": { "min": 1, "max": 3 }
   },
   "enemy_drops": {
-    "default": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.1 }
+    "default": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.1 },
+    "possessed_sheep": { "stones_min": 1, "stones_max": 2, "heart_chance": 0.1 },
+    "rival_warrior": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.15 },
+    "stone_guardian": { "stones_min": 2, "stones_max": 4, "heart_chance": 0.2 }
   },
   "prices": {
     "ensaimada": 10,

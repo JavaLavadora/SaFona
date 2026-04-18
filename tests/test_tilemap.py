@@ -128,3 +128,37 @@ class TestTileAccessors:
     def test_set_tile_at_out_of_bounds_raises(self, tilemap: TileMap) -> None:
         with pytest.raises(IndexError):
             tilemap.set_tile_at(99, 99, "midground", 1)
+
+
+class TestIsSolidAt:
+    """Tests for the is_solid_at convenience method."""
+
+    def test_solid_tile_returns_true(self, tilemap: TileMap) -> None:
+        """A tile with a solid collision ID should be solid."""
+        # (1,1) in midground is tile ID 1, which is in the solid set.
+        assert tilemap.is_solid_at(1, 1) is True
+
+    def test_empty_tile_returns_false(self, tilemap: TileMap) -> None:
+        """An empty tile (ID 0) should not be solid."""
+        assert tilemap.is_solid_at(0, 0) is False
+
+    def test_one_way_tile_is_not_solid(self, tilemap: TileMap) -> None:
+        """A one-way platform tile should not count as solid."""
+        # (2,1) in midground is tile ID 10 (one_way).
+        assert tilemap.is_solid_at(2, 1) is False
+
+    def test_hazard_tile_is_not_solid(self, tilemap: TileMap) -> None:
+        """A hazard tile should not count as solid."""
+        # (3,2) in midground is tile ID 40 (hazard).
+        assert tilemap.is_solid_at(3, 2) is False
+
+    def test_out_of_bounds_returns_false(self, tilemap: TileMap) -> None:
+        """Out-of-bounds positions should return False (air)."""
+        assert tilemap.is_solid_at(99, 99) is False
+
+    def test_solid_bottom_row(self, tilemap: TileMap) -> None:
+        """Bottom row solid tiles should be detected."""
+        # Row 2: [1, 1, 1, 40] — cols 0,1,2 are solid (ID 1).
+        assert tilemap.is_solid_at(0, 2) is True
+        assert tilemap.is_solid_at(1, 2) is True
+        assert tilemap.is_solid_at(2, 2) is True

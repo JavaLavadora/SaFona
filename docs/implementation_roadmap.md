@@ -124,6 +124,23 @@ D1 (Core Engine Bootstrap)
 - Sub-pixel movement accumulator, blocked-shot aggro trigger
 - GameOverScene, pickup drops on death
 
+**Deliverable 8: World 1 Levels (L1-L4)** -- PR #33, Issue #31
+- Merged 2026-04-18, user sign-off pending
+- 485 tests, all passing
+- 4 levels: Es Primer Pas (tutorial), Sa Cova des Foner (cave), Es Talayot Sagrat (vertical), Sa Porta des Bou (gauntlet)
+- Level progression chaining, Bep companion integration, 10 dialogue sequences
+- `--level` CLI argument for testing specific levels
+- Varied terrain design (hills, ledges, shafts, caves, pillars)
+
+**Deliverable 9: Boss System & Es Bou de Pedra** -- PR #34, Issue #32
+- Merged 2026-04-18, user sign-off pending
+- 493 tests, all passing
+- BossEntity base class with phase management, attack pattern sequencing, tell/punish state machine
+- Es Bou de Pedra: 3 phases, 6 attacks (Bull Rush, Headbutt, Ground Stomp, Rock Hurl, Frenzy Rush, Core Pulse)
+- BossScene with procedural arena, destructible pillars, intro/defeat sequences
+- Boss health bar with phase markers and smooth damage trail
+- Boss registry/factory pattern, data-driven from JSON
+
 ### Upcoming
 
 ---

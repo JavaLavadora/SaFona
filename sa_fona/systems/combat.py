@@ -207,11 +207,13 @@ class CombatSystem:
             self._event_bus.publish(
                 "attack_blocked", enemy_type=enemy.enemy_type
             )
+            enemy.behavior.on_damaged(
+                float(player.rect.centerx), float(player.rect.centery)
+            )
             return []
 
         applied = enemy.take_damage(proj.damage)
         if applied:
-            # Notify the behavior so it can aggro toward the player.
             enemy.behavior.on_damaged(
                 float(player.rect.centerx), float(player.rect.centery)
             )
@@ -243,11 +245,13 @@ class CombatSystem:
             self._event_bus.publish(
                 "attack_blocked", enemy_type=enemy.enemy_type
             )
+            enemy.behavior.on_damaged(
+                float(player.rect.centerx), float(player.rect.centery)
+            )
             return []
 
         applied = enemy.take_damage(hitbox.damage)
         if applied:
-            # Notify the behavior so it can aggro toward the player.
             enemy.behavior.on_damaged(
                 float(player.rect.centerx), float(player.rect.centery)
             )

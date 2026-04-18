@@ -600,8 +600,15 @@ class ChaseBehavior(EnemyBehavior):
         # When aggroed, ignore chase_range limit.
         effective_range = self._chase_range if self._aggro_timer <= 0 else float("inf")
         if dist_to_player > effective_range:
-            result.move_x = 0.0
-            result.speed = 0.0
+            # Out of range — return to spawn instead of idling.
+            dx_to_origin = self._origin_x - float(enemy_rect.x)
+            if abs(dx_to_origin) > 4.0:
+                return_dir = 1.0 if dx_to_origin > 0 else -1.0
+                result.move_x = return_dir
+                result.speed = self._speed
+                ledge = self._apply_edge_check(result, enemy_rect, tilemap)
+                if ledge is not None:
+                    return ledge
             return result
 
         # Attack state machine.

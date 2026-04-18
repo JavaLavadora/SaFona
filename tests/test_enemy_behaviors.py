@@ -441,13 +441,26 @@ class TestChaseBehavior:
         assert result.move_x == 1.0  # Move right toward player.
         assert result.speed == 50
 
-    def test_chase_idles_when_player_out_of_range(self):
-        """Chase should not move when the player is out of range."""
+    def test_chase_returns_to_origin_when_player_out_of_range(self):
+        """Chase should return to spawn when the player is out of range."""
         params = {"chase_range": 3, "speed": 50}
         chase = ChaseBehavior(params)
-        chase.reset(0.0)
+        chase.reset(0.0)  # Origin at x=0.
 
-        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        enemy_rect = pygame.Rect(100, 100, 16, 16)  # 100px from origin.
+        player_rect = pygame.Rect(500, 100, 24, 32)  # Far away.
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == -1.0  # Walk back toward origin.
+        assert result.speed == 50
+
+    def test_chase_idles_at_origin_when_player_out_of_range(self):
+        """Chase should idle at origin when player is out of range."""
+        params = {"chase_range": 3, "speed": 50}
+        chase = ChaseBehavior(params)
+        chase.reset(100.0)  # Origin at x=100.
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)  # At origin.
         player_rect = pygame.Rect(500, 100, 24, 32)  # Far away.
 
         result = chase.update(enemy_rect, player_rect, 1 / 60)
@@ -525,11 +538,12 @@ class TestChaseBehavior:
         """Damage should make chase pursue beyond normal chase_range."""
         params = {"chase_range": 3, "speed": 50}
         chase = ChaseBehavior(params)
-        chase.reset(0.0)
+        chase.reset(100.0)  # Origin at enemy pos.
 
         enemy_rect = pygame.Rect(100, 100, 16, 16)
         player_rect = pygame.Rect(500, 100, 24, 32)
 
+        # Out of range and at origin → idle.
         result = chase.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 0.0
 

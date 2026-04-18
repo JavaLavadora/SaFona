@@ -54,11 +54,14 @@ class GameplayScene(BaseScene):
         self._screen_width = screen_width
         self._screen_height = screen_height
 
-        # Load level.
+        # Store the level path for reloading on reset.
         if level_path is None:
             level_path = str(DATA_DIR / "levels" / "test" / "test_level.json")
+        self._level_path = level_path
+
+        # Load level.
         loader = LevelLoader()
-        self._level_data = loader.load(level_path)
+        self._level_data = loader.load(self._level_path)
         self._tilemap = self._level_data.tilemap
 
         # Physics.
@@ -122,6 +125,9 @@ class GameplayScene(BaseScene):
 
         if input_state.pause_pressed:
             self.quit_requested = True
+
+        if input_state.reset_pressed:
+            self._reset_level()
 
         # Debug: screen shake on interact.
         if input_state.interact_pressed:
@@ -213,6 +219,31 @@ class GameplayScene(BaseScene):
         wall_right = len(self._physics.check_collision(right_probe, "solid")) > 0
 
         return wall_left, wall_right
+
+    # ── Level reset ────────────────────────────────────────────────
+
+    def _reset_level(self) -> None:
+        """Reload the current level and respawn the player at the spawn point.
+
+        Used for quick testing iteration (R key).  Reloads the level
+        data, rebuilds physics and camera, and creates a fresh player.
+        """
+        loader = LevelLoader()
+        self._level_data = loader.load(self._level_path)
+        self._tilemap = self._level_data.tilemap
+
+        self._physics = PhysicsSystem(self._tilemap, gravity=PLAYER_GRAVITY)
+        self._camera = Camera(
+            self._tilemap.width_pixels,
+            self._tilemap.height_pixels,
+            self._screen_width,
+            self._screen_height,
+        )
+
+        spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
+        spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
+        self._player = Player(spawn_x, spawn_y)
+        self._input_state = InputState()
 
     # ── Event callbacks ────────────────────────────────────────────
 

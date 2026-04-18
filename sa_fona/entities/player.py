@@ -85,6 +85,14 @@ class Player(Entity):
         # opposite wall, preventing infinite same-wall climbing.
         self._wall_jump_origin_side: str | None = None
 
+        # Height-tracking for same-wall climb prevention.
+        # Records the player's Y position when a wall jump starts.
+        # If the player touches the same wall side again (without
+        # landing), wall slide/jump is only allowed if Y >= this
+        # value (i.e. equal or lower on screen).  This makes it
+        # physically impossible to gain height on the same wall.
+        self._wall_jump_origin_y: float | None = None
+
         # Cached input for the current frame.
         self._input_x: float = 0.0
         self._jump_pressed: bool = False
@@ -136,6 +144,15 @@ class Player(Entity):
         for same-wall re-grab prevention.
         """
         return self._wall_jump_origin_side
+
+    @property
+    def wall_jump_origin_y(self) -> float | None:
+        """The Y position when the player last wall-jumped, if any.
+
+        Used for height-tracking: same-wall contact is only allowed
+        if the player's Y >= this value (same height or lower).
+        """
+        return self._wall_jump_origin_y
 
     def handle_input(self, input_state: InputState) -> None:
         """Cache relevant input actions for the update step.
@@ -202,10 +219,13 @@ class Player(Entity):
         # opposite wall (allows wall-to-wall climbing).
         if on_ground:
             self._wall_jump_origin_side = None
+            self._wall_jump_origin_y = None
         elif self._wall_jump_origin_side == "left" and wall_right:
             self._wall_jump_origin_side = None
+            self._wall_jump_origin_y = None
         elif self._wall_jump_origin_side == "right" and wall_left:
             self._wall_jump_origin_side = None
+            self._wall_jump_origin_y = None
 
         # Start coyote timer when walking off a ledge (not jumping).
         if was_on_ground and not self.on_ground and self.velocity[1] >= 0:
@@ -224,6 +244,60 @@ class Player(Entity):
             self._jump_buffer_timer -= dt
         if self._wall_jump_lockout_timer > 0:
             self._wall_jump_lockout_timer -= dt
+
+    def _is_same_wall_side(self) -> bool:
+        """Check whether the player is touching the same wall they jumped from."""
+        if self._wall_jump_origin_side is None:
+            return False
+        if (
+            self._wall_jump_origin_side == "left"
+            and self._touching_wall_left
+            and not self._touching_wall_right
+        ):
+            return True
+        if (
+            self._wall_jump_origin_side == "right"
+            and self._touching_wall_right
+            and not self._touching_wall_left
+        ):
+            return True
+        return False
+
+    def _can_wall_slide(self) -> bool:
+        """Check if the player is allowed to wall slide.
+
+        Uses height tracking: after a wall jump, wall sliding on the
+        same wall is only permitted at or below the origin Y (the
+        position where the wall jump started).  This prevents gaining
+        height but allows sliding back down the same wall.
+
+        Wall-to-wall sliding is always allowed because touching the
+        opposite wall clears the origin tracking.
+        """
+        if not self._is_same_wall_side():
+            return True
+
+        # Height check: only allow slide at or below origin Y.
+        if self._wall_jump_origin_y is not None:
+            if self.rect.y < self._wall_jump_origin_y:
+                return False
+
+        return True
+
+    def _can_wall_jump(self) -> bool:
+        """Check if the player is allowed to wall jump.
+
+        After a wall jump, no further wall jumps are allowed on the
+        same wall side during the same airborne session.  This is
+        more restrictive than ``_can_wall_slide`` and completely
+        prevents same-wall climb exploits regardless of input timing.
+
+        Wall-to-wall jumping is always allowed because touching the
+        opposite wall clears the origin tracking.
+        """
+        if self._is_same_wall_side():
+            return False
+        return True
 
     def _apply_input(self) -> None:
         """Translate cached input into velocity changes."""
@@ -244,28 +318,17 @@ class Player(Entity):
             or (self._touching_wall_right and self._input_x > 0)
         )
 
-        # Prevent re-grabbing the same wall after a wall jump.
-        can_wall_slide = True
-        if self._wall_jump_origin_side is not None:
-            if (
-                self._wall_jump_origin_side == "left"
-                and self._touching_wall_left
-                and not self._touching_wall_right
-            ):
-                can_wall_slide = False
-            elif (
-                self._wall_jump_origin_side == "right"
-                and self._touching_wall_right
-                and not self._touching_wall_left
-            ):
-                can_wall_slide = False
+        # Prevent re-grabbing / re-jumping the same wall after a
+        # wall jump using side tracking + height tracking.
+        can_slide = self._can_wall_slide()
+        can_wj = self._can_wall_jump()
 
         if (
             not self.on_ground
             and touching_wall
             and pressing_into_wall
             and self.velocity[1] > 0
-            and can_wall_slide
+            and can_slide
         ):
             # Cap downward velocity to the wall-slide speed.
             self.velocity[1] = min(self.velocity[1], PLAYER_WALL_SLIDE_SPEED)
@@ -278,9 +341,16 @@ class Player(Entity):
             self.velocity[1] = PLAYER_JUMP_FORCE
             self._coyote_timer = 0.0
             self._jump_buffer_timer = 0.0
-        elif want_jump and not self.on_ground and touching_wall and not locked:
+        elif (
+            want_jump
+            and not self.on_ground
+            and touching_wall
+            and not locked
+            and can_wj
+        ):
             # Wall jump.
             self.velocity[1] = PLAYER_WALL_JUMP_FORCE_Y
+            self._wall_jump_origin_y = float(self.rect.y)
             if self._touching_wall_left:
                 self.velocity[0] = PLAYER_WALL_JUMP_FORCE_X
                 self.facing_right = True
@@ -308,28 +378,15 @@ class Player(Entity):
             or (self._touching_wall_right and self._input_x > 0)
         )
 
-        # Same-wall re-grab prevention (mirrors check in _apply_input).
-        can_wall_slide = True
-        if self._wall_jump_origin_side is not None:
-            if (
-                self._wall_jump_origin_side == "left"
-                and self._touching_wall_left
-                and not self._touching_wall_right
-            ):
-                can_wall_slide = False
-            elif (
-                self._wall_jump_origin_side == "right"
-                and self._touching_wall_right
-                and not self._touching_wall_left
-            ):
-                can_wall_slide = False
+        # Same-wall re-grab prevention (uses height-tracking helper).
+        can_slide = self._can_wall_slide()
 
         if (
             not self.on_ground
             and touching_wall
             and pressing_into_wall
             and self.velocity[1] > 0
-            and can_wall_slide
+            and can_slide
         ):
             self._state = PlayerState.WALL_SLIDING
         elif self.on_ground:

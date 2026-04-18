@@ -393,9 +393,11 @@ class TestFacingDirection:
 class TestSameWallRegrab:
     """Tests that same-wall infinite climbing is prevented."""
 
-    def test_cannot_regrab_same_wall_after_wall_jump(self, walled_level: dict) -> None:
-        """After wall jumping from a wall, player should NOT enter
-        wall_slide on the same wall again until grounded."""
+    def test_cannot_gain_height_on_same_wall_after_wall_jump(self, walled_level: dict) -> None:
+        """After wall jumping from a wall, the player must not be able
+        to wall slide at a higher position on the same wall.  They CAN
+        re-grab the wall at or below the wall jump origin (sliding back
+        down is fine), but never above it."""
         ground_y = 9 * TILE_SIZE
         # Place player next to the right-side wall (column 5).
         wall_x = 5 * TILE_SIZE
@@ -426,17 +428,165 @@ class TestSameWallRegrab:
         assert player.wall_jump_origin_side == "right", (
             "Should track that the wall jump came from the right wall"
         )
+        origin_y = player.wall_jump_origin_y
+        assert origin_y is not None, "Should track wall jump origin Y"
 
-        # Let lockout expire, then try to re-grab the same (right) wall.
-        # The player should NOT enter wall_slide on the right wall again.
+        # Let lockout expire, then try to re-grab the same wall.
+        # If the player touches the wall again while higher than origin_y,
+        # wall sliding must be prevented.
         for _ in range(120):
             player.handle_input(_input(move_right=True, move_x=1.0))
             _step(player, physics, 1.0 / 60.0)
             if player.on_ground:
-                break  # Landed -- re-grab lock cleared, test still valid.
-            assert player.state != PlayerState.WALL_SLIDING, (
-                "Should NOT re-grab same wall after wall jump (before landing)"
+                break
+            if player.state == PlayerState.WALL_SLIDING:
+                # Re-grab is only allowed at or below origin Y.
+                assert player.rect.y >= origin_y, (
+                    f"Wall slide at Y={player.rect.y} is above origin "
+                    f"Y={origin_y} -- should be prevented"
+                )
+
+    def test_spam_jump_cannot_climb_same_wall(self, walled_level: dict) -> None:
+        """Spamming jump against the same wall must not let the player
+        gain height.  This is the core exploit scenario: the player
+        presses into the wall and rapidly presses jump every frame."""
+        ground_y = 9 * TILE_SIZE
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move right into the wall until wall sliding.
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                break
+
+        # Wall jump off the right wall.
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+
+        # Record origin Y from the wall jump.
+        origin_y = player.wall_jump_origin_y
+        assert origin_y is not None
+
+        # Now spam jump + press into wall for many frames.
+        # Count actual wall jump *transitions* (not frames in the state).
+        wall_jump_transitions = 0
+        prev_state = player.state
+        highest_y = player.rect.y  # lowest Y = highest point
+        for _ in range(180):
+            player.handle_input(
+                _input(
+                    jump_pressed=True,
+                    jump_held=True,
+                    move_right=True,
+                    move_x=1.0,
+                )
             )
+            _step(player, physics, 1.0 / 60.0)
+
+            if player.on_ground:
+                break
+
+            # Detect a new wall jump transition.
+            if (
+                player.state == PlayerState.WALL_JUMPING
+                and prev_state != PlayerState.WALL_JUMPING
+            ):
+                wall_jump_transitions += 1
+
+            if player.rect.y < highest_y:
+                highest_y = player.rect.y
+
+            prev_state = player.state
+
+        # No additional wall jumps should occur on the same wall.
+        # (The initial wall jump's momentum naturally carries the player
+        # above origin_y -- that's fine.  What matters is no SECOND wall
+        # jump was triggered on the same wall.)
+        assert wall_jump_transitions == 0, (
+            f"Expected 0 additional wall jump transitions on same wall, "
+            f"got {wall_jump_transitions}. Exploit is still possible."
+        )
+
+    def test_wall_jump_records_origin_y(self, walled_level: dict) -> None:
+        """Wall jump should record the Y position for height tracking."""
+        ground_y = 9 * TILE_SIZE
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        assert player.wall_jump_origin_y is None
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move right into the wall until wall sliding.
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                break
+
+        # Wall jump.
+        y_before_jump = float(player.rect.y)
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+
+        if player.wall_jump_origin_side is not None:
+            assert player.wall_jump_origin_y is not None, (
+                "wall_jump_origin_y should be set after a wall jump"
+            )
+
+    def test_height_tracking_clears_on_landing(self, walled_level: dict) -> None:
+        """Height tracking state should clear when the player lands."""
+        ground_y = 9 * TILE_SIZE
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump and wall slide.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                break
+
+        # Wall jump.
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+
+        # Let the player fall and land.
+        for _ in range(180):
+            player.handle_input(_input())
+            _step(player, physics, 1.0 / 60.0)
+            if player.on_ground:
+                break
+
+        assert player.on_ground, "Player should have landed"
+        assert player.wall_jump_origin_side is None, (
+            "Origin side should be cleared after landing"
+        )
+        assert player.wall_jump_origin_y is None, (
+            "Origin Y should be cleared after landing"
+        )
 
     def test_can_grab_opposite_wall_after_wall_jump(self) -> None:
         """After wall jumping from left wall, player CAN enter

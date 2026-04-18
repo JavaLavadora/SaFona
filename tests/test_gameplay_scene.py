@@ -78,6 +78,62 @@ class TestGameplaySceneRender:
         scene.update(1.0 / 60.0)
 
 
+class TestGameplaySceneReset:
+    """Tests for the R key level reset."""
+
+    def test_reset_respawns_player_at_spawn(self, scene: GameplayScene) -> None:
+        """Pressing reset should move the player back to the spawn point."""
+        scene.on_enter()
+
+        # Record initial spawn position.
+        initial_x = scene.player.rect.x
+        initial_y = scene.player.rect.y
+
+        # Move the player around.
+        for _ in range(30):
+            scene.handle_input(InputState(move_right=True, move_x=1.0))
+            scene.update(1.0 / 60.0)
+
+        assert scene.player.rect.x != initial_x, "Player should have moved"
+
+        # Press reset.
+        scene.handle_input(InputState(reset_pressed=True))
+
+        # Player should be back at spawn.
+        assert scene.player.rect.x == initial_x
+        assert scene.player.rect.y == initial_y
+
+    def test_reset_clears_player_velocity(self, scene: GameplayScene) -> None:
+        """After reset, the player should have zero velocity."""
+        scene.on_enter()
+
+        # Give the player some velocity.
+        scene.handle_input(InputState(jump_pressed=True, jump_held=True))
+        scene.update(1.0 / 60.0)
+        assert scene.player.velocity[1] != 0.0
+
+        # Reset.
+        scene.handle_input(InputState(reset_pressed=True))
+        assert scene.player.velocity == [0.0, 0.0]
+
+    def test_reset_creates_fresh_player(self, scene: GameplayScene) -> None:
+        """After reset, the player should be in IDLE state."""
+        scene.on_enter()
+
+        # Jump to change state.
+        empty = InputState()
+        for _ in range(30):
+            scene.handle_input(empty)
+            scene.update(1.0 / 60.0)
+        scene.handle_input(InputState(jump_pressed=True, jump_held=True))
+        scene.update(1.0 / 60.0)
+        assert scene.player.state != PlayerState.IDLE
+
+        # Reset.
+        scene.handle_input(InputState(reset_pressed=True))
+        assert scene.player.state == PlayerState.IDLE
+
+
 class TestGameplaySceneLifecycle:
     """Tests for scene lifecycle hooks."""
 

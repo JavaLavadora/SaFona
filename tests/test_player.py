@@ -225,8 +225,8 @@ class TestWallJump:
             player.handle_input(_input(move_right=True, move_x=1.0))
             _step(player, physics, 1.0 / 60.0)
 
-        # Nintendo-style: press AWAY from the right wall (left) + jump.
-        player.handle_input(_input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0))
+        # Press INTO the right wall (right) + jump.
+        player.handle_input(_input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0))
         _step(player, physics, 1.0 / 60.0)
 
         # If wall jump triggered, velocity should be upward and pushing left.
@@ -250,17 +250,17 @@ class TestWallJump:
             player.handle_input(_input(move_left=True, move_x=-1.0))
             _step(player, physics, 1.0 / 60.0)
 
-        # Nintendo-style: press AWAY from the left wall (right) + jump.
-        player.handle_input(_input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0))
+        # Press INTO the left wall (left) + jump.
+        player.handle_input(_input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0))
         _step(player, physics, 1.0 / 60.0)
 
         if player.state == PlayerState.WALL_JUMPING:
             assert player.velocity[1] < 0
             assert player.velocity[0] > 0, "Wall jump off left wall pushes right"
 
-    def test_wall_jump_requires_away_direction(self, walled_level: dict) -> None:
-        """Pressing jump WITHOUT the away direction while wall sliding
-        should NOT trigger a wall jump (Nintendo-style)."""
+    def test_wall_jump_requires_into_direction(self, walled_level: dict) -> None:
+        """Pressing jump with the AWAY direction while wall sliding
+        should NOT trigger a wall jump."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
         px = wall_x - 24 - 1
@@ -280,46 +280,46 @@ class TestWallJump:
 
         assert player.state == PlayerState.WALL_SLIDING
 
-        # Press jump while pressing INTO the wall (same direction).
+        # Press jump while pressing AWAY from the wall (left direction).
         # This should NOT produce a wall jump.
-        player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
-        )
-        _step(player, physics, 1.0 / 60.0)
-        assert player.state != PlayerState.WALL_JUMPING, (
-            "Pressing jump + same direction as wall should NOT wall jump"
-        )
-
-    def test_wall_jump_with_away_direction_works(self, walled_level: dict) -> None:
-        """Pressing away from the wall + jump while wall sliding should
-        trigger a wall jump (Nintendo-style)."""
-        ground_y = 9 * TILE_SIZE
-        wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
-        player, physics = _make_player(walled_level, px, ground_y - 32)
-        _settle_on_ground(player, physics)
-
-        # Jump up.
-        player.handle_input(_input(jump_pressed=True, jump_held=True))
-        _step(player, physics, 1.0 / 60.0)
-
-        # Move right into the wall until wall sliding.
-        for _ in range(60):
-            player.handle_input(_input(move_right=True, move_x=1.0))
-            _step(player, physics, 1.0 / 60.0)
-            if player.state == PlayerState.WALL_SLIDING:
-                break
-
-        assert player.state == PlayerState.WALL_SLIDING
-
-        # Press jump + AWAY from the right wall (left direction).
         player.handle_input(
             _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
         )
         _step(player, physics, 1.0 / 60.0)
+        assert player.state != PlayerState.WALL_JUMPING, (
+            "Pressing jump + away direction from wall should NOT wall jump"
+        )
+
+    def test_wall_jump_with_into_direction_works(self, walled_level: dict) -> None:
+        """Pressing into the wall + jump while wall sliding should
+        trigger a wall jump."""
+        ground_y = 9 * TILE_SIZE
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move right into the wall until wall sliding.
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                break
+
+        assert player.state == PlayerState.WALL_SLIDING
+
+        # Press jump + INTO the right wall (right direction).
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
 
         assert player.state == PlayerState.WALL_JUMPING, (
-            "Pressing jump + away direction should trigger wall jump"
+            "Pressing jump + into direction should trigger wall jump"
         )
         assert player.velocity[1] < 0, "Wall jump should give upward velocity"
         assert player.velocity[0] < 0, "Wall jump off right wall pushes left"
@@ -526,9 +526,9 @@ class TestSameWallRegrab:
 
         assert entered_wall_slide, "Should enter wall slide on right wall"
 
-        # Nintendo-style: press AWAY from the right wall (left) + jump.
+        # Press INTO the right wall (right) + jump.
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
         assert player.wall_jump_origin_side == "right", (
@@ -574,9 +574,9 @@ class TestSameWallRegrab:
             if player.state == PlayerState.WALL_SLIDING:
                 break
 
-        # Nintendo-style wall jump off the right wall (press left + jump).
+        # Wall jump off the right wall (press right/into + jump).
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
 
@@ -584,33 +584,22 @@ class TestSameWallRegrab:
         first_origin_y = player.wall_jump_origin_y
         assert first_origin_y is not None
 
-        # Now alternate: press into wall to re-grab, then press away +
-        # jump to wall jump again.  Track the origin Y of any subsequent
-        # same-wall jumps.
+        # Now spam: press into wall + jump each frame.  When wall
+        # sliding, pressing into + jump triggers a wall jump.  When
+        # airborne/not sliding, pressing into tries to re-grab.
         prev_state = player.state
         for i in range(180):
-            # Alternate between pressing into the wall (to re-grab) and
-            # pressing away + jump (to attempt a wall jump).
-            if player.state == PlayerState.WALL_SLIDING:
-                # Press away + jump to attempt wall jump.
-                player.handle_input(
-                    _input(
-                        jump_pressed=True,
-                        jump_held=True,
-                        move_left=True,
-                        move_x=-1.0,
-                    )
+            # Always press into the right wall + jump.
+            # When wall sliding this triggers the wall jump;
+            # otherwise it attempts to re-grab the wall.
+            player.handle_input(
+                _input(
+                    jump_pressed=True,
+                    jump_held=True,
+                    move_right=True,
+                    move_x=1.0,
                 )
-            else:
-                # Press into wall to re-grab.
-                player.handle_input(
-                    _input(
-                        jump_pressed=True,
-                        jump_held=True,
-                        move_right=True,
-                        move_x=1.0,
-                    )
-                )
+            )
             _step(player, physics, 1.0 / 60.0)
 
             if player.on_ground:
@@ -651,10 +640,10 @@ class TestSameWallRegrab:
             if player.state == PlayerState.WALL_SLIDING:
                 break
 
-        # Nintendo-style wall jump: press AWAY (left) + jump.
+        # Wall jump: press INTO (right) + jump.
         y_before_jump = float(player.rect.y)
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
 
@@ -680,9 +669,9 @@ class TestSameWallRegrab:
             if player.state == PlayerState.WALL_SLIDING:
                 break
 
-        # Nintendo-style wall jump: press AWAY (left) + jump.
+        # Wall jump: press INTO (right) + jump.
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
 
@@ -725,9 +714,9 @@ class TestSameWallRegrab:
 
         assert player.state == PlayerState.WALL_SLIDING
 
-        # Nintendo-style wall jump off the right wall (press left + jump).
+        # Wall jump off the right wall (press right/into + jump).
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
         assert player.wall_jump_origin_side == "right"
@@ -754,9 +743,9 @@ class TestSameWallRegrab:
             "after sliding back down to or below origin Y"
         )
 
-        # Nintendo-style wall jump again from the same wall (press left + jump).
+        # Wall jump again from the same wall (press right/into + jump).
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
         )
         _step(player, physics, 1.0 / 60.0)
 
@@ -811,9 +800,9 @@ class TestSameWallRegrab:
 
         assert entered_wall_slide, "Should enter wall slide on left wall"
 
-        # Nintendo-style wall jump off the left wall: press AWAY (right) + jump.
+        # Wall jump off the left wall: press INTO (left) + jump.
         player.handle_input(
-            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
         )
         _step(player, physics, 1.0 / 60.0)
         assert player.wall_jump_origin_side == "left", (

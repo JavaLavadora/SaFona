@@ -354,14 +354,12 @@ class Player(Entity):
             and not locked
             and can_wj
         ):
-            # Nintendo-style wall jump: requires pressing AWAY from the
-            # wall plus jump.  If just jump is pressed (no direction or
-            # same direction as wall), the player detaches and falls.
-            pressing_away = (
-                (self._touching_wall_left and self._input_x > 0)
-                or (self._touching_wall_right and self._input_x < 0)
-            )
-            if pressing_away:
+            # Wall jump: requires pressing INTO the wall plus jump.
+            # The player is already holding into the wall to maintain
+            # the wall slide, so they just add jump.  If just jump is
+            # pressed (no direction or away direction), the player
+            # detaches and falls.
+            if pressing_into_wall:
                 # Wall jump.
                 self.velocity[1] = PLAYER_WALL_JUMP_FORCE_Y
                 self._wall_jump_origin_y = float(self.rect.y)

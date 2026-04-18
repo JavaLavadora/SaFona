@@ -103,6 +103,18 @@ D1 (Core Engine Bootstrap)
 - economy.json with data-driven sling config, SlingSystem decoupled from Player
 - Attack keys: J/Z
 
+**Deliverable 5: HUD, Pickups & Economy** -- PR #27, Issue #26
+- Merged 2026-04-18, user signed off
+- 347 tests (with D7), all passing
+- EconomySystem (stone tracking, snapshot/restore), HUD (hearts + stone count), Pickup entities (heart/stone), Breakable entities (pots/crates)
+- economy.json extended with drops, prices, pickup values. Single source of truth fix per architecture review.
+
+**Deliverable 7: Dialogue System & Companion** -- PR #28, Issue #25
+- Merged 2026-04-18, user signed off
+- 347 tests (with D5), all passing
+- DialogueBox (letter-by-letter reveal), DialogueScene (overlay), TriggerSystem (dialogue/level_end/save_point), Companion Bep (follow AI)
+- Dialogue data in JSON, interact key E/K, sample dialogue in test level
+
 ### In Progress
 
 (none yet)

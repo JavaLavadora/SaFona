@@ -276,10 +276,15 @@ class PatrolBehavior(EnemyBehavior):
             # Face toward the player's current position (live tracking).
             chase_dir = 1.0 if dx_to_player > 0 else -1.0
 
-            # Edge detection: reverse at ledges even during aggro.
+            # Edge detection: stop at ledges but stay aggroed.
             if self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
-                # At a ledge — stop chasing, cancel aggro early.
-                self._aggro_timer = 0.0
+                # At a ledge — wait here, but keep aggro active so
+                # the enemy resumes chasing if the player gets closer
+                # or if the path clears.
+                self._direction = chase_dir
+                result.move_x = 0.0
+                result.speed = 0.0
+                return result
             else:
                 self._direction = chase_dir
                 result.move_x = chase_dir

@@ -291,8 +291,8 @@ class TestPatrolEdgeDetection:
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 1.0
 
-    def test_aggro_cancels_at_ledge(self):
-        """Aggro chase should cancel when facing a ledge."""
+    def test_aggro_stops_at_ledge_but_stays_aggroed(self):
+        """Aggro chase should stop moving at a ledge but remain aggroed."""
         params = {"patrol_range": 10, "speed": 40}
         patrol = PatrolBehavior(params)
         patrol.reset(0.0)
@@ -305,11 +305,14 @@ class TestPatrolEdgeDetection:
 
         patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
 
-        # Update with tilemap -- should detect ledge and cancel aggro.
+        # Update with tilemap -- should detect ledge and stop, but stay aggroed.
         result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
 
-        # Aggro should have been cancelled.
-        assert patrol.aggro_timer == 0
+        # Aggro should still be active (enemy waits at ledge).
+        assert patrol.aggro_timer > 0
+        # Enemy should stop moving (not walk off the ledge).
+        assert result.move_x == 0.0
+        assert result.speed == 0.0
 
 
 class TestChaseBehavior:

@@ -499,16 +499,38 @@ class TestFacingDirection:
 class TestSameWallRegrab:
     """Tests that same-wall infinite climbing is prevented."""
 
-    def test_cannot_gain_height_on_same_wall_after_wall_jump(self, walled_level: dict) -> None:
+    @staticmethod
+    def _wide_walled_level() -> dict:
+        """A wider walled level so wall jump arc can't reach the opposite wall.
+
+        Layout (16 wide, 10 tall): wall at col 0, wall at col 12, ground row 9.
+        """
+        rows = []
+        for r in range(10):
+            if r < 9:
+                row = [0] * 16
+                row[0] = 1    # left wall
+                row[12] = 1   # right wall (far enough away)
+                rows.append(row)
+            else:
+                rows.append([1] * 16)  # ground
+        return {
+            "dimensions": {"width": 16, "height": 10},
+            "layers": {"midground": rows},
+            "collision_types": {"solid": [1], "one_way": [10]},
+        }
+
+    def test_cannot_gain_height_on_same_wall_after_wall_jump(self) -> None:
         """After wall jumping from a wall, the player must not be able
         to wall slide at a higher position on the same wall.  They CAN
         re-grab the wall at or below the wall jump origin (sliding back
         down is fine), but never above it."""
+        wide_level = self._wide_walled_level()
         ground_y = 9 * TILE_SIZE
-        # Place player next to the right-side wall (column 5).
-        wall_x = 5 * TILE_SIZE
+        # Place player next to the right-side wall (column 12).
+        wall_x = 12 * TILE_SIZE
         px = wall_x - 24 - 1
-        player, physics = _make_player(walled_level, px, ground_y - 32)
+        player, physics = _make_player(wide_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
         # Jump up.

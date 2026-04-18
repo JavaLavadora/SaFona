@@ -287,17 +287,23 @@ class Player(Entity):
     def _can_wall_jump(self) -> bool:
         """Check if the player is allowed to wall jump.
 
-        After a wall jump, no further wall jumps are allowed on the
-        same wall side during the same airborne session.  This is
-        more restrictive than ``_can_wall_slide`` and completely
-        prevents same-wall climb exploits regardless of input timing.
+        After a wall jump, same-wall jumping is only allowed if the
+        player has slid back down to or below the previous wall jump
+        origin Y.  Each successive same-wall jump updates the origin,
+        ensuring net downward movement and preventing infinite climbing.
 
         Wall-to-wall jumping is always allowed because touching the
         opposite wall clears the origin tracking.
         """
-        if self._is_same_wall_side():
-            return False
-        return True
+        if not self._is_same_wall_side():
+            return True
+
+        # Height check: allow wall jump only at or below origin Y.
+        if self._wall_jump_origin_y is not None:
+            if self.rect.y >= self._wall_jump_origin_y:
+                return True
+
+        return False
 
     def _apply_input(self) -> None:
         """Translate cached input into velocity changes."""

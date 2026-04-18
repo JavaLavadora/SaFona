@@ -448,8 +448,9 @@ class TestSameWallRegrab:
 
     def test_spam_jump_cannot_climb_same_wall(self, walled_level: dict) -> None:
         """Spamming jump against the same wall must not let the player
-        gain height.  This is the core exploit scenario: the player
-        presses into the wall and rapidly presses jump every frame."""
+        gain height above the original wall jump origin.  Same-wall
+        rejumps are allowed at descending heights, but the player must
+        never reach above the first wall jump's origin Y."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
         px = wall_x - 24 - 1
@@ -473,15 +474,13 @@ class TestSameWallRegrab:
         )
         _step(player, physics, 1.0 / 60.0)
 
-        # Record origin Y from the wall jump.
-        origin_y = player.wall_jump_origin_y
-        assert origin_y is not None
+        # Record origin Y from the first wall jump.
+        first_origin_y = player.wall_jump_origin_y
+        assert first_origin_y is not None
 
         # Now spam jump + press into wall for many frames.
-        # Count actual wall jump *transitions* (not frames in the state).
-        wall_jump_transitions = 0
+        # Track the origin Y of any subsequent same-wall jumps.
         prev_state = player.state
-        highest_y = player.rect.y  # lowest Y = highest point
         for _ in range(180):
             player.handle_input(
                 _input(
@@ -496,26 +495,19 @@ class TestSameWallRegrab:
             if player.on_ground:
                 break
 
-            # Detect a new wall jump transition.
+            # If a new wall jump fires, its origin must be at or below
+            # the first wall jump (no net height gain).
             if (
                 player.state == PlayerState.WALL_JUMPING
                 and prev_state != PlayerState.WALL_JUMPING
             ):
-                wall_jump_transitions += 1
-
-            if player.rect.y < highest_y:
-                highest_y = player.rect.y
+                assert player.wall_jump_origin_y >= first_origin_y, (
+                    f"Same-wall rejump at Y={player.wall_jump_origin_y} "
+                    f"is above first origin Y={first_origin_y} -- "
+                    f"climbing exploit is possible"
+                )
 
             prev_state = player.state
-
-        # No additional wall jumps should occur on the same wall.
-        # (The initial wall jump's momentum naturally carries the player
-        # above origin_y -- that's fine.  What matters is no SECOND wall
-        # jump was triggered on the same wall.)
-        assert wall_jump_transitions == 0, (
-            f"Expected 0 additional wall jump transitions on same wall, "
-            f"got {wall_jump_transitions}. Exploit is still possible."
-        )
 
     def test_wall_jump_records_origin_y(self, walled_level: dict) -> None:
         """Wall jump should record the Y position for height tracking."""
@@ -586,6 +578,75 @@ class TestSameWallRegrab:
         )
         assert player.wall_jump_origin_y is None, (
             "Origin Y should be cleared after landing"
+        )
+
+    def test_can_wall_jump_same_wall_when_lower(self, walled_level: dict) -> None:
+        """After wall jumping from a wall and sliding back down to at or
+        below the origin Y, the player should be able to wall jump again
+        from the same wall.  The new jump updates the origin Y so each
+        successive jump starts lower."""
+        ground_y = 9 * TILE_SIZE
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move right into the wall until wall sliding.
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                break
+
+        assert player.state == PlayerState.WALL_SLIDING
+
+        # Wall jump off the right wall.
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+        assert player.wall_jump_origin_side == "right"
+        first_origin_y = player.wall_jump_origin_y
+        assert first_origin_y is not None
+
+        # Let the player arc away and then slide back down onto the same
+        # wall.  We stop pressing jump so the player falls back naturally.
+        reached_wall_slide = False
+        for _ in range(180):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.on_ground:
+                break
+            if (
+                player.state == PlayerState.WALL_SLIDING
+                and player.rect.y >= first_origin_y
+            ):
+                reached_wall_slide = True
+                break
+
+        assert reached_wall_slide, (
+            "Player should be able to wall slide on the same wall "
+            "after sliding back down to or below origin Y"
+        )
+
+        # Now wall jump again from the same wall -- this should work.
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+
+        assert player.state == PlayerState.WALL_JUMPING, (
+            "Should be able to wall jump from the same wall when at or "
+            "below the previous origin Y"
+        )
+        # New origin should be at or below the first.
+        assert player.wall_jump_origin_y >= first_origin_y, (
+            f"New origin Y={player.wall_jump_origin_y} should be >= "
+            f"first origin Y={first_origin_y}"
         )
 
     def test_can_grab_opposite_wall_after_wall_jump(self) -> None:

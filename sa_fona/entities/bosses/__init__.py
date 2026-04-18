@@ -1,0 +1,1 @@
+"""Boss entity implementations."""

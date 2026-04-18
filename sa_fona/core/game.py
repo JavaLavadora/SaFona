@@ -47,8 +47,14 @@ class Game:
         sprite_renderer: Generates and caches placeholder sprite surfaces.
     """
 
-    def __init__(self) -> None:
-        """Initialise Pygame and create the game window."""
+    def __init__(self, level_path: str | None = None) -> None:
+        """Initialise Pygame and create the game window.
+
+        Args:
+            level_path: Optional explicit path to a level JSON file.
+                If ``None``, tries World 1 Level 1, then falls back to
+                the test level.
+        """
         pygame.init()
 
         window_width = BASE_WIDTH * WINDOW_SCALE
@@ -75,9 +81,14 @@ class Game:
             full_manifest = json.load(fh)
         self.sprite_renderer = SpriteRenderer(full_manifest.get("sprites", {}))
 
+        # Resolve the starting level.
+        if level_path is None:
+            level_path = self._resolve_starting_level()
+
         # Push the gameplay scene as the initial scene.
         gameplay_scene = GameplayScene(
             BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
+            level_path=level_path,
         )
         gameplay_scene.scene_manager = self.scene_manager
         self.scene_manager.push(gameplay_scene)
@@ -139,6 +150,25 @@ class Game:
         self.scene_manager.render(surface)
         self.scaler.present(self.display)
         pygame.display.flip()
+
+    @staticmethod
+    def _resolve_starting_level() -> str | None:
+        """Find the best starting level.
+
+        Prefers World 1 Level 1 if it exists, otherwise falls back to the
+        test level. Returns ``None`` when no level file is found (the
+        GameplayScene will then use its own default).
+
+        Returns:
+            Filesystem path to the level JSON, or ``None``.
+        """
+        w1_l1 = DATA_DIR / "levels" / "world1" / "level_1_1.json"
+        if w1_l1.exists():
+            return str(w1_l1)
+        test_level = DATA_DIR / "levels" / "test" / "test_level.json"
+        if test_level.exists():
+            return str(test_level)
+        return None
 
     @staticmethod
     def _print_display_info(width: int, height: int) -> None:

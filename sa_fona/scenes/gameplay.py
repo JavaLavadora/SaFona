@@ -22,6 +22,7 @@ from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.breakable import Breakable
+from sa_fona.entities.companion import Companion
 from sa_fona.entities.enemy import Enemy, EnemyFactory
 from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
@@ -130,6 +131,11 @@ class GameplayScene(BaseScene):
         self._breakables: list[Breakable] = []
         self._spawn_entities()
 
+        # Companion (Bep).
+        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
+        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
+        self._companion = Companion(comp_x, comp_y)
+
         # Trigger system.
         self._trigger_system = TriggerSystem(self._event_bus)
         self._trigger_system.load_from_list(
@@ -144,6 +150,9 @@ class GameplayScene(BaseScene):
 
         # Track pending game over (deferred to end of update).
         self._pending_game_over: bool = False
+
+        # Track pending level transition (deferred to end of update).
+        self._pending_next_level: str | None = None
 
         # Scene manager reference (set externally by Game or tests).
         self._scene_manager = None
@@ -214,6 +223,11 @@ class GameplayScene(BaseScene):
     def trigger_system(self) -> TriggerSystem:
         """The trigger system (exposed for testing)."""
         return self._trigger_system
+
+    @property
+    def companion(self) -> Companion:
+        """The companion entity (Bep), exposed for testing."""
+        return self._companion
 
     @property
     def scene_manager(self):
@@ -329,6 +343,10 @@ class GameplayScene(BaseScene):
         # 13. Check triggers.
         self._trigger_system.update(self._player.rect)
 
+        # 14. Update companion (Bep follows Ramon).
+        self._companion.follow(self._player.rect, dt)
+        self._companion.update(dt)
+
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
@@ -341,6 +359,12 @@ class GameplayScene(BaseScene):
         if self._pending_game_over:
             self._pending_game_over = False
             self._push_game_over()
+
+        # 16. Transition to next level if level_end trigger fired.
+        if self._pending_next_level is not None:
+            next_level = self._pending_next_level
+            self._pending_next_level = None
+            self._load_next_level(next_level)
 
     def render(self, surface: pygame.Surface) -> None:
         """Draw tilemap layers, player, enemies, projectiles, pickups, and UI.
@@ -362,6 +386,9 @@ class GameplayScene(BaseScene):
         # Pickups.
         for pickup in self._pickups:
             pickup.render(surface, cam_offset)
+
+        # Companion (Bep).
+        self._companion.render(surface, cam_offset)
 
         # Enemies.
         for enemy in self._enemies:
@@ -589,6 +616,11 @@ class GameplayScene(BaseScene):
         # Reset combat system health tracking.
         self._combat.set_player_health(starting_hearts, int(starting_hearts))
 
+        # Reset companion.
+        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
+        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
+        self._companion = Companion(comp_x, comp_y)
+
         # Reset triggers.
         self._trigger_system.reset()
         self._trigger_system.load_from_list(
@@ -596,6 +628,36 @@ class GameplayScene(BaseScene):
         )
         self._pending_dialogue_id = None
         self._pending_game_over = False
+        self._pending_next_level = None
+
+    # ── Level progression ─────────────────────────────────────────
+
+    def _load_next_level(self, next_level: str) -> None:
+        """Load the next level by its relative path identifier.
+
+        The ``next_level`` string is a path relative to the levels data
+        directory (e.g. ``"world1/level_1_2"``).  This method resolves it
+        to a full filesystem path and replaces the current scene.
+
+        Args:
+            next_level: Relative level identifier (without ``.json`` extension).
+        """
+        level_path = str(DATA_DIR / "levels" / f"{next_level}.json")
+
+        import os
+        if not os.path.isfile(level_path):
+            # Level file does not exist yet -- stay on current level.
+            return
+
+        if self._scene_manager is not None:
+            new_scene = GameplayScene(
+                self._screen_width,
+                self._screen_height,
+                event_bus=self._event_bus,
+                level_path=level_path,
+            )
+            new_scene.scene_manager = self._scene_manager
+            self._scene_manager.replace(new_scene)
 
     # ── Event callbacks ────────────────────────────────────────────
 
@@ -628,13 +690,18 @@ class GameplayScene(BaseScene):
     def _on_trigger_level_end(self, trigger=None) -> None:
         """Handle level_end trigger events.
 
-        For now, publishes a level_complete event. Full level transition
-        will be implemented in a later deliverable.
+        If the trigger specifies a ``next_level`` property, defers a level
+        transition to the end of the current frame.  Also publishes a
+        ``level_complete`` event for any interested listeners.
 
         Args:
             trigger: The Trigger instance that fired.
         """
         self._event_bus.publish("level_complete")
+        if trigger is not None:
+            next_level = trigger.properties.get("next_level", "")
+            if next_level:
+                self._pending_next_level = next_level
 
     def _on_trigger_save_point(self, trigger=None) -> None:
         """Handle save_point trigger events.

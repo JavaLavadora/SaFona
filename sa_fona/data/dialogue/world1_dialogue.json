@@ -32,6 +32,26 @@
       }
     ]
   },
+  "w1_l1_jump_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Jump, Ramon! You've done it a thousand times!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Don't remind me.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
   "w1_l1_wall_jump_hint": {
     "trigger": "area",
     "skippable": true,
@@ -39,7 +59,221 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "That wall looks climbable. Try jumping against it!",
+        "text": "That wall looks climbable... if you jump at it!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Press into a wall and jump to wall-jump. It might lead somewhere good!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l1_sheep_encounter": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "Ramon, look out! That sheep has glowing red eyes!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Possessed livestock. Just my luck.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Try hitting it with your sling! Press J to swing it!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l2_cave_entrance": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "It's dark in there! I'll stay close.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_neutral",
+        "text": "Sa Cova des Foner... the slinger's cave. My ancestors trained here.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l2_warrior_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "He's blocking! Try hitting him harder... or from the side!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Hold J to charge your sling for a stronger shot!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l2_charge_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "That target is too far for a normal swing...",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Maybe if you hold the sling longer... try holding J until it glows bright!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l3_wall_jump_mandatory": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "We need to go UP! Try jumping off the walls!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Es Talayot Sagrat... my people built these. Never thought I'd climb one from the inside.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l3_guardian_warning": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "That one's big! Watch out for its swing!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Stone guardians hit hard but they're slow. Watch for the wind-up!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l3_cracked_floor": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "The ground here looks crumbly... but nothing happens when we jump on it.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Needs more force than my feet. We'll come back.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l4_approach": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "Something feels wrong here... the ground is shaking.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_neutral",
+        "text": "Sa Porta des Bou. The gate of the bull. Stay close.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l4_calm_before_storm": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "There's a lot of supplies here. Stock up before we go further.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Someone left these here for a reason. Probably a warning.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l4_tremor": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "The pillars... they're carved with bulls! And the ground won't stop shaking!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_neutral",
+        "text": "Es Bou de Pedra is beyond that gate. Ready your stones.",
         "sfx": null,
         "auto_advance_ms": null
       }

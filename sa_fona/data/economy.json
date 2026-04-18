@@ -14,5 +14,38 @@
     "tap_duration": 0.1,
     "projectile_width": 8,
     "projectile_height": 8
+  },
+  "health": {
+    "starting_hearts": 3,
+    "max_hearts_cap": 8,
+    "heart_upgrade_costs": [40, 75, 120, 175, 240],
+    "half_heart_value": 0.5
+  },
+  "consumables": {
+    "ensaimada": {
+      "display_name": "Ensaimada",
+      "effect": "heal",
+      "heal_amount": 2.0,
+      "price": 10,
+      "unlock_world": 1
+    }
+  },
+  "stone_drops": {
+    "breakable_pot": { "min": 1, "max": 3 },
+    "breakable_crate": { "min": 2, "max": 4 },
+    "grass_tuft": { "min": 0, "max": 2 },
+    "furniture": { "min": 1, "max": 3 }
+  },
+  "enemy_drops": {
+    "default": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.1 }
+  },
+  "prices": {
+    "ensaimada": 10,
+    "heart_upgrade_1": 40,
+    "heart_upgrade_2": 75
+  },
+  "pickup_values": {
+    "heart": 1.0,
+    "stone": 1
   }
 }

@@ -2,13 +2,11 @@
 
 This scene replaces DemoTilemapScene as the default entry point for
 the game.  It wires together the Player entity, PhysicsSystem, Camera,
-SlingSystem, TriggerSystem, Companion, and TileMap into a playable
-experience.
+SlingSystem, EconomySystem, TriggerSystem, HUD, Pickups, Breakables,
+Companion, and TileMap into a playable experience.
 """
 
 from __future__ import annotations
-
-import json
 
 import pygame
 
@@ -23,16 +21,20 @@ from sa_fona.config.settings import (
 from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
+from sa_fona.entities.breakable import Breakable
 from sa_fona.entities.companion import Companion
+from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.level.trigger import TriggerSystem
 from sa_fona.scenes.base_scene import BaseScene
+from sa_fona.systems.economy import EconomySystem
 from sa_fona.systems.physics import PhysicsSystem
 from sa_fona.systems.sling_system import SlingSystem
 from sa_fona.ui.charge_indicator import ChargeIndicator
+from sa_fona.ui.hud import HUD
 
 # Screen shake defaults.
 _SHAKE_INTENSITY = 6.0
@@ -96,11 +98,27 @@ class GameplayScene(BaseScene):
         self._event_bus = event_bus or EventBus()
         self._event_bus.subscribe("screen_shake", self._on_screen_shake)
 
-        # Sling combat system.
-        economy_data = self._load_economy_data()
-        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        # Economy system (load from data/economy.json).
+        self._economy = EconomySystem(self._event_bus)
+
+        # Sling combat system (uses EconomySystem config as single source of truth).
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
         self._projectiles: list[Projectile] = []
         self._charge_indicator = ChargeIndicator()
+
+        # HUD.
+        starting_hearts = self._economy.get_starting_hearts()
+        self._hud = HUD(
+            self._event_bus,
+            max_hearts=int(starting_hearts),
+            current_hearts=starting_hearts,
+            stone_count=0,
+        )
+
+        # Pickups and breakables (spawned from level entity definitions).
+        self._pickups: list[Pickup] = []
+        self._breakables: list[Breakable] = []
+        self._spawn_entities()
 
         # Trigger system.
         self._trigger_system = TriggerSystem(self._event_bus)
@@ -150,6 +168,26 @@ class GameplayScene(BaseScene):
         return self._projectiles
 
     @property
+    def economy(self) -> EconomySystem:
+        """The economy system (exposed for testing)."""
+        return self._economy
+
+    @property
+    def hud(self) -> HUD:
+        """The HUD (exposed for testing)."""
+        return self._hud
+
+    @property
+    def pickups(self) -> list[Pickup]:
+        """Active pickup entities (exposed for testing)."""
+        return self._pickups
+
+    @property
+    def breakables(self) -> list[Breakable]:
+        """Active breakable entities (exposed for testing)."""
+        return self._breakables
+
+    @property
     def trigger_system(self) -> TriggerSystem:
         """The trigger system (exposed for testing)."""
         return self._trigger_system
@@ -179,6 +217,8 @@ class GameplayScene(BaseScene):
         self._event_bus.unsubscribe("trigger_dialogue", self._on_trigger_dialogue)
         self._event_bus.unsubscribe("trigger_level_end", self._on_trigger_level_end)
         self._event_bus.unsubscribe("trigger_save_point", self._on_trigger_save_point)
+        self._hud.cleanup()
+        self._economy.cleanup()
 
     def handle_input(self, input_state: InputState) -> None:
         """Forward input to the player and handle scene-level actions.
@@ -236,23 +276,29 @@ class GameplayScene(BaseScene):
         # 7. Update charge indicator.
         self._charge_indicator.update(self._sling_system.charge_tier, dt)
 
-        # 8. Check triggers.
+        # 8. Check pickup collection (player overlaps pickup).
+        self._check_pickup_collection()
+
+        # 9. Check breakable destruction (melee hitbox overlaps breakable).
+        self._check_breakable_hits()
+
+        # 10. Check triggers.
         self._trigger_system.update(self._player.rect)
 
-        # 9. Update companion (Bep).
+        # 11. Update companion (Bep).
         self._companion.follow(self._player.rect, dt)
         self._companion.update(dt)
 
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
-        # 10. Push pending dialogue scene (deferred from trigger callback).
+        # 12. Push pending dialogue scene (deferred from trigger callback).
         if self._pending_dialogue_id is not None:
             self._push_dialogue(self._pending_dialogue_id)
             self._pending_dialogue_id = None
 
     def render(self, surface: pygame.Surface) -> None:
-        """Draw tilemap layers, player, projectiles, and UI.
+        """Draw tilemap layers, player, projectiles, pickups, breakables, and UI.
 
         Args:
             surface: The pygame Surface to draw on.
@@ -263,6 +309,14 @@ class GameplayScene(BaseScene):
         # Back-to-front layer rendering.
         self._tilemap.render_layer(surface, "background", cam_offset)
         self._tilemap.render_layer(surface, "midground", cam_offset)
+
+        # Breakable objects.
+        for breakable in self._breakables:
+            breakable.render(surface, cam_offset)
+
+        # Pickups.
+        for pickup in self._pickups:
+            pickup.render(surface, cam_offset)
 
         # Melee hitboxes (debug: translucent white flash).
         for hitbox in self._sling_system.melee_hitboxes:
@@ -289,6 +343,83 @@ class GameplayScene(BaseScene):
 
         # Foreground on top.
         self._tilemap.render_layer(surface, "foreground", cam_offset)
+
+        # HUD renders on top of everything (screen space, not camera-relative).
+        self._hud.render(surface)
+
+    # ── Entity spawning ─────────────────────────────────────────────
+
+    def _spawn_entities(self) -> None:
+        """Spawn pickups and breakables from level entity definitions."""
+        for ent_def in self._level_data.entities:
+            ent_type = ent_def.get("type", "")
+            if ent_type == "pickup":
+                self._spawn_pickup(ent_def)
+            elif ent_type == "breakable":
+                self._spawn_breakable(ent_def)
+
+    def _spawn_pickup(self, ent_def: dict) -> None:
+        """Spawn a single pickup entity from a level definition.
+
+        Args:
+            ent_def: Dict with pickup_type, x, y, and optional value.
+        """
+        pt_str = ent_def.get("pickup_type", "stone")
+        if pt_str == "heart":
+            pickup_type = PickupType.HEART
+        else:
+            pickup_type = PickupType.STONE
+
+        value = ent_def.get("value", 1.0)
+        # Entity positions in level JSON are in tile coordinates.
+        px = ent_def.get("x", 0) * TILE_SIZE
+        py = ent_def.get("y", 0) * TILE_SIZE
+
+        pickup = Pickup(px, py, pickup_type, value=float(value))
+        self._pickups.append(pickup)
+
+    def _spawn_breakable(self, ent_def: dict) -> None:
+        """Spawn a single breakable entity from a level definition.
+
+        Args:
+            ent_def: Dict with breakable_type, x, y.
+        """
+        breakable_type = ent_def.get("breakable_type", "breakable_pot")
+        bx = ent_def.get("x", 0) * TILE_SIZE
+        by = ent_def.get("y", 0) * TILE_SIZE
+
+        breakable = Breakable(bx, by, breakable_type)
+        self._breakables.append(breakable)
+
+    # ── Pickup collection ─────────────────────────────────────────
+
+    def _check_pickup_collection(self) -> None:
+        """Check player overlap with pickups and trigger collection."""
+        for pickup in self._pickups:
+            if not pickup.active:
+                continue
+            if self._player.rect.colliderect(pickup.rect):
+                event_type, event_data = pickup.collect()
+                self._event_bus.publish(event_type, **event_data)
+        # Remove collected pickups.
+        self._pickups = [p for p in self._pickups if p.active]
+
+    # ── Breakable destruction ─────────────────────────────────────
+
+    def _check_breakable_hits(self) -> None:
+        """Check melee hitbox overlap with breakables and destroy on hit."""
+        for hitbox in self._sling_system.melee_hitboxes:
+            for breakable in self._breakables:
+                if not breakable.active:
+                    continue
+                if hitbox.rect.colliderect(breakable.rect):
+                    stone_yield = self._economy.get_breakable_yield(
+                        breakable.breakable_type
+                    )
+                    new_pickups = breakable.on_hit(stone_yield)
+                    self._pickups.extend(new_pickups)
+        # Remove destroyed breakables.
+        self._breakables = [b for b in self._breakables if b.active]
 
     # ── Physics helpers ────────────────────────────────────────────
 
@@ -340,23 +471,6 @@ class GameplayScene(BaseScene):
         # Remove inactive projectiles.
         self._projectiles = [p for p in self._projectiles if p.active]
 
-    # ── Economy data loading ───────────────────────────────────────
-
-    @staticmethod
-    def _load_economy_data() -> dict:
-        """Load economy.json from the data directory.
-
-        Returns:
-            Parsed JSON dict with economy configuration.
-        """
-        economy_path = DATA_DIR / "economy.json"
-        try:
-            with open(economy_path, "r") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            # Return minimal defaults if file is missing.
-            return {"sling": {}}
-
     # ── Level reset ────────────────────────────────────────────────
 
     def _reset_level(self) -> None:
@@ -383,11 +497,23 @@ class GameplayScene(BaseScene):
         self._player = Player(spawn_x, spawn_y)
         self._input_state = InputState()
 
-        # Reset combat state.
-        economy_data = self._load_economy_data()
-        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        # Reset combat state (reuse EconomySystem config).
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
+
+        # Reset pickups and breakables from level data.
+        self._pickups.clear()
+        self._breakables.clear()
+        self._spawn_entities()
+
+        # Reset HUD to starting values (keep economy state).
+        starting_hearts = self._economy.get_starting_hearts()
+        self._hud.set_state(
+            max_hearts=int(starting_hearts),
+            current_hearts=starting_hearts,
+            stone_count=self._economy.stone_count,
+        )
 
         # Reset triggers.
         self._trigger_system.reset()

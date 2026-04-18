@@ -12,6 +12,7 @@ Behavior types for World 1:
 
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 
@@ -73,6 +74,17 @@ class EnemyBehavior(ABC):
         Returns:
             A BehaviorResult describing intended actions.
         """
+
+    def try_block(self) -> bool:
+        """Attempt to enter a blocking state.
+
+        Default implementation does nothing and returns False.
+        Subclasses that support blocking (e.g. ChaseBehavior) override this.
+
+        Returns:
+            True if the enemy successfully blocks, False otherwise.
+        """
+        return False
 
     @abstractmethod
     def reset(self, spawn_x: float) -> None:
@@ -304,8 +316,6 @@ class ChaseBehavior(EnemyBehavior):
         Returns:
             True if the enemy successfully blocks.
         """
-        import random
-
         if self._is_blocking:
             return True
         if self._block_chance > 0 and random.random() < self._block_chance:

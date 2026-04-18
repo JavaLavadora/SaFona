@@ -18,20 +18,15 @@ from typing import TYPE_CHECKING, Any
 
 import pygame
 
+from sa_fona.config.settings import PLAYER_BLINK_INTERVAL, PLAYER_INVINCIBILITY_DURATION
 from sa_fona.core.event_bus import EventBus
 from sa_fona.entities.enemy import Enemy
-from sa_fona.entities.enemy_behaviors import ChaseBehavior
 from sa_fona.entities.pickup import Pickup
 
 if TYPE_CHECKING:
     from sa_fona.entities.player import Player
     from sa_fona.entities.projectile import Projectile
     from sa_fona.systems.sling_system import MeleeHitbox
-
-
-# ── Constants ──────────────────────────────────────────────────────
-PLAYER_INVINCIBILITY_DURATION: float = 1.0   # seconds after taking damage
-PLAYER_BLINK_INTERVAL: float = 0.08          # seconds per blink cycle
 
 
 class CombatSystem:
@@ -202,10 +197,8 @@ class CombatSystem:
         Returns:
             Pickup drops if the enemy was killed.
         """
-        # Check if the enemy blocks the hit (chase behavior with block).
-        blocked = False
-        if isinstance(enemy.behavior, ChaseBehavior):
-            blocked = enemy.behavior.try_block()
+        # Check if the enemy blocks the hit.
+        blocked = enemy.behavior.try_block()
 
         proj.on_hit_entity(enemy)  # Destroy the projectile.
 
@@ -238,9 +231,7 @@ class CombatSystem:
             Pickup drops if the enemy was killed.
         """
         # Check block.
-        blocked = False
-        if isinstance(enemy.behavior, ChaseBehavior):
-            blocked = enemy.behavior.try_block()
+        blocked = enemy.behavior.try_block()
 
         if blocked:
             self._event_bus.publish(

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import random
-from typing import Any
 
 import pygame
 
@@ -27,9 +26,7 @@ from sa_fona.entities.enemy_behaviors import (
     create_behavior,
 )
 from sa_fona.entities.pickup import Pickup, PickupType
-
-# Tile size for converting tile units to pixels.
-_TILE_SIZE = 16
+from sa_fona.level.tilemap import TILE_SIZE
 
 # Placeholder colors per enemy type.
 _ENEMY_COLORS: dict[str, tuple[int, int, int]] = {
@@ -282,9 +279,8 @@ class Enemy(Entity):
         if not self.active:
             return
 
-        # Invincibility blink: skip rendering every other 0.1s.
+        # Invincibility blink: alternate visibility every 0.06 seconds.
         if self._invincibility_timer > 0:
-            # Blink: alternate visibility every 0.06 seconds.
             blink_phase = int(self._invincibility_timer / 0.06)
             if blink_phase % 2 == 1:
                 return
@@ -405,6 +401,6 @@ class EnemyFactory:
             A configured Enemy instance.
         """
         enemy_type = entity_def.get("enemy_type", "possessed_sheep")
-        tx = entity_def.get("x", 0) * _TILE_SIZE
-        ty = entity_def.get("y", 0) * _TILE_SIZE
+        tx = entity_def.get("x", 0) * TILE_SIZE
+        ty = entity_def.get("y", 0) * TILE_SIZE
         return self.create(enemy_type, tx, ty)

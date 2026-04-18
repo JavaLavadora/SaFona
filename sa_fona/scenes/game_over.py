@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pygame
 
-from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
 from sa_fona.core.input_handler import InputState
 from sa_fona.scenes.base_scene import BaseScene
 

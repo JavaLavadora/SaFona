@@ -182,8 +182,8 @@ class PatrolBehavior(EnemyBehavior):
     def on_damaged(self, player_x: float, player_y: float) -> None:
         """React to taking damage by entering aggro state.
 
-        Interrupts normal patrol to chase toward the player's position
-        for a few seconds.
+        Interrupts any current attack cycle and chases toward the
+        player's position for a few seconds.
 
         Args:
             player_x: The player's X position in world pixels.
@@ -191,6 +191,8 @@ class PatrolBehavior(EnemyBehavior):
         """
         self._aggro_timer = self._AGGRO_DURATION
         self._aggro_target_x = player_x
+        self._attack_state = AttackState.IDLE
+        self._attack_timer = 0.0
 
     def _check_edge_ahead(
         self,
@@ -401,6 +403,8 @@ class ChaseBehavior(EnemyBehavior):
         block_duration: How long the block lasts in seconds.
     """
 
+    _AGGRO_DURATION: float = 3.0
+
     def __init__(self, params: dict) -> None:
         super().__init__(params)
         self._chase_range: float = params.get("chase_range", 6) * 16
@@ -417,6 +421,9 @@ class ChaseBehavior(EnemyBehavior):
         self._block_timer: float = 0.0
         self._is_blocking: bool = False
 
+        # Aggro: temporarily extends chase range when damaged.
+        self._aggro_timer: float = 0.0
+
     def reset(self, spawn_x: float) -> None:
         """Reset chase behavior.
 
@@ -428,6 +435,18 @@ class ChaseBehavior(EnemyBehavior):
         self._cooldown_timer = 0.0
         self._block_timer = 0.0
         self._is_blocking = False
+        self._aggro_timer = 0.0
+
+    def on_damaged(self, player_x: float, player_y: float) -> None:
+        """React to damage by extending chase range temporarily.
+
+        Args:
+            player_x: The player's X position in world pixels.
+            player_y: The player's Y position in world pixels.
+        """
+        self._aggro_timer = self._AGGRO_DURATION
+        self._attack_state = AttackState.IDLE
+        self._attack_timer = 0.0
 
     @property
     def is_blocking(self) -> bool:
@@ -481,14 +500,19 @@ class ChaseBehavior(EnemyBehavior):
         if self._cooldown_timer > 0:
             self._cooldown_timer -= dt
 
+        # Tick aggro timer.
+        if self._aggro_timer > 0:
+            self._aggro_timer -= dt
+
         dx_to_player = player_rect.centerx - enemy_rect.centerx
         dist_to_player = abs(dx_to_player)
 
         # Determine facing direction toward player.
         face_dir = 1.0 if dx_to_player > 0 else -1.0
 
-        if dist_to_player > self._chase_range:
-            # Player out of range -- idle.
+        # When aggroed, ignore chase_range limit.
+        effective_range = self._chase_range if self._aggro_timer <= 0 else float("inf")
+        if dist_to_player > effective_range:
             result.move_x = 0.0
             result.speed = 0.0
             return result

@@ -212,6 +212,56 @@ class TestPatrolAggroBehavior:
         patrol.reset(100.0)
         assert patrol.aggro_timer == 0
 
+    def test_aggro_overrides_tell_state(self):
+        """Damage during TELL state should reset to IDLE and allow aggro chase."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "attack_range": 3.0,
+            "attack_tell_time": 1.0,
+            "attack_cooldown": 2.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_close = pygame.Rect(120, 100, 24, 32)
+
+        result = patrol.update(enemy_rect, player_close, 1 / 60)
+        assert result.attack_state == AttackState.TELL
+
+        player_far = pygame.Rect(400, 100, 24, 32)
+        patrol.on_damaged(400.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_far, 1 / 60)
+        assert result.move_x == 1.0
+        assert result.speed == 40 * 1.4
+
+    def test_aggro_overrides_attacking_state(self):
+        """Damage during ATTACKING state should reset and allow aggro chase."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "attack_range": 3.0,
+            "attack_tell_time": 0.01,
+            "attack_cooldown": 2.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_close = pygame.Rect(120, 100, 24, 32)
+
+        patrol.update(enemy_rect, player_close, 1 / 60)
+        patrol.update(enemy_rect, player_close, 0.02)
+
+        player_far = pygame.Rect(400, 100, 24, 32)
+        patrol.on_damaged(400.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_far, 1 / 60)
+        assert result.move_x == 1.0
+        assert result.speed > 0
+
 
 class TestPatrolEdgeDetection:
     """Tests for patrol behavior ledge edge detection."""
@@ -410,6 +460,48 @@ class TestChaseBehavior:
 
         result = chase.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == -1.0
+
+    def test_chase_aggro_extends_range(self):
+        """Damage should make chase pursue beyond normal chase_range."""
+        params = {"chase_range": 3, "speed": 50}
+        chase = ChaseBehavior(params)
+        chase.reset(0.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_rect = pygame.Rect(500, 100, 24, 32)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 0.0
+
+        chase.on_damaged(500.0, 100.0)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 1.0
+        assert result.speed == 50
+
+    def test_chase_aggro_resets_attack_state(self):
+        """Damage during attack should reset state and allow chase."""
+        params = {
+            "chase_range": 6,
+            "speed": 50,
+            "attack_range": 1.5,
+            "attack_cooldown": 1.0,
+        }
+        chase = ChaseBehavior(params)
+        chase.reset(0.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_close = pygame.Rect(105, 100, 24, 32)
+
+        result = chase.update(enemy_rect, player_close, 1 / 60)
+        assert result.attack_state == AttackState.ATTACKING
+
+        player_far = pygame.Rect(150, 100, 24, 32)
+        chase.on_damaged(150.0, 100.0)
+
+        result = chase.update(enemy_rect, player_far, 1 / 60)
+        assert result.attack_state == AttackState.IDLE
+        assert result.move_x == 1.0
 
 
 class TestBehaviorFactory:

@@ -314,3 +314,6 @@ All agents share the same GitHub account. When posting any comment on Issues or 
 - Always include port/connection info when the game is running
 - Reference GitHub Issues and PRs by number
 - When reporting to the user, structure as: What was done → How to test → What's next
+
+## Don't do rules
+Never merge any PR to master without explicit user approval. Reviewer approvals (En Pau, En Miquel) are necessary but not sufficient. The workflow is: reviewers approve → fixes applied → game launched for user testing → user explicitly says to merge → only then merge. No exceptions.

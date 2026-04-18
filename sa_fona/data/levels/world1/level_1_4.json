@@ -8047,7 +8047,7 @@
         "w": 3,
         "h": 4
       },
-      "next_level": "boss_bou_de_pedra",
+      "next_level": "world1/boss_bou_de_pedra",
       "once": true
     }
   ],

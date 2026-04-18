@@ -8,6 +8,8 @@ Breakables, Enemies, and TileMap into a playable experience.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pygame
 
 from sa_fona.config.settings import (
@@ -644,8 +646,7 @@ class GameplayScene(BaseScene):
         """
         level_path = str(DATA_DIR / "levels" / f"{next_level}.json")
 
-        import os
-        if not os.path.isfile(level_path):
+        if not Path(level_path).is_file():
             # Level file does not exist yet -- stay on current level.
             return
 

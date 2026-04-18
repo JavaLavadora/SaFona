@@ -390,7 +390,7 @@ class TestLevelChain:
             ("level_1_1.json", "world1/level_1_2"),
             ("level_1_2.json", "world1/level_1_3"),
             ("level_1_3.json", "world1/level_1_4"),
-            ("level_1_4.json", "boss_bou_de_pedra"),
+            ("level_1_4.json", "world1/boss_bou_de_pedra"),
         ]
         for filename, expected_next in expected_chain:
             raw = _load_raw(filename)

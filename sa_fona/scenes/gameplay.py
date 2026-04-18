@@ -2,10 +2,12 @@
 
 This scene replaces DemoTilemapScene as the default entry point for
 the game.  It wires together the Player entity, PhysicsSystem, Camera,
-and TileMap into a playable experience.
+SlingSystem, and TileMap into a playable experience.
 """
 
 from __future__ import annotations
+
+import json
 
 import pygame
 
@@ -21,10 +23,13 @@ from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.player import Player
+from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.physics import PhysicsSystem
+from sa_fona.systems.sling_system import SlingSystem
+from sa_fona.ui.charge_indicator import ChargeIndicator
 
 # Screen shake defaults.
 _SHAKE_INTENSITY = 6.0
@@ -88,6 +93,12 @@ class GameplayScene(BaseScene):
         self._event_bus = event_bus or EventBus()
         self._event_bus.subscribe("screen_shake", self._on_screen_shake)
 
+        # Sling combat system.
+        economy_data = self._load_economy_data()
+        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        self._projectiles: list[Projectile] = []
+        self._charge_indicator = ChargeIndicator()
+
     # ── Properties ─────────────────────────────────────────────────
 
     @property
@@ -104,6 +115,16 @@ class GameplayScene(BaseScene):
     def physics(self) -> PhysicsSystem:
         """The physics system (exposed for testing)."""
         return self._physics
+
+    @property
+    def sling_system(self) -> SlingSystem:
+        """The sling combat system (exposed for testing)."""
+        return self._sling_system
+
+    @property
+    def projectiles(self) -> list[Projectile]:
+        """Active projectile entities (exposed for testing)."""
+        return self._projectiles
 
     # ── Scene lifecycle ────────────────────────────────────────────
 
@@ -142,6 +163,7 @@ class GameplayScene(BaseScene):
 
         Orchestrates the update_intent -> physics -> post_physics
         flow so the Player never depends on PhysicsSystem directly.
+        Also updates the sling system and active projectiles.
 
         Args:
             dt: Delta time in seconds since the last frame.
@@ -165,11 +187,23 @@ class GameplayScene(BaseScene):
         # 4. Feed physics results back to the player.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
+        # 5. Sling combat system: process input, spawn projectiles.
+        new_projectiles = self._sling_system.update(
+            self._input_state, self._player, dt
+        )
+        self._projectiles.extend(new_projectiles)
+
+        # 6. Update projectiles and check tilemap collision.
+        self._update_projectiles(dt)
+
+        # 7. Update charge indicator.
+        self._charge_indicator.update(self._sling_system.charge_tier, dt)
+
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:
-        """Draw tilemap layers and the player.
+        """Draw tilemap layers, player, projectiles, and UI.
 
         Args:
             surface: The pygame Surface to draw on.
@@ -181,8 +215,25 @@ class GameplayScene(BaseScene):
         self._tilemap.render_layer(surface, "background", cam_offset)
         self._tilemap.render_layer(surface, "midground", cam_offset)
 
+        # Melee hitboxes (debug: translucent white flash).
+        for hitbox in self._sling_system.melee_hitboxes:
+            sx = hitbox.rect.x - cam_offset[0]
+            sy = hitbox.rect.y - cam_offset[1]
+            melee_surf = pygame.Surface(
+                (hitbox.rect.width, hitbox.rect.height), pygame.SRCALPHA
+            )
+            melee_surf.fill((255, 255, 255, 120))
+            surface.blit(melee_surf, (sx, sy))
+
+        # Projectiles.
+        for proj in self._projectiles:
+            proj.render(surface, cam_offset)
+
         # Player.
         self._player.render(surface, cam_offset)
+
+        # Charge indicator (UI, world-space near player).
+        self._charge_indicator.render(surface, self._player.rect, cam_offset)
 
         # Foreground on top.
         self._tilemap.render_layer(surface, "foreground", cam_offset)
@@ -220,6 +271,40 @@ class GameplayScene(BaseScene):
 
         return wall_left, wall_right
 
+    # ── Projectile management ─────────────────────────────────────
+
+    def _update_projectiles(self, dt: float) -> None:
+        """Move projectiles, check tilemap collision, remove inactive.
+
+        Args:
+            dt: Delta time in seconds.
+        """
+        for proj in self._projectiles:
+            proj.update(dt)
+            # Check solid tile collision.
+            hits = self._physics.check_collision(proj.rect, "solid")
+            if hits:
+                proj.on_hit_tile()
+        # Remove inactive projectiles.
+        self._projectiles = [p for p in self._projectiles if p.active]
+
+    # ── Economy data loading ───────────────────────────────────────
+
+    @staticmethod
+    def _load_economy_data() -> dict:
+        """Load economy.json from the data directory.
+
+        Returns:
+            Parsed JSON dict with economy configuration.
+        """
+        economy_path = DATA_DIR / "economy.json"
+        try:
+            with open(economy_path, "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            # Return minimal defaults if file is missing.
+            return {"sling": {}}
+
     # ── Level reset ────────────────────────────────────────────────
 
     def _reset_level(self) -> None:
@@ -227,6 +312,7 @@ class GameplayScene(BaseScene):
 
         Used for quick testing iteration (R key).  Reloads the level
         data, rebuilds physics and camera, and creates a fresh player.
+        Clears projectiles and resets the sling system.
         """
         loader = LevelLoader()
         self._level_data = loader.load(self._level_path)
@@ -244,6 +330,12 @@ class GameplayScene(BaseScene):
         spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
         self._input_state = InputState()
+
+        # Reset combat state.
+        economy_data = self._load_economy_data()
+        self._sling_system = SlingSystem(self._event_bus, economy_data)
+        self._projectiles.clear()
+        self._charge_indicator = ChargeIndicator()
 
     # ── Event callbacks ────────────────────────────────────────────
 

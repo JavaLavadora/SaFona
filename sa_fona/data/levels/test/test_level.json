@@ -75,7 +75,25 @@
   "player_spawn": { "x": 3, "y": 12 },
   "companion_spawn": { "x": 4, "y": 12 },
   "entities": [],
-  "triggers": [],
+  "triggers": [
+    {
+      "type": "dialogue",
+      "rect": { "x": 5, "y": 10, "w": 3, "h": 3 },
+      "dialogue_id": "w1_test_level_intro",
+      "once": true
+    },
+    {
+      "type": "save_point",
+      "rect": { "x": 30, "y": 12, "w": 2, "h": 3 },
+      "shop_available": false,
+      "once": false
+    },
+    {
+      "type": "level_end",
+      "rect": { "x": 57, "y": 11, "w": 2, "h": 3 },
+      "once": true
+    }
+  ],
   "secrets": [],
   "parallax": []
 }

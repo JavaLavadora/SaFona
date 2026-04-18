@@ -2,7 +2,8 @@
 
 This scene replaces DemoTilemapScene as the default entry point for
 the game.  It wires together the Player entity, PhysicsSystem, Camera,
-SlingSystem, and TileMap into a playable experience.
+SlingSystem, TriggerSystem, Companion, and TileMap into a playable
+experience.
 """
 
 from __future__ import annotations
@@ -22,10 +23,12 @@ from sa_fona.config.settings import (
 from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
+from sa_fona.entities.companion import Companion
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
+from sa_fona.level.trigger import TriggerSystem
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.physics import PhysicsSystem
 from sa_fona.systems.sling_system import SlingSystem
@@ -99,6 +102,26 @@ class GameplayScene(BaseScene):
         self._projectiles: list[Projectile] = []
         self._charge_indicator = ChargeIndicator()
 
+        # Trigger system.
+        self._trigger_system = TriggerSystem(self._event_bus)
+        self._trigger_system.load_from_list(
+            self._level_data.triggers, tile_size=TILE_SIZE
+        )
+        self._event_bus.subscribe("trigger_dialogue", self._on_trigger_dialogue)
+        self._event_bus.subscribe("trigger_level_end", self._on_trigger_level_end)
+        self._event_bus.subscribe("trigger_save_point", self._on_trigger_save_point)
+
+        # Track pending dialogue scene to push (deferred to avoid stack issues).
+        self._pending_dialogue_id: str | None = None
+
+        # Companion (Bep).
+        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
+        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
+        self._companion = Companion(comp_x, comp_y)
+
+        # Scene manager reference (set externally by Game or tests).
+        self._scene_manager = None
+
     # ── Properties ─────────────────────────────────────────────────
 
     @property
@@ -126,6 +149,25 @@ class GameplayScene(BaseScene):
         """Active projectile entities (exposed for testing)."""
         return self._projectiles
 
+    @property
+    def trigger_system(self) -> TriggerSystem:
+        """The trigger system (exposed for testing)."""
+        return self._trigger_system
+
+    @property
+    def companion(self) -> Companion:
+        """The companion entity (Bep)."""
+        return self._companion
+
+    @property
+    def scene_manager(self):
+        """Scene manager reference for pushing overlay scenes."""
+        return self._scene_manager
+
+    @scene_manager.setter
+    def scene_manager(self, value) -> None:
+        self._scene_manager = value
+
     # ── Scene lifecycle ────────────────────────────────────────────
 
     def on_enter(self) -> None:
@@ -134,6 +176,9 @@ class GameplayScene(BaseScene):
     def on_exit(self) -> None:
         """Clean up EventBus subscriptions when the scene is removed."""
         self._event_bus.unsubscribe("screen_shake", self._on_screen_shake)
+        self._event_bus.unsubscribe("trigger_dialogue", self._on_trigger_dialogue)
+        self._event_bus.unsubscribe("trigger_level_end", self._on_trigger_level_end)
+        self._event_bus.unsubscribe("trigger_save_point", self._on_trigger_save_point)
 
     def handle_input(self, input_state: InputState) -> None:
         """Forward input to the player and handle scene-level actions.
@@ -149,14 +194,6 @@ class GameplayScene(BaseScene):
 
         if input_state.reset_pressed:
             self._reset_level()
-
-        # Debug: screen shake on interact.
-        if input_state.interact_pressed:
-            self._event_bus.publish(
-                "screen_shake",
-                intensity=_SHAKE_INTENSITY,
-                duration=_SHAKE_DURATION,
-            )
 
     def update(self, dt: float) -> None:
         """Advance simulation by one frame.
@@ -199,8 +236,20 @@ class GameplayScene(BaseScene):
         # 7. Update charge indicator.
         self._charge_indicator.update(self._sling_system.charge_tier, dt)
 
+        # 8. Check triggers.
+        self._trigger_system.update(self._player.rect)
+
+        # 9. Update companion (Bep).
+        self._companion.follow(self._player.rect, dt)
+        self._companion.update(dt)
+
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
+
+        # 10. Push pending dialogue scene (deferred from trigger callback).
+        if self._pending_dialogue_id is not None:
+            self._push_dialogue(self._pending_dialogue_id)
+            self._pending_dialogue_id = None
 
     def render(self, surface: pygame.Surface) -> None:
         """Draw tilemap layers, player, projectiles, and UI.
@@ -228,6 +277,9 @@ class GameplayScene(BaseScene):
         # Projectiles.
         for proj in self._projectiles:
             proj.render(surface, cam_offset)
+
+        # Companion (Bep).
+        self._companion.render(surface, cam_offset)
 
         # Player.
         self._player.render(surface, cam_offset)
@@ -337,6 +389,18 @@ class GameplayScene(BaseScene):
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
 
+        # Reset triggers.
+        self._trigger_system.reset()
+        self._trigger_system.load_from_list(
+            self._level_data.triggers, tile_size=TILE_SIZE
+        )
+        self._pending_dialogue_id = None
+
+        # Reset companion.
+        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
+        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
+        self._companion = Companion(comp_x, comp_y)
+
     # ── Event callbacks ────────────────────────────────────────────
 
     def _on_screen_shake(
@@ -349,3 +413,71 @@ class GameplayScene(BaseScene):
             duration: Shake duration in seconds.
         """
         self._camera.shake(intensity, duration)
+
+    def _on_trigger_dialogue(self, trigger=None) -> None:
+        """Handle dialogue trigger events.
+
+        Defers the dialogue push to the next frame to avoid modifying the
+        scene stack during an update.
+
+        Args:
+            trigger: The Trigger instance that fired.
+        """
+        if trigger is None:
+            return
+        dialogue_id = trigger.properties.get("dialogue_id", "")
+        if dialogue_id:
+            self._pending_dialogue_id = dialogue_id
+
+    def _on_trigger_level_end(self, trigger=None) -> None:
+        """Handle level_end trigger events.
+
+        For now, publishes a level_complete event. Full level transition
+        will be implemented in a later deliverable.
+
+        Args:
+            trigger: The Trigger instance that fired.
+        """
+        self._event_bus.publish("level_complete")
+
+    def _on_trigger_save_point(self, trigger=None) -> None:
+        """Handle save_point trigger events.
+
+        For now, publishes a save_point_reached event. Full save/shop
+        integration will be implemented in a later deliverable.
+
+        Args:
+            trigger: The Trigger instance that fired.
+        """
+        shop_available = False
+        if trigger is not None:
+            shop_available = trigger.properties.get("shop_available", False)
+        self._event_bus.publish(
+            "save_point_reached", shop_available=shop_available
+        )
+
+    # ── Dialogue push ─────────────────────────────────────────────
+
+    def _push_dialogue(self, dialogue_id: str) -> None:
+        """Push a DialogueScene overlay onto the scene stack.
+
+        Requires that ``scene_manager`` has been set on this scene.
+
+        Args:
+            dialogue_id: The dialogue sequence ID to display.
+        """
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.dialogue import DialogueScene
+
+        def _on_dialogue_complete() -> None:
+            if self._scene_manager is not None:
+                self._scene_manager.pop()
+
+        scene = DialogueScene(
+            dialogue_id=dialogue_id,
+            event_bus=self._event_bus,
+            on_complete=_on_dialogue_complete,
+        )
+        self._scene_manager.push(scene)

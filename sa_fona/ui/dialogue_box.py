@@ -14,25 +14,25 @@ from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
 from sa_fona.core.event_bus import EventBus
 
 # Layout constants (in base-resolution pixels).
-BOX_MARGIN = 8
-BOX_HEIGHT = 56
+BOX_MARGIN = 6
+BOX_HEIGHT = 68
 BOX_PADDING = 6
-PORTRAIT_SIZE = 40
+PORTRAIT_SIZE = 44
 TEXT_LEFT_OFFSET = PORTRAIT_SIZE + BOX_PADDING * 2
-SPEAKER_Y_OFFSET = 2
-TEXT_Y_OFFSET = 14
-LINE_SPACING = 12
+SPEAKER_Y_OFFSET = 4
+TEXT_Y_OFFSET = 18
+LINE_SPACING = 14
 
 # Letter reveal speed.
 DEFAULT_CHARS_PER_SECOND = 30.0
 
 # Colors.
-BOX_BG_COLOR = (20, 15, 30, 220)
-BOX_BORDER_COLOR = (180, 160, 120)
+BOX_BG_COLOR = (10, 8, 18, 245)
+BOX_BORDER_COLOR = (200, 180, 130)
 SPEAKER_COLOR = (255, 220, 100)
-TEXT_COLOR = (240, 240, 240)
+TEXT_COLOR = (255, 255, 255)
 PORTRAIT_BG_COLOR = (60, 50, 80)
-PORTRAIT_BORDER_COLOR = (180, 160, 120)
+PORTRAIT_BORDER_COLOR = (200, 180, 130)
 
 # Speaker -> portrait color mapping.
 _SPEAKER_COLORS: dict[str, tuple[int, int, int]] = {
@@ -313,9 +313,9 @@ class DialogueBox:
     def _ensure_fonts(self) -> None:
         """Lazily initialize fonts."""
         if self._font is None:
-            self._font = pygame.font.Font(None, 16)
+            self._font = pygame.font.Font(None, 20)
         if self._small_font is None:
-            self._small_font = pygame.font.Font(None, 14)
+            self._small_font = pygame.font.Font(None, 18)
 
     def _render_wrapped_text(
         self,

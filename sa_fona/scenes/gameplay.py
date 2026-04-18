@@ -3,7 +3,7 @@
 This scene replaces DemoTilemapScene as the default entry point for
 the game.  It wires together the Player entity, PhysicsSystem, Camera,
 SlingSystem, EconomySystem, TriggerSystem, HUD, Pickups, Breakables,
-Companion, and TileMap into a playable experience.
+and TileMap into a playable experience.
 """
 
 from __future__ import annotations
@@ -22,7 +22,6 @@ from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.breakable import Breakable
-from sa_fona.entities.companion import Companion
 from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
@@ -132,11 +131,6 @@ class GameplayScene(BaseScene):
         # Track pending dialogue scene to push (deferred to avoid stack issues).
         self._pending_dialogue_id: str | None = None
 
-        # Companion (Bep).
-        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
-        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
-        self._companion = Companion(comp_x, comp_y)
-
         # Scene manager reference (set externally by Game or tests).
         self._scene_manager = None
 
@@ -191,11 +185,6 @@ class GameplayScene(BaseScene):
     def trigger_system(self) -> TriggerSystem:
         """The trigger system (exposed for testing)."""
         return self._trigger_system
-
-    @property
-    def companion(self) -> Companion:
-        """The companion entity (Bep)."""
-        return self._companion
 
     @property
     def scene_manager(self):
@@ -285,10 +274,6 @@ class GameplayScene(BaseScene):
         # 10. Check triggers.
         self._trigger_system.update(self._player.rect)
 
-        # 11. Update companion (Bep).
-        self._companion.follow(self._player.rect, dt)
-        self._companion.update(dt)
-
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
@@ -331,9 +316,6 @@ class GameplayScene(BaseScene):
         # Projectiles.
         for proj in self._projectiles:
             proj.render(surface, cam_offset)
-
-        # Companion (Bep).
-        self._companion.render(surface, cam_offset)
 
         # Player.
         self._player.render(surface, cam_offset)
@@ -521,11 +503,6 @@ class GameplayScene(BaseScene):
             self._level_data.triggers, tile_size=TILE_SIZE
         )
         self._pending_dialogue_id = None
-
-        # Reset companion.
-        comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
-        comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
-        self._companion = Companion(comp_x, comp_y)
 
     # ── Event callbacks ────────────────────────────────────────────
 

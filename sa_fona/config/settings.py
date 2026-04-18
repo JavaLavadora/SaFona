@@ -50,6 +50,10 @@ PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {
     "wall_jumping": (200, 50, 200),# magenta
 }
 
+# ── Combat ─────────────────────────────────────────────────────
+PLAYER_INVINCIBILITY_DURATION: float = 1.0   # seconds after taking damage
+PLAYER_BLINK_INTERVAL: float = 0.08          # seconds per blink toggle
+
 # ── Scene Colors ───────────────────────────────────────────────
 GAMEPLAY_BG_COLOR: tuple[int, int, int] = (30, 30, 50)
 

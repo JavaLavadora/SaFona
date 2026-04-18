@@ -2,8 +2,8 @@
 
 This scene replaces DemoTilemapScene as the default entry point for
 the game.  It wires together the Player entity, PhysicsSystem, Camera,
-SlingSystem, EconomySystem, TriggerSystem, HUD, Pickups, Breakables,
-and TileMap into a playable experience.
+SlingSystem, EconomySystem, CombatSystem, TriggerSystem, HUD, Pickups,
+Breakables, Enemies, and TileMap into a playable experience.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.breakable import Breakable
+from sa_fona.entities.enemy import Enemy, EnemyFactory
 from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
@@ -29,6 +30,7 @@ from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.level.trigger import TriggerSystem
 from sa_fona.scenes.base_scene import BaseScene
+from sa_fona.systems.combat import CombatSystem
 from sa_fona.systems.economy import EconomySystem
 from sa_fona.systems.physics import PhysicsSystem
 from sa_fona.systems.sling_system import SlingSystem
@@ -114,6 +116,15 @@ class GameplayScene(BaseScene):
             stone_count=0,
         )
 
+        # Enemy factory and enemies.
+        self._enemy_factory = EnemyFactory()
+        self._enemies: list[Enemy] = []
+
+        # Combat system.
+        self._combat = CombatSystem(self._event_bus)
+        self._combat.set_player_health(starting_hearts, int(starting_hearts))
+        self._event_bus.subscribe("player_died", self._on_player_died)
+
         # Pickups and breakables (spawned from level entity definitions).
         self._pickups: list[Pickup] = []
         self._breakables: list[Breakable] = []
@@ -130,6 +141,9 @@ class GameplayScene(BaseScene):
 
         # Track pending dialogue scene to push (deferred to avoid stack issues).
         self._pending_dialogue_id: str | None = None
+
+        # Track pending game over (deferred to end of update).
+        self._pending_game_over: bool = False
 
         # Scene manager reference (set externally by Game or tests).
         self._scene_manager = None
@@ -182,6 +196,21 @@ class GameplayScene(BaseScene):
         return self._breakables
 
     @property
+    def enemies(self) -> list[Enemy]:
+        """Active enemy entities (exposed for testing)."""
+        return self._enemies
+
+    @property
+    def combat(self) -> CombatSystem:
+        """The combat system (exposed for testing)."""
+        return self._combat
+
+    @property
+    def enemy_factory(self) -> EnemyFactory:
+        """The enemy factory (exposed for testing)."""
+        return self._enemy_factory
+
+    @property
     def trigger_system(self) -> TriggerSystem:
         """The trigger system (exposed for testing)."""
         return self._trigger_system
@@ -206,8 +235,13 @@ class GameplayScene(BaseScene):
         self._event_bus.unsubscribe("trigger_dialogue", self._on_trigger_dialogue)
         self._event_bus.unsubscribe("trigger_level_end", self._on_trigger_level_end)
         self._event_bus.unsubscribe("trigger_save_point", self._on_trigger_save_point)
+        try:
+            self._event_bus.unsubscribe("player_died", self._on_player_died)
+        except ValueError:
+            pass
         self._hud.cleanup()
         self._economy.cleanup()
+        self._combat.cleanup()
 
     def handle_input(self, input_state: InputState) -> None:
         """Forward input to the player and handle scene-level actions.
@@ -229,7 +263,7 @@ class GameplayScene(BaseScene):
 
         Orchestrates the update_intent -> physics -> post_physics
         flow so the Player never depends on PhysicsSystem directly.
-        Also updates the sling system and active projectiles.
+        Also updates the sling system, enemies, combat, and projectiles.
 
         Args:
             dt: Delta time in seconds since the last frame.
@@ -265,25 +299,45 @@ class GameplayScene(BaseScene):
         # 7. Update charge indicator.
         self._charge_indicator.update(self._sling_system.charge_tier, dt)
 
-        # 8. Check pickup collection (player overlaps pickup).
+        # 8. Update enemies.
+        self._update_enemies(dt)
+
+        # 9. Combat system: resolve all damage interactions.
+        dropped_pickups = self._combat.update(
+            self._player,
+            self._enemies,
+            self._projectiles,
+            self._sling_system.melee_hitboxes,
+            dt,
+        )
+        self._pickups.extend(dropped_pickups)
+        # Remove dead enemies.
+        self._enemies = [e for e in self._enemies if e.active]
+
+        # 10. Check pickup collection (player overlaps pickup).
         self._check_pickup_collection()
 
-        # 9. Check breakable destruction (melee hitbox overlaps breakable).
+        # 11. Check breakable destruction (melee hitbox overlaps breakable).
         self._check_breakable_hits()
 
-        # 10. Check triggers.
+        # 12. Check triggers.
         self._trigger_system.update(self._player.rect)
 
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
-        # 12. Push pending dialogue scene (deferred from trigger callback).
+        # 14. Push pending dialogue scene (deferred from trigger callback).
         if self._pending_dialogue_id is not None:
             self._push_dialogue(self._pending_dialogue_id)
             self._pending_dialogue_id = None
 
+        # 15. Push game over scene if player died (deferred).
+        if self._pending_game_over:
+            self._pending_game_over = False
+            self._push_game_over()
+
     def render(self, surface: pygame.Surface) -> None:
-        """Draw tilemap layers, player, projectiles, pickups, breakables, and UI.
+        """Draw tilemap layers, player, enemies, projectiles, pickups, and UI.
 
         Args:
             surface: The pygame Surface to draw on.
@@ -303,6 +357,10 @@ class GameplayScene(BaseScene):
         for pickup in self._pickups:
             pickup.render(surface, cam_offset)
 
+        # Enemies.
+        for enemy in self._enemies:
+            enemy.render(surface, cam_offset)
+
         # Melee hitboxes (debug: translucent white flash).
         for hitbox in self._sling_system.melee_hitboxes:
             sx = hitbox.rect.x - cam_offset[0]
@@ -317,8 +375,9 @@ class GameplayScene(BaseScene):
         for proj in self._projectiles:
             proj.render(surface, cam_offset)
 
-        # Player.
-        self._player.render(surface, cam_offset)
+        # Player (respects invincibility blink from combat system).
+        if self._combat.player_visible:
+            self._player.render(surface, cam_offset)
 
         # Charge indicator (UI, world-space near player).
         self._charge_indicator.render(surface, self._player.rect, cam_offset)
@@ -332,13 +391,15 @@ class GameplayScene(BaseScene):
     # ── Entity spawning ─────────────────────────────────────────────
 
     def _spawn_entities(self) -> None:
-        """Spawn pickups and breakables from level entity definitions."""
+        """Spawn pickups, breakables, and enemies from level entity definitions."""
         for ent_def in self._level_data.entities:
             ent_type = ent_def.get("type", "")
             if ent_type == "pickup":
                 self._spawn_pickup(ent_def)
             elif ent_type == "breakable":
                 self._spawn_breakable(ent_def)
+            elif ent_type == "enemy":
+                self._spawn_enemy(ent_def)
 
     def _spawn_pickup(self, ent_def: dict) -> None:
         """Spawn a single pickup entity from a level definition.
@@ -372,6 +433,30 @@ class GameplayScene(BaseScene):
 
         breakable = Breakable(bx, by, breakable_type)
         self._breakables.append(breakable)
+
+    def _spawn_enemy(self, ent_def: dict) -> None:
+        """Spawn a single enemy entity from a level definition.
+
+        Args:
+            ent_def: Dict with enemy_type, x, y (tile coordinates).
+        """
+        try:
+            enemy = self._enemy_factory.create_from_entity_def(ent_def)
+            self._enemies.append(enemy)
+        except ValueError:
+            pass  # Skip unknown enemy types gracefully.
+
+    # ── Enemy updates ─────────────────────────────────────────────
+
+    def _update_enemies(self, dt: float) -> None:
+        """Update all active enemies with behavior and movement.
+
+        Args:
+            dt: Delta time in seconds.
+        """
+        for enemy in self._enemies:
+            if enemy.active:
+                enemy.update_with_player(self._player.rect, dt)
 
     # ── Pickup collection ─────────────────────────────────────────
 
@@ -484,9 +569,10 @@ class GameplayScene(BaseScene):
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
 
-        # Reset pickups and breakables from level data.
+        # Reset pickups, breakables, and enemies from level data.
         self._pickups.clear()
         self._breakables.clear()
+        self._enemies.clear()
         self._spawn_entities()
 
         # Reset HUD to starting values (keep economy state).
@@ -497,12 +583,16 @@ class GameplayScene(BaseScene):
             stone_count=self._economy.stone_count,
         )
 
+        # Reset combat system health tracking.
+        self._combat.set_player_health(starting_hearts, int(starting_hearts))
+
         # Reset triggers.
         self._trigger_system.reset()
         self._trigger_system.load_from_list(
             self._level_data.triggers, tile_size=TILE_SIZE
         )
         self._pending_dialogue_id = None
+        self._pending_game_over = False
 
     # ── Event callbacks ────────────────────────────────────────────
 
@@ -583,4 +673,29 @@ class GameplayScene(BaseScene):
             event_bus=self._event_bus,
             on_complete=_on_dialogue_complete,
         )
+        self._scene_manager.push(scene)
+
+    # ── Player death / Game over ──────────────────────────────────
+
+    def _on_player_died(self, **kwargs) -> None:
+        """Handle player_died event: defer game over to end of frame."""
+        self._pending_game_over = True
+
+    def _push_game_over(self) -> None:
+        """Push the GameOverScene onto the scene stack.
+
+        When the player presses a key, the game restarts from the
+        beginning of the current level.
+        """
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.game_over import GameOverScene
+
+        def _on_restart() -> None:
+            if self._scene_manager is not None:
+                self._scene_manager.pop()  # Remove GameOverScene.
+                self._reset_level()
+
+        scene = GameOverScene(on_restart=_on_restart)
         self._scene_manager.push(scene)

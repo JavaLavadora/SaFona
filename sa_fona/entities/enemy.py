@@ -94,6 +94,9 @@ class Enemy(Entity):
         self._invincibility_timer: float = 0.0
         self._invincibility_duration: float = 0.3  # Brief flash on hit.
 
+        # Sub-pixel position accumulator for smooth low-speed movement.
+        self._sub_x: float = float(self.rect.x)
+
         # Build placeholder sprite.
         self._width = width
         self._height = height
@@ -260,9 +263,9 @@ class Enemy(Entity):
         else:
             self.velocity[0] = 0.0
 
-        # Move the rect (simple horizontal movement, no physics).
-        dx = self.velocity[0] * dt
-        self.rect.x += round(dx)
+        # Sub-pixel movement: accumulate float position, snap rect to int.
+        self._sub_x += self.velocity[0] * dt
+        self.rect.x = round(self._sub_x)
 
     def render(
         self,

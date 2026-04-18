@@ -137,11 +137,15 @@ class EnemyBehavior(ABC):
         else:
             probe_x_px = enemy_rect.left - 1
 
-        probe_y_px = enemy_rect.bottom
         tile_x = probe_x_px // TILE_SIZE
-        tile_y = probe_y_px // TILE_SIZE
+        # Check both the feet-level tile and the tile below to handle
+        # enemies whose hitbox doesn't align exactly with the ground row.
+        tile_y = enemy_rect.bottom // TILE_SIZE
 
-        return not tilemap.is_solid_at(tile_x, tile_y)
+        return not (
+            tilemap.is_solid_at(tile_x, tile_y)
+            or tilemap.is_solid_at(tile_x, tile_y + 1)
+        )
 
 
 class PatrolBehavior(EnemyBehavior):

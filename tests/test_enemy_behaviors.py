@@ -356,28 +356,51 @@ class TestPatrolEdgeDetection:
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 1.0
 
-    def test_aggro_stops_at_ledge_but_stays_aggroed(self):
-        """Aggro chase should stop moving at a ledge but remain aggroed."""
+    def test_aggro_hesitates_at_ledge_then_retreats(self):
+        """At a ledge, enemy should hesitate then retreat to origin."""
         params = {"patrol_range": 10, "speed": 40}
         patrol = PatrolBehavior(params)
         patrol.reset(0.0)
 
         tilemap = self._make_tilemap_with_gap()
 
-        # Enemy at col 2, row 2. Player is to the right past the gap.
         enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         player_rect = pygame.Rect(4 * TILE_SIZE, 2 * TILE_SIZE, 24, 32)
 
         patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
 
-        # Update with tilemap -- should detect ledge and stop, but stay aggroed.
+        # First update: hits ledge, enters hesitation (stops moving).
         result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
-
-        # Aggro should still be active (enemy waits at ledge).
-        assert patrol.aggro_timer > 0
-        # Enemy should stop moving (not walk off the ledge).
         assert result.move_x == 0.0
         assert result.speed == 0.0
+
+        # Advance through hesitation (~0.6s).
+        for _ in range(40):
+            result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Should now be retreating toward origin (x=0, enemy at x=32).
+        assert result.move_x == -1.0
+        assert result.speed == 40
+
+    def test_new_damage_cancels_retreat(self):
+        """Taking damage during retreat should re-aggro toward player."""
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        tilemap = self._make_tilemap_with_gap()
+
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        player_rect = pygame.Rect(4 * TILE_SIZE, 2 * TILE_SIZE, 24, 32)
+
+        # Trigger aggro, hit ledge, start retreating.
+        patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
+        for _ in range(50):
+            patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Hit again — should cancel retreat and re-aggro.
+        patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
+        assert patrol.aggro_timer > 0
 
 
 class TestChaseBehavior:

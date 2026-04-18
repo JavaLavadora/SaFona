@@ -134,6 +134,7 @@ class PatrolBehavior(EnemyBehavior):
     _AGGRO_DURATION: float = 3.0
     _AGGRO_SPEED_MULTIPLIER: float = 2.0
     _AGGRO_MIN_SPEED: float = 50.0
+    _LEDGE_HESITATION: float = 0.6
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
@@ -159,6 +160,10 @@ class PatrolBehavior(EnemyBehavior):
         self._aggro_timer: float = 0.0
         self._aggro_target_x: float = 0.0
 
+        # Ledge retreat: hesitate, then return to origin.
+        self._retreating: bool = False
+        self._hesitation_timer: float = 0.0
+
     @property
     def aggro_timer(self) -> float:
         """Remaining aggro time in seconds (for testing)."""
@@ -177,12 +182,14 @@ class PatrolBehavior(EnemyBehavior):
         self._cooldown_timer = 0.0
         self._aggro_timer = 0.0
         self._aggro_target_x = 0.0
+        self._retreating = False
+        self._hesitation_timer = 0.0
 
     def on_damaged(self, player_x: float, player_y: float) -> None:
         """React to taking damage by entering aggro state.
 
-        Interrupts any current attack cycle and chases toward the
-        player's position for a few seconds.
+        Interrupts any current attack cycle, retreat, and chases toward
+        the player's position for a few seconds.
 
         Args:
             player_x: The player's X position in world pixels.
@@ -192,6 +199,8 @@ class PatrolBehavior(EnemyBehavior):
         self._aggro_target_x = player_x
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
+        self._retreating = False
+        self._hesitation_timer = 0.0
 
     def _check_edge_ahead(
         self,
@@ -268,21 +277,37 @@ class PatrolBehavior(EnemyBehavior):
         if self._aggro_timer > 0:
             self._aggro_timer -= dt
 
+        # ── Ledge retreat (hesitate then return to origin) ─────────
+        if self._hesitation_timer > 0:
+            self._hesitation_timer -= dt
+            result.move_x = 0.0
+            result.speed = 0.0
+            if self._hesitation_timer <= 0:
+                self._retreating = True
+            return result
+
+        if self._retreating:
+            dx_to_origin = self._origin_x - float(enemy_rect.x)
+            if abs(dx_to_origin) < 4.0:
+                self._retreating = False
+            else:
+                retreat_dir = 1.0 if dx_to_origin > 0 else -1.0
+                self._direction = retreat_dir
+                result.move_x = retreat_dir
+                result.speed = self._speed
+                return result
+
         # ── Aggro chase (damage response) ─────────────────────────
-        # If aggroed and not mid-attack, chase toward the player.
         if (
             self._aggro_timer > 0
             and self._attack_state == AttackState.IDLE
         ):
-            # Face toward the player's current position (live tracking).
             chase_dir = 1.0 if dx_to_player > 0 else -1.0
 
-            # Edge detection: stop at ledges but stay aggroed.
             if self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
-                # At a ledge — wait here, but keep aggro active so
-                # the enemy resumes chasing if the player gets closer
-                # or if the path clears.
                 self._direction = chase_dir
+                self._hesitation_timer = self._LEDGE_HESITATION
+                self._aggro_timer = 0.0
                 result.move_x = 0.0
                 result.speed = 0.0
                 return result

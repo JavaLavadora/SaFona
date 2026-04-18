@@ -387,6 +387,124 @@ class TestFacingDirection:
 # ── Placeholder rendering tests ────────────────────────────────────
 
 
+# ── Same-wall re-grab prevention tests ────────────────────────────
+
+
+class TestSameWallRegrab:
+    """Tests that same-wall infinite climbing is prevented."""
+
+    def test_cannot_regrab_same_wall_after_wall_jump(self, walled_level: dict) -> None:
+        """After wall jumping from a wall, player should NOT enter
+        wall_slide on the same wall again until grounded."""
+        ground_y = 9 * TILE_SIZE
+        # Place player next to the right-side wall (column 5).
+        wall_x = 5 * TILE_SIZE
+        px = wall_x - 24 - 1
+        player, physics = _make_player(walled_level, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move right into the wall until wall sliding.
+        entered_wall_slide = False
+        for _ in range(60):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                entered_wall_slide = True
+                break
+
+        assert entered_wall_slide, "Should enter wall slide on right wall"
+
+        # Now wall jump off the right wall.
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_right=True, move_x=1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+        assert player.wall_jump_origin_side == "right", (
+            "Should track that the wall jump came from the right wall"
+        )
+
+        # Let lockout expire, then try to re-grab the same (right) wall.
+        # The player should NOT enter wall_slide on the right wall again.
+        for _ in range(120):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.on_ground:
+                break  # Landed -- re-grab lock cleared, test still valid.
+            assert player.state != PlayerState.WALL_SLIDING, (
+                "Should NOT re-grab same wall after wall jump (before landing)"
+            )
+
+    def test_can_grab_opposite_wall_after_wall_jump(self) -> None:
+        """After wall jumping from left wall, player CAN enter
+        wall_slide on the right wall (wall-to-wall climbing)."""
+        # Custom level: narrow corridor with walls on both sides.
+        # Columns 0 and 4 are walls, ground at row 9, 5 wide x 10 tall.
+        rows = []
+        for r in range(10):
+            if r < 9:
+                row = [0] * 5
+                row[0] = 1  # left wall
+                row[4] = 1  # right wall
+                rows.append(row)
+            else:
+                rows.append([1] * 5)  # ground
+        corridor = {
+            "dimensions": {"width": 5, "height": 10},
+            "layers": {"midground": rows},
+            "collision_types": {"solid": [1], "one_way": [10]},
+        }
+
+        ground_y = 9 * TILE_SIZE
+        left_wall_right_edge = 1 * TILE_SIZE  # col 0 occupies [0, TILE_SIZE)
+        px = left_wall_right_edge + 1  # just right of the left wall
+        player, physics = _make_player(corridor, px, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Jump up.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+
+        # Move left into the left wall until wall sliding.
+        entered_wall_slide = False
+        for _ in range(60):
+            player.handle_input(_input(move_left=True, move_x=-1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                entered_wall_slide = True
+                break
+
+        assert entered_wall_slide, "Should enter wall slide on left wall"
+
+        # Wall jump off the left wall (pushes player right).
+        player.handle_input(
+            _input(jump_pressed=True, jump_held=True, move_left=True, move_x=-1.0)
+        )
+        _step(player, physics, 1.0 / 60.0)
+        assert player.wall_jump_origin_side == "left", (
+            "Should track wall jump from left wall"
+        )
+
+        # Now move right toward the opposite (right) wall.
+        # The player SHOULD be able to enter wall_slide on the right wall.
+        grabbed_opposite = False
+        for _ in range(120):
+            player.handle_input(_input(move_right=True, move_x=1.0))
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.WALL_SLIDING:
+                grabbed_opposite = True
+                break
+            if player.on_ground:
+                break
+
+        assert grabbed_opposite, (
+            "Should be able to grab the opposite wall after a wall jump"
+        )
+
+
 class TestPlaceholderRendering:
     """Tests that each state uses a different colored surface."""
 

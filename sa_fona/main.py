@@ -32,6 +32,30 @@ def main() -> None:
                 rel += ".json"
             level_path = str(DATA_DIR / "levels" / rel)
 
+    # --boss <boss_id>: skip to boss scene directly.
+    if "--boss" in sys.argv:
+        idx = sys.argv.index("--boss")
+        boss_id = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "bou_de_pedra"
+
+        from sa_fona.core.game import Game as _G
+        game = _G(level_path=level_path)
+
+        from sa_fona.scenes.boss_scene import BossScene
+        boss_scene = BossScene(
+            boss_id=boss_id,
+            event_bus=game.event_bus,
+        )
+        boss_scene.scene_manager = game.scene_manager
+        game.scene_manager.replace(boss_scene)
+
+        try:
+            game.run()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            pygame.quit()
+            sys.exit(0)
+
     game = Game(level_path=level_path)
     try:
         game.run()

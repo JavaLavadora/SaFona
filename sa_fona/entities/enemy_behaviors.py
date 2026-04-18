@@ -165,6 +165,7 @@ class PatrolBehavior(EnemyBehavior):
         attack_range: Range in tiles to trigger an attack.
         attack_cooldown: Seconds between attacks.
         attack_tell_time: General attack tell time.
+        vertical_detection: Max vertical tiles for player detection.
     """
 
     _AGGRO_DURATION: float = 3.0
@@ -184,6 +185,7 @@ class PatrolBehavior(EnemyBehavior):
         self._attack_tell_time: float = params.get(
             "attack_tell_time", self._charge_tell_time
         )
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
 
         # State.
         self._direction: float = 1.0  # 1 = right, -1 = left
@@ -265,6 +267,8 @@ class PatrolBehavior(EnemyBehavior):
         # Distance to player.
         dx_to_player = player_rect.centerx - enemy_rect.centerx
         dist_to_player = abs(dx_to_player)
+        dy_to_player = abs(player_rect.centery - enemy_rect.centery)
+        player_on_same_level = dy_to_player < self._vertical_detection
 
         # Tick cooldown.
         if self._cooldown_timer > 0:
@@ -298,6 +302,7 @@ class PatrolBehavior(EnemyBehavior):
         if (
             self._aggro_timer > 0
             and self._attack_state == AttackState.IDLE
+            and player_on_same_level
         ):
             chase_dir = 1.0 if dx_to_player > 0 else -1.0
 
@@ -328,10 +333,11 @@ class PatrolBehavior(EnemyBehavior):
 
         # ── Attack state machine ──────────────────────────────────
         if self._attack_state == AttackState.IDLE:
-            # Check if player is within attack range.
+            # Check if player is within attack range and on the same level.
             tell_time = self._attack_tell_time or self._charge_tell_time
             if (
-                dist_to_player < self._attack_range
+                player_on_same_level
+                and dist_to_player < self._attack_range
                 and self._cooldown_timer <= 0
                 and tell_time > 0
             ):
@@ -388,11 +394,13 @@ class PatrolBehavior(EnemyBehavior):
             result.wants_attack = True
 
             if self._charge_speed > 0:
-                # Charge toward player direction.
-                result.move_x = self._direction
-                result.speed = self._charge_speed
+                if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                    result.move_x = 0.0
+                    result.speed = 0.0
+                else:
+                    result.move_x = self._direction
+                    result.speed = self._charge_speed
             else:
-                # Stationary attack.
                 result.move_x = 0.0
                 result.speed = 0.0
 
@@ -401,12 +409,10 @@ class PatrolBehavior(EnemyBehavior):
                 self._cooldown_timer = self._attack_cooldown
 
         elif self._attack_state == AttackState.COOLDOWN:
-            # Wait for cooldown, resume patrol.
             result.move_x = self._direction
             result.speed = self._speed
             result.attack_state = AttackState.COOLDOWN
 
-            # Reverse direction at patrol boundaries.
             current_x = float(enemy_rect.x)
             if current_x > self._origin_x + self._patrol_range:
                 self._direction = -1.0
@@ -414,6 +420,10 @@ class PatrolBehavior(EnemyBehavior):
             elif current_x < self._origin_x - self._patrol_range:
                 self._direction = 1.0
                 result.move_x = 1.0
+
+            if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
 
             if self._cooldown_timer <= 0:
                 self._attack_state = AttackState.IDLE
@@ -434,6 +444,7 @@ class ChaseBehavior(EnemyBehavior):
         attack_cooldown: Seconds between attacks.
         block_chance: Probability of blocking (0.0 to 1.0).
         block_duration: How long the block lasts in seconds.
+        vertical_detection: Max vertical tiles for player detection.
     """
 
     _AGGRO_DURATION: float = 3.0
@@ -447,6 +458,7 @@ class ChaseBehavior(EnemyBehavior):
         self._attack_cooldown: float = params.get("attack_cooldown", 1.0)
         self._block_chance: float = params.get("block_chance", 0.0)
         self._block_duration: float = params.get("block_duration", 0.5)
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
 
         # State.
         self._attack_state: AttackState = AttackState.IDLE
@@ -594,12 +606,14 @@ class ChaseBehavior(EnemyBehavior):
 
         dx_to_player = player_rect.centerx - enemy_rect.centerx
         dist_to_player = abs(dx_to_player)
+        dy_to_player = abs(player_rect.centery - enemy_rect.centery)
+        player_on_same_level = dy_to_player < self._vertical_detection
 
         face_dir = 1.0 if dx_to_player > 0 else -1.0
 
-        # When aggroed, ignore chase_range limit.
+        # When aggroed, ignore chase_range limit but still require same level.
         effective_range = self._chase_range if self._aggro_timer <= 0 else float("inf")
-        if dist_to_player > effective_range:
+        if not player_on_same_level or dist_to_player > effective_range:
             # Out of range — return to spawn instead of idling.
             dx_to_origin = self._origin_x - float(enemy_rect.x)
             if abs(dx_to_origin) > 4.0:

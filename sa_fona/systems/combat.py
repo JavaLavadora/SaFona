@@ -52,6 +52,7 @@ class CombatSystem:
         self._player_hearts: float = 3.0
         self._player_max_hearts: int = 3
         self._player_dead: bool = False
+        self._god_mode: bool = False
 
         # Subscribe to heart events to track health.
         self._event_bus.subscribe("heart_collected", self._on_heart_collected)
@@ -173,6 +174,14 @@ class CombatSystem:
             amount: Damage in hearts.
         """
         self._deal_damage_to_player(amount)
+
+    def tick(self, dt: float) -> None:
+        """Tick timers (invincibility, blink) without resolving combat.
+
+        Args:
+            dt: Delta time in seconds.
+        """
+        self._tick_invincibility(dt)
 
     def cleanup(self) -> None:
         """Unsubscribe from EventBus events."""
@@ -314,6 +323,8 @@ class CombatSystem:
         Args:
             amount: Damage in hearts.
         """
+        if self._god_mode:
+            return
         self._player_hearts -= amount
         self._player_invincible_timer = PLAYER_INVINCIBILITY_DURATION
         self._player_blink_timer = PLAYER_BLINK_INTERVAL

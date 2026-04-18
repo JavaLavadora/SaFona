@@ -13,7 +13,10 @@ from enum import Enum, auto
 
 import pygame
 
+from sa_fona.config.settings import PLAYER_GRAVITY
 from sa_fona.entities.entity import Entity
+
+_PROJECTILE_GRAVITY: float = PLAYER_GRAVITY * 0.5
 
 
 class ProjectileType(Enum):
@@ -92,16 +95,17 @@ class Projectile(Entity):
     # ── Update ─────────────────────────────────────────────────────
 
     def update(self, dt: float) -> None:
-        """Move the projectile and check range limit.
-
-        Note: tilemap collision is handled externally by the scene,
-        which calls ``check_tile_collision`` after moving the rect.
+        """Move the projectile with gravity and check range limit.
 
         Args:
             dt: Delta time in seconds.
         """
+        self.velocity[1] += _PROJECTILE_GRAVITY * dt
+
         dx = self.velocity[0] * dt
+        dy = self.velocity[1] * dt
         self.rect.x += round(dx)
+        self.rect.y += round(dy)
         self.distance_travelled += abs(dx)
 
         if self.distance_travelled >= self.max_range:

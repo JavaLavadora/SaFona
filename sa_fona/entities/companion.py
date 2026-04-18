@@ -2,7 +2,7 @@
 
 Bep is a purely visual companion that follows the player around.
 No gameplay interaction -- just visual presence and dialogue trigger.
-Rendered as a 16x16 green placeholder rectangle.
+Uses real sprite sheet when available, falls back to green rectangle.
 """
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 # Companion dimensions (placeholder).
 COMPANION_WIDTH = 16
@@ -56,6 +57,15 @@ class Companion(Entity):
         self._target_y: float = y
         self._bob_timer: float = 0.0
         self._font: pygame.font.Font | None = None
+        self._idle_frames: list[pygame.Surface] = []
+        self._anim_timer: float = 0.0
+        self._anim_frame: int = 0
+        self._anim_speed: float = 0.25
+        frames = load_sprite_sheet_from_file(
+            "assets/sprites/bep/idle.png", COMPANION_WIDTH, COMPANION_HEIGHT,
+        )
+        if frames:
+            self._idle_frames = frames
 
     def follow(self, player_rect: pygame.Rect, dt: float) -> None:
         """Update Bep's position to follow the player.
@@ -105,15 +115,21 @@ class Companion(Entity):
             self.rect.y += int(move_y)
 
     def update(self, dt: float) -> None:
-        """Update the bob animation timer.
+        """Update the bob and sprite animation timers.
 
         Args:
             dt: Delta time in seconds.
         """
         self._bob_timer += dt * BOB_SPEED
 
+        if self._idle_frames:
+            self._anim_timer += dt
+            if self._anim_timer >= self._anim_speed:
+                self._anim_timer -= self._anim_speed
+                self._anim_frame = (self._anim_frame + 1) % len(self._idle_frames)
+
     def render(self, surface: pygame.Surface, camera_offset: tuple[int, int]) -> None:
-        """Draw Bep as a green rectangle with a 'B' label.
+        """Draw Bep using real sprites or a green rectangle fallback.
 
         Args:
             surface: Target pygame Surface.
@@ -126,14 +142,16 @@ class Companion(Entity):
         screen_x = self.rect.x - camera_offset[0]
         screen_y = self.rect.y - camera_offset[1] + bob_y
 
-        # Draw green rectangle.
+        if self._idle_frames:
+            surface.blit(self._idle_frames[self._anim_frame], (screen_x, screen_y))
+            return
+
         pygame.draw.rect(
             surface,
             COMPANION_COLOR,
             (screen_x, screen_y, COMPANION_WIDTH, COMPANION_HEIGHT),
         )
 
-        # Draw 'B' label (skip if font system not available).
         try:
             if self._font is None:
                 self._font = pygame.font.Font(None, 14)

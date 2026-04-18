@@ -1,7 +1,8 @@
-"""Sprite rendering with placeholder colored rectangles."""
+"""Sprite rendering with PNG loading and placeholder fallback."""
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import pygame
@@ -9,13 +10,16 @@ import pygame
 from sa_fona.rendering.animation import Animation
 
 
-# Color mapping for placeholder sprites based on asset ID substrings.
 _PLACEHOLDER_COLORS: list[tuple[str, tuple[int, int, int]]] = [
     ("ramon", (50, 100, 200)),
     ("bep", (50, 180, 80)),
     ("enemy", (200, 50, 50)),
 ]
 _DEFAULT_COLOR: tuple[int, int, int] = (255, 255, 255)
+
+_PROJECT_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+)
 
 
 def _color_for_asset(asset_id: str) -> tuple[int, int, int]:
@@ -34,12 +38,45 @@ def _color_for_asset(asset_id: str) -> tuple[int, int, int]:
     return _DEFAULT_COLOR
 
 
-class SpriteRenderer:
-    """Loads asset manifest and generates colored placeholder surfaces.
+def load_sprite_sheet_from_file(
+    path: str, frame_width: int, frame_height: int,
+) -> list[pygame.Surface] | None:
+    """Load a PNG sprite sheet and slice it into frames.
 
-    Since no real sprites exist yet, this generates colored rectangles based
-    on asset IDs and caches them. When real assets are added, only the
-    load_sprite_sheet method needs to change.
+    Args:
+        path: Filesystem path to the PNG file.
+        frame_width: Width of a single frame in pixels.
+        frame_height: Height of a single frame in pixels.
+
+    Returns:
+        List of pygame Surfaces, or None if the file doesn't exist.
+    """
+    full_path = os.path.join(_PROJECT_ROOT, path)
+    if not os.path.isfile(full_path):
+        return None
+
+    try:
+        sheet = pygame.image.load(full_path).convert_alpha()
+    except pygame.error:
+        return None
+
+    sheet_width = sheet.get_width()
+    num_frames = sheet_width // frame_width
+
+    frames: list[pygame.Surface] = []
+    for i in range(num_frames):
+        frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
+        frame_surface = sheet.subsurface(frame_rect).copy()
+        frames.append(frame_surface)
+    return frames
+
+
+class SpriteRenderer:
+    """Loads sprite sheets from PNGs with colored-rectangle fallback.
+
+    Tries to load real sprite sheet PNGs from the asset path first.
+    Falls back to generating colored rectangles when the file doesn't
+    exist.
 
     Args:
         asset_manifest: Dictionary with asset IDs as keys. Each value is a
@@ -57,10 +94,10 @@ class SpriteRenderer:
         self._sprite_cache: dict[str, list[pygame.Surface]] = {}
 
     def load_sprite_sheet(self, asset_id: str) -> None:
-        """Load (or generate placeholder for) a sprite sheet.
+        """Load a sprite sheet from PNG, or generate a placeholder.
 
-        Generates colored rectangle frames based on the manifest entry.
-        Frames are cached for subsequent get_frame calls.
+        Tries to load the real sprite sheet from the path in the manifest.
+        Falls back to colored rectangles if the file doesn't exist.
 
         Args:
             asset_id: Identifier for the asset in the manifest.
@@ -78,9 +115,16 @@ class SpriteRenderer:
         width = entry.get("frame_width", 16)
         height = entry.get("frame_height", 16)
         num_frames = entry.get("frame_count", 1)
-        color = _color_for_asset(asset_id)
 
-        frames: list[pygame.Surface] = []
+        path = entry.get("path")
+        if path:
+            frames = load_sprite_sheet_from_file(path, width, height)
+            if frames is not None:
+                self._sprite_cache[asset_id] = frames
+                return
+
+        color = _color_for_asset(asset_id)
+        frames = []
         for _ in range(num_frames):
             surface = pygame.Surface((width, height))
             surface.fill(color)

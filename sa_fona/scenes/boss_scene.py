@@ -294,6 +294,9 @@ class BossScene(BaseScene):
         # 4. Post-physics.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
+        # 4b. Boss push-back (physical mass).
+        self._resolve_boss_push()
+
         # 5. Sling system.
         new_projectiles = self._sling_system.update(
             self._input_state, self._player, dt
@@ -319,15 +322,18 @@ class BossScene(BaseScene):
         # 11. Projectile tile collision.
         self._check_projectile_tile_collision()
 
-        # 12. Update boss health bar.
+        # 12. Tick combat timers (invincibility, blink).
+        self._combat.tick(dt)
+
+        # 13. Update boss health bar.
         self._boss_health_bar.set_health(self._boss.health)
         self._boss_health_bar.update(dt)
 
-        # 13. Camera.
+        # 14. Camera.
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
-        # 14. Game over.
+        # 15. Game over.
         if self._pending_game_over:
             self._pending_game_over = False
             self._push_game_over()
@@ -434,6 +440,40 @@ class BossScene(BaseScene):
             and self._player.rect.colliderect(self._boss.rect)
         ):
             self._combat.deal_damage_to_player(self._boss.contact_damage)
+
+    def _resolve_boss_push(self) -> None:
+        """Push the player out of the boss hitbox (physical mass)."""
+        if not self._boss.is_alive:
+            return
+        if not self._player.rect.colliderect(self._boss.rect):
+            return
+        overlap = self._player.rect.clip(self._boss.rect)
+        if overlap.width < overlap.height:
+            if self._player.rect.centerx < self._boss.rect.centerx:
+                self._player.rect.right = self._boss.rect.left
+            else:
+                self._player.rect.left = self._boss.rect.right
+        else:
+            if self._player.rect.centery < self._boss.rect.centery:
+                self._player.rect.bottom = self._boss.rect.top
+            else:
+                self._player.rect.top = self._boss.rect.bottom
+        self._clamp_to_solid(self._player.rect)
+
+    def _clamp_to_solid(self, rect: pygame.Rect) -> None:
+        """Push rect out of any overlapping solid tiles after push."""
+        for tile_rect in self._physics.check_collision(rect, "solid"):
+            overlap = rect.clip(tile_rect)
+            if overlap.width < overlap.height:
+                if rect.centerx < tile_rect.centerx:
+                    rect.right = tile_rect.left
+                else:
+                    rect.left = tile_rect.right
+            else:
+                if rect.centery < tile_rect.centery:
+                    rect.bottom = tile_rect.top
+                else:
+                    rect.top = tile_rect.bottom
 
     # ── Physics helpers ────────────────────────────────────────────
 

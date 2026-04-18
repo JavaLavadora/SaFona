@@ -629,6 +629,127 @@ class TestChaseBehavior:
         assert result.speed == 50
 
 
+class TestVerticalDetection:
+    """Tests for vertical distance gating on enemy detection."""
+
+    def test_patrol_no_attack_when_player_above(self):
+        """Patrol should NOT attack when player is on a different floor."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "attack_range": 3.0,
+            "attack_tell_time": 1.0,
+            "attack_cooldown": 2.0,
+            "vertical_detection": 3.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 16)
+        # Player directly above, within horizontal range but 4 tiles up.
+        player_rect = pygame.Rect(110, 120, 24, 32)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.attack_state == AttackState.IDLE
+
+    def test_patrol_attacks_when_player_on_same_level(self):
+        """Patrol should attack when player is close horizontally and vertically."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "attack_range": 3.0,
+            "attack_tell_time": 1.0,
+            "attack_cooldown": 2.0,
+            "vertical_detection": 3.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 16)
+        # Player nearby, within 1 tile vertically.
+        player_rect = pygame.Rect(110, 195, 24, 32)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.attack_state == AttackState.TELL
+
+    def test_patrol_aggro_suppressed_when_player_above(self):
+        """Aggro chase should not activate if player is on a different floor."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "vertical_detection": 3.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 16)
+        # Player 4 tiles above.
+        player_rect = pygame.Rect(150, 120, 24, 32)
+
+        patrol.on_damaged(150.0, 120.0)
+        assert patrol.aggro_timer > 0
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        # Should patrol normally, not chase (aggro gated by vertical check).
+        assert result.speed == 40
+
+    def test_chase_no_detect_through_floor(self):
+        """Chase should NOT follow player who is on a different floor."""
+        params = {
+            "chase_range": 6,
+            "speed": 50,
+            "vertical_detection": 3.0,
+        }
+        chase = ChaseBehavior(params)
+        chase.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 24)
+        # Player 4 tiles above, within horizontal chase range.
+        player_rect = pygame.Rect(120, 120, 24, 32)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 0.0
+        assert result.speed == 0.0
+
+    def test_chase_detects_on_same_level(self):
+        """Chase should follow player on the same floor."""
+        params = {
+            "chase_range": 6,
+            "speed": 50,
+            "vertical_detection": 3.0,
+        }
+        chase = ChaseBehavior(params)
+        chase.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 24)
+        # Player on same level, within chase range.
+        player_rect = pygame.Rect(150, 195, 24, 32)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 1.0
+        assert result.speed == 50
+
+    def test_chase_aggro_suppressed_when_player_above(self):
+        """Chase aggro should not extend range if player is on different floor."""
+        params = {
+            "chase_range": 3,
+            "speed": 50,
+            "vertical_detection": 3.0,
+        }
+        chase = ChaseBehavior(params)
+        chase.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 200, 16, 24)
+        # Player far and above.
+        player_rect = pygame.Rect(500, 120, 24, 32)
+
+        chase.on_damaged(500.0, 120.0)
+
+        result = chase.update(enemy_rect, player_rect, 1 / 60)
+        # Should NOT chase (player on different floor).
+        assert result.move_x == 0.0
+
+
 class TestBehaviorFactory:
     """Tests for the behavior creation factory function."""
 

@@ -1,4 +1,4 @@
-"""Boss health bar rendered at the top of the screen.
+"""Boss health bar rendered at the bottom of the screen.
 
 Displays the boss name, a health bar with phase markers, and the
 current phase name.  The bar smoothly transitions when the boss takes
@@ -17,11 +17,8 @@ from sa_fona.config.settings import BASE_WIDTH
 
 # ── Layout constants ──────────────────────────────────────────────
 _BAR_MARGIN_X: int = 40
-_BAR_Y: int = 8
 _BAR_HEIGHT: int = 8
 _BAR_BORDER: int = 1
-_NAME_Y: int = 1
-_PHASE_LABEL_Y: int = 18
 
 # Colors.
 _BAR_BG_COLOR: tuple[int, int, int] = (30, 30, 30)
@@ -66,7 +63,7 @@ class BossHealthBar:
         self._visible: bool = True
 
         # Smooth damage animation.
-        self._damage_catch_speed: float = 15.0  # HP per second.
+        self._damage_catch_speed: float = 40.0  # HP per second.
 
         # Flash timer for phase transitions.
         self._flash_timer: float = 0.0
@@ -118,12 +115,15 @@ class BossHealthBar:
     def set_health(self, current: float) -> None:
         """Update the current health value.
 
-        The display bar will smoothly catch up.
+        The display bar will smoothly catch up.  Snaps to 0 on defeat
+        so the bar is empty before the victory screen.
 
         Args:
             current: New health value.
         """
         self._current_health = max(0.0, current)
+        if self._current_health <= 0:
+            self._display_health = 0.0
 
     def set_phase(self, phase: int, phase_name: str = "") -> None:
         """Update the current phase display.
@@ -161,7 +161,13 @@ class BossHealthBar:
             return
 
         screen_w = surface.get_width()
+        screen_h = surface.get_height()
         bar_width = screen_w - 2 * _BAR_MARGIN_X
+
+        # Position from the bottom of the screen.
+        bar_y = screen_h - _BAR_HEIGHT - 14
+        name_y = bar_y - 12
+        phase_y = bar_y + _BAR_HEIGHT + 2
 
         # Boss name (centered above bar).
         if self._name_font is not None:
@@ -172,11 +178,11 @@ class BossHealthBar:
                 self._boss_name, False, _TEXT_SHADOW_COLOR
             )
             nx = (screen_w - name_surf.get_width()) // 2
-            surface.blit(shadow_surf, (nx + 1, _NAME_Y + 1))
-            surface.blit(name_surf, (nx, _NAME_Y))
+            surface.blit(shadow_surf, (nx + 1, name_y + 1))
+            surface.blit(name_surf, (nx, name_y))
 
         # Bar background.
-        bar_rect = pygame.Rect(_BAR_MARGIN_X, _BAR_Y, bar_width, _BAR_HEIGHT)
+        bar_rect = pygame.Rect(_BAR_MARGIN_X, bar_y, bar_width, _BAR_HEIGHT)
         pygame.draw.rect(surface, _BAR_BG_COLOR, bar_rect)
         pygame.draw.rect(surface, _BAR_BORDER_COLOR, bar_rect, _BAR_BORDER)
 
@@ -185,7 +191,7 @@ class BossHealthBar:
             trail_width = int(bar_width * self.display_fraction)
             trail_rect = pygame.Rect(
                 _BAR_MARGIN_X + _BAR_BORDER,
-                _BAR_Y + _BAR_BORDER,
+                bar_y + _BAR_BORDER,
                 max(0, trail_width - 2 * _BAR_BORDER),
                 _BAR_HEIGHT - 2 * _BAR_BORDER,
             )
@@ -196,17 +202,16 @@ class BossHealthBar:
             hp_frac = self.health_fraction
             hp_width = int(bar_width * hp_frac)
 
-            # Color based on HP level.
             if hp_frac > 0.66:
-                color = _BAR_HP_COLORS[2]  # Green.
+                color = _BAR_HP_COLORS[2]
             elif hp_frac > 0.33:
-                color = _BAR_HP_COLORS[1]  # Orange.
+                color = _BAR_HP_COLORS[1]
             else:
-                color = _BAR_HP_COLORS[0]  # Red.
+                color = _BAR_HP_COLORS[0]
 
             fill_rect = pygame.Rect(
                 _BAR_MARGIN_X + _BAR_BORDER,
-                _BAR_Y + _BAR_BORDER,
+                bar_y + _BAR_BORDER,
                 max(0, hp_width - 2 * _BAR_BORDER),
                 _BAR_HEIGHT - 2 * _BAR_BORDER,
             )
@@ -218,8 +223,8 @@ class BossHealthBar:
             pygame.draw.line(
                 surface,
                 _PHASE_MARKER_COLOR,
-                (marker_x, _BAR_Y),
-                (marker_x, _BAR_Y + _BAR_HEIGHT),
+                (marker_x, bar_y),
+                (marker_x, bar_y + _BAR_HEIGHT),
                 1,
             )
 
@@ -230,7 +235,7 @@ class BossHealthBar:
                 (bar_width, _BAR_HEIGHT), pygame.SRCALPHA
             )
             flash_surf.fill((255, 255, 255, max(0, min(255, alpha))))
-            surface.blit(flash_surf, (_BAR_MARGIN_X, _BAR_Y))
+            surface.blit(flash_surf, (_BAR_MARGIN_X, bar_y))
 
         # Phase label (below bar).
         if self._phase_font is not None and self._phase_name:
@@ -239,4 +244,4 @@ class BossHealthBar:
                 phase_text, False, _TEXT_COLOR
             )
             px = (screen_w - phase_surf.get_width()) // 2
-            surface.blit(phase_surf, (px, _PHASE_LABEL_Y))
+            surface.blit(phase_surf, (px, phase_y))

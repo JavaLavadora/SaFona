@@ -2,7 +2,8 @@
 
 States: idle, running, jumping, falling, wall_sliding, wall_jumping.
 Receives physics results from the scene integration layer.  Input is
-read via InputState.  Placeholder rendering uses colored rectangles.
+read via InputState.  Uses real sprite sheets when available, falling
+back to colored rectangles.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ from sa_fona.config.settings import (
 )
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 
 class PlayerState(Enum):
@@ -106,12 +108,26 @@ class Player(Entity):
     # ── Surface generation ─────────────────────────────────────────
 
     def _build_surfaces(self) -> None:
-        """Create a placeholder colored rectangle for every state."""
+        """Load real sprites or fall back to colored rectangles."""
+        self._idle_frames: list[pygame.Surface] = []
+        self._anim_timer: float = 0.0
+        self._anim_frame: int = 0
+        self._anim_speed: float = 0.15
+
+        frames = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/idle.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if frames:
+            self._idle_frames = frames
+
         for state, key in _STATE_KEY.items():
-            color = PLAYER_STATE_COLORS.get(key, (255, 255, 255))
-            surf = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
-            surf.fill(color)
-            self._surfaces[state] = surf
+            if self._idle_frames and state == PlayerState.IDLE:
+                self._surfaces[state] = self._idle_frames[0]
+            else:
+                color = PLAYER_STATE_COLORS.get(key, (255, 255, 255))
+                surf = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+                surf.fill(color)
+                self._surfaces[state] = surf
         self._sprite = self._surfaces[self._state]
 
     # ── Public API ─────────────────────────────────────────────────
@@ -192,7 +208,7 @@ class Player(Entity):
         """
         self._update_timers(dt)
         self._apply_input()
-        self._sprite = self._surfaces[self._state]
+        self._update_sprite(dt)
 
     def post_physics(
         self,
@@ -232,9 +248,28 @@ class Player(Entity):
             self._coyote_timer = PLAYER_COYOTE_TIME
 
         self._update_state()
-        self._sprite = self._surfaces[self._state]
+        self._update_sprite(0.0)
 
     # ── Private helpers ────────────────────────────────────────────
+
+    def _update_sprite(self, dt: float) -> None:
+        """Select the correct sprite frame, with animation and flipping."""
+        if self._idle_frames and self._state == PlayerState.IDLE:
+            self._anim_timer += dt
+            if self._anim_timer >= self._anim_speed:
+                self._anim_timer -= self._anim_speed
+                self._anim_frame = (self._anim_frame + 1) % len(self._idle_frames)
+            base = self._idle_frames[self._anim_frame]
+        else:
+            base = self._surfaces[self._state]
+            if self._state != PlayerState.IDLE:
+                self._anim_frame = 0
+                self._anim_timer = 0.0
+
+        if not self.facing_right:
+            self._sprite = pygame.transform.flip(base, True, False)
+        else:
+            self._sprite = base
 
     def _update_timers(self, dt: float) -> None:
         """Tick down coyote time, jump buffer, and wall-jump lockout."""

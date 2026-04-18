@@ -14,10 +14,12 @@ from __future__ import annotations
 
 import json
 import random
+from typing import TYPE_CHECKING
 
 import pygame
 
 from sa_fona.config.settings import DATA_DIR
+from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.entities.entity import Entity
 from sa_fona.entities.enemy_behaviors import (
     AttackState,
@@ -26,7 +28,9 @@ from sa_fona.entities.enemy_behaviors import (
     create_behavior,
 )
 from sa_fona.entities.pickup import Pickup, PickupType
-from sa_fona.level.tilemap import TILE_SIZE
+
+if TYPE_CHECKING:
+    from sa_fona.level.tilemap import TileMap
 
 # Placeholder colors per enemy type.
 _ENEMY_COLORS: dict[str, tuple[int, int, int]] = {
@@ -58,6 +62,8 @@ class Enemy(Entity):
         definition: The full definition dict from the enemy JSON.
     """
 
+    _HITBOX_SHRINK: int = 2
+
     def __init__(
         self,
         x: float,
@@ -65,9 +71,12 @@ class Enemy(Entity):
         enemy_type: str,
         definition: dict,
     ) -> None:
-        width = definition.get("hitbox", {}).get("w", 16)
-        height = definition.get("hitbox", {}).get("h", 16)
-        super().__init__(x, y, width, height)
+        sprite_w = definition.get("hitbox", {}).get("w", 16)
+        sprite_h = definition.get("hitbox", {}).get("h", 16)
+        shrink = self._HITBOX_SHRINK
+        width = max(4, sprite_w - shrink * 2)
+        height = max(4, sprite_h - shrink * 2)
+        super().__init__(x + shrink, y + shrink, width, height)
 
         self.enemy_type: str = enemy_type
         self.display_name: str = definition.get("display_name", enemy_type)
@@ -85,7 +94,7 @@ class Enemy(Entity):
         behavior_type = definition.get("behavior", "patrol")
         behavior_params = definition.get("behavior_params", {})
         self.behavior: EnemyBehavior = create_behavior(behavior_type, behavior_params)
-        self.behavior.reset(x)
+        self.behavior.reset(x + shrink)
 
         # Current behavior result (updated each frame).
         self._behavior_result: BehaviorResult = BehaviorResult()
@@ -97,9 +106,9 @@ class Enemy(Entity):
         # Sub-pixel position accumulator for smooth low-speed movement.
         self._sub_x: float = float(self.rect.x)
 
-        # Build placeholder sprite.
-        self._width = width
-        self._height = height
+        # Build placeholder sprite (visual size, larger than hitbox).
+        self._sprite_w = sprite_w
+        self._sprite_h = sprite_h
         self._base_color = _ENEMY_COLORS.get(enemy_type, _DEFAULT_ENEMY_COLOR)
         self._build_sprite()
 
@@ -108,11 +117,10 @@ class Enemy(Entity):
 
     def _build_sprite(self) -> None:
         """Create a placeholder colored rectangle sprite."""
-        surf = pygame.Surface((self._width, self._height))
+        surf = pygame.Surface((self._sprite_w, self._sprite_h))
         surf.fill(self._base_color)
-        # Border for visibility.
         border_color = tuple(max(0, c - 40) for c in self._base_color)
-        pygame.draw.rect(surf, border_color, (0, 0, self._width, self._height), 1)
+        pygame.draw.rect(surf, border_color, (0, 0, self._sprite_w, self._sprite_h), 1)
         self._sprite = surf
 
     # ── Properties ─────────────────────────────────────────────────
@@ -161,6 +169,11 @@ class Enemy(Entity):
     def heart_chance(self) -> float:
         """Probability of dropping a heart pickup."""
         return self._heart_chance
+
+    def snap_position(self, bottom: int) -> None:
+        """Reposition the enemy vertically and sync sub-pixel tracking."""
+        self.rect.bottom = bottom
+        self._sub_x = float(self.rect.x)
 
     # ── Combat ─────────────────────────────────────────────────────
 
@@ -235,7 +248,7 @@ class Enemy(Entity):
         self,
         player_rect: pygame.Rect,
         dt: float,
-        tilemap: object | None = None,
+        tilemap: TileMap | None = None,
     ) -> None:
         """Update behavior and apply movement.
 
@@ -267,6 +280,31 @@ class Enemy(Entity):
         self._sub_x += self.velocity[0] * dt
         self.rect.x = round(self._sub_x)
 
+        if tilemap is not None and self.velocity[0] != 0:
+            self._resolve_wall_collision(tilemap)
+
+    def _resolve_wall_collision(self, tilemap: TileMap) -> None:
+        """Push enemy out of solid tiles after horizontal movement."""
+        top_ty = self.rect.top // TILE_SIZE
+        bot_ty = (self.rect.bottom - 1) // TILE_SIZE
+
+        if self.velocity[0] > 0:
+            right_tx = (self.rect.right - 1) // TILE_SIZE
+            for ty in range(top_ty, bot_ty + 1):
+                if tilemap.is_solid_at(right_tx, ty):
+                    self.rect.right = right_tx * TILE_SIZE
+                    self._sub_x = float(self.rect.x)
+                    self.velocity[0] = 0
+                    return
+        elif self.velocity[0] < 0:
+            left_tx = self.rect.left // TILE_SIZE
+            for ty in range(top_ty, bot_ty + 1):
+                if tilemap.is_solid_at(left_tx, ty):
+                    self.rect.left = (left_tx + 1) * TILE_SIZE
+                    self._sub_x = float(self.rect.x)
+                    self.velocity[0] = 0
+                    return
+
     def render(
         self,
         surface: pygame.Surface,
@@ -290,37 +328,34 @@ class Enemy(Entity):
             if blink_phase % 2 == 1:
                 return
 
-        screen_x = self.rect.x - camera_offset[0]
-        screen_y = self.rect.y - camera_offset[1]
+        shrink = self._HITBOX_SHRINK
+        vis_x = self.rect.x - camera_offset[0] - shrink
+        vis_y = self.rect.y - camera_offset[1] - shrink
 
-        # Draw base sprite.
         if self._sprite is not None:
-            surface.blit(self._sprite, (screen_x, screen_y))
+            surface.blit(self._sprite, (vis_x, vis_y))
 
-        # Attack tell overlay (red flash).
         if self.is_in_tell:
             tell_surf = pygame.Surface(
-                (self._width, self._height), pygame.SRCALPHA
+                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
             )
             tell_surf.fill(_TELL_COLOR)
-            surface.blit(tell_surf, (screen_x, screen_y))
+            surface.blit(tell_surf, (vis_x, vis_y))
 
-        # Block indicator overlay (blue tint).
         if self.is_blocking:
             block_surf = pygame.Surface(
-                (self._width, self._height), pygame.SRCALPHA
+                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
             )
             block_surf.fill(_BLOCK_COLOR)
-            surface.blit(block_surf, (screen_x, screen_y))
+            surface.blit(block_surf, (vis_x, vis_y))
 
-        # Draw a label with the first letter of the enemy type.
         try:
             if self._font is None:
                 self._font = pygame.font.Font(None, 14)
             label_char = self.enemy_type[0].upper()
             label = self._font.render(label_char, False, (0, 0, 0))
-            lx = screen_x + (self._width - label.get_width()) // 2
-            ly = screen_y + (self._height - label.get_height()) // 2
+            lx = vis_x + (self._sprite_w - label.get_width()) // 2
+            ly = vis_y + (self._sprite_h - label.get_height()) // 2
             surface.blit(label, (lx, ly))
         except (pygame.error, IndexError):
             pass

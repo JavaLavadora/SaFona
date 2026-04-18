@@ -7,8 +7,8 @@
   "music_slot": "boss_1_theme",
   "intro_dialogue_id": "boss_1_intro",
   "hitbox": {
-    "w": 56,
-    "h": 48
+    "w": 40,
+    "h": 36
   },
   "contact_damage": 1.0,
   "arena": {

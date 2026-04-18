@@ -76,10 +76,11 @@ class TestEnemyFactory:
         assert enemy.enemy_type == "test_sheep"
         assert enemy.health == 2
         assert enemy.contact_damage == 0.5
-        assert enemy.rect.x == 100
-        assert enemy.rect.y == 200
-        assert enemy.rect.width == 16
-        assert enemy.rect.height == 16
+        shrink = Enemy._HITBOX_SHRINK
+        assert enemy.rect.x == 100 + shrink
+        assert enemy.rect.y == 200 + shrink
+        assert enemy.rect.width == 16 - shrink * 2
+        assert enemy.rect.height == 16 - shrink * 2
         assert isinstance(enemy.behavior, PatrolBehavior)
 
     def test_create_warrior(self, factory_path):
@@ -90,8 +91,9 @@ class TestEnemyFactory:
         assert enemy.enemy_type == "test_warrior"
         assert enemy.health == 3
         assert enemy.contact_damage == 1.0
-        assert enemy.rect.width == 16
-        assert enemy.rect.height == 24
+        shrink = Enemy._HITBOX_SHRINK
+        assert enemy.rect.width == 16 - shrink * 2
+        assert enemy.rect.height == 24 - shrink * 2
         assert isinstance(enemy.behavior, ChaseBehavior)
 
     def test_create_unknown_type_raises(self, factory_path):
@@ -107,8 +109,9 @@ class TestEnemyFactory:
         enemy = factory.create_from_entity_def(ent_def)
 
         assert enemy.enemy_type == "test_sheep"
-        assert enemy.rect.x == 10 * 16  # Tile to pixel.
-        assert enemy.rect.y == 5 * 16
+        shrink = Enemy._HITBOX_SHRINK
+        assert enemy.rect.x == 10 * 16 + shrink
+        assert enemy.rect.y == 5 * 16 + shrink
 
     def test_missing_file_creates_empty_factory(self):
         """Factory with missing file should have no definitions."""

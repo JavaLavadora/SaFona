@@ -31,7 +31,7 @@ from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
-from sa_fona.level.trigger import TriggerSystem
+from sa_fona.level.trigger import TriggerSystem, TriggerType
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.combat import CombatSystem
 from sa_fona.systems.economy import EconomySystem
@@ -303,6 +303,9 @@ class GameplayScene(BaseScene):
         # 4. Feed physics results back to the player.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
+        # 4b. Push player out of enemy bodies (enemies have mass).
+        self._resolve_enemy_push(self._player)
+
         # 5. Sling combat system: process input, spawn projectiles.
         new_projectiles = self._sling_system.update(
             self._input_state, self._player, dt
@@ -345,9 +348,7 @@ class GameplayScene(BaseScene):
         # 13. Check triggers.
         self._trigger_system.update(self._player.rect)
 
-        # 14. Update companion (Bep follows Ramon).
-        self._companion.follow(self._player.rect, dt)
-        self._companion.update(dt)
+        # Companion disabled — Bep is dialogue-only, not a visible follower.
 
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
@@ -389,12 +390,12 @@ class GameplayScene(BaseScene):
         for pickup in self._pickups:
             pickup.render(surface, cam_offset)
 
-        # Companion (Bep).
-        self._companion.render(surface, cam_offset)
-
         # Enemies.
         for enemy in self._enemies:
             enemy.render(surface, cam_offset)
+
+        # Level-end gate visual cue.
+        self._render_level_end_cues(surface, cam_offset)
 
         # Melee hitboxes (debug: translucent white flash).
         for hitbox in self._sling_system.melee_hitboxes:
@@ -422,6 +423,42 @@ class GameplayScene(BaseScene):
 
         # HUD renders on top of everything (screen space, not camera-relative).
         self._hud.render(surface)
+
+    def _render_level_end_cues(
+        self, surface: pygame.Surface, cam_offset: tuple[int, int],
+    ) -> None:
+        """Draw a pulsing gate at level_end trigger locations."""
+        for trigger in self._trigger_system.triggers:
+            if trigger.trigger_type != TriggerType.LEVEL_END:
+                continue
+            sx = trigger.rect.x - cam_offset[0]
+            sy = trigger.rect.y - cam_offset[1]
+            w = trigger.rect.width
+            h = trigger.rect.height
+
+            gate_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+            gate_surf.fill((255, 220, 80, 50))
+            surface.blit(gate_surf, (sx, sy))
+
+            pygame.draw.rect(surface, (255, 200, 50), (sx, sy, w, h), 2)
+
+            col_w = 4
+            pygame.draw.rect(
+                surface, (180, 140, 40), (sx, sy, col_w, h),
+            )
+            pygame.draw.rect(
+                surface, (180, 140, 40), (sx + w - col_w, sy, col_w, h),
+            )
+
+            try:
+                if not hasattr(self, "_gate_font"):
+                    self._gate_font = pygame.font.Font(None, 12)
+                arrow = self._gate_font.render(">>>", False, (255, 220, 80))
+                ax = sx + (w - arrow.get_width()) // 2
+                ay = sy + (h - arrow.get_height()) // 2
+                surface.blit(arrow, (ax, ay))
+            except pygame.error:
+                pass
 
     # ── Entity spawning ─────────────────────────────────────────────
 
@@ -477,9 +514,21 @@ class GameplayScene(BaseScene):
         """
         try:
             enemy = self._enemy_factory.create_from_entity_def(ent_def)
+            self._snap_to_ground(enemy)
             self._enemies.append(enemy)
         except ValueError:
             pass  # Skip unknown enemy types gracefully.
+
+    def _snap_to_ground(self, enemy: Enemy) -> None:
+        """Align enemy feet to the top of the first solid tile below."""
+        if self._tilemap is None:
+            return
+        start_ty = (enemy.rect.top // TILE_SIZE) + 1
+        tx = enemy.rect.centerx // TILE_SIZE
+        for ty in range(start_ty, self._tilemap.height_tiles):
+            if self._tilemap.is_solid_at(tx, ty):
+                enemy.snap_position(ty * TILE_SIZE)
+                return
 
     # ── Enemy updates ─────────────────────────────────────────────
 
@@ -526,6 +575,44 @@ class GameplayScene(BaseScene):
         self._breakables = [b for b in self._breakables if b.active]
 
     # ── Physics helpers ────────────────────────────────────────────
+
+    def _resolve_enemy_push(self, player: Player) -> None:
+        """Push the player out of overlapping enemy hitboxes."""
+        pushed = False
+        for enemy in self._enemies:
+            if not enemy.is_alive:
+                continue
+            if not player.rect.colliderect(enemy.rect):
+                continue
+            overlap = player.rect.clip(enemy.rect)
+            if overlap.width < overlap.height:
+                if player.rect.centerx < enemy.rect.centerx:
+                    player.rect.right = enemy.rect.left
+                else:
+                    player.rect.left = enemy.rect.right
+            else:
+                if player.rect.centery < enemy.rect.centery:
+                    player.rect.bottom = enemy.rect.top
+                else:
+                    player.rect.top = enemy.rect.bottom
+            pushed = True
+        if pushed:
+            self._clamp_to_solid(player.rect)
+
+    def _clamp_to_solid(self, rect: pygame.Rect) -> None:
+        """Push rect out of any overlapping solid tiles."""
+        for tile_rect in self._physics.check_collision(rect, "solid"):
+            overlap = rect.clip(tile_rect)
+            if overlap.width < overlap.height:
+                if rect.centerx < tile_rect.centerx:
+                    rect.right = tile_rect.left
+                else:
+                    rect.left = tile_rect.right
+            else:
+                if rect.centery < tile_rect.centery:
+                    rect.bottom = tile_rect.top
+                else:
+                    rect.top = tile_rect.bottom
 
     def _check_wall_contact(
         self, rect: pygame.Rect
@@ -638,27 +725,44 @@ class GameplayScene(BaseScene):
         """Load the next level by its relative path identifier.
 
         The ``next_level`` string is a path relative to the levels data
-        directory (e.g. ``"world1/level_1_2"``).  This method resolves it
-        to a full filesystem path and replaces the current scene.
+        directory (e.g. ``"world1/level_1_2"``).  Boss levels (paths
+        containing ``"boss_"``) are loaded as BossScene instead.
 
         Args:
             next_level: Relative level identifier (without ``.json`` extension).
         """
+        if self._scene_manager is None:
+            return
+
+        # Boss levels use BossScene with a boss_id extracted from the path.
+        level_name = next_level.rsplit("/", 1)[-1]
+        if level_name.startswith("boss_"):
+            from sa_fona.scenes.boss_scene import BossScene
+
+            boss_id = level_name[len("boss_"):]
+            boss_scene = BossScene(
+                boss_id=boss_id,
+                screen_width=self._screen_width,
+                screen_height=self._screen_height,
+                event_bus=self._event_bus,
+            )
+            boss_scene.scene_manager = self._scene_manager
+            self._scene_manager.replace(boss_scene)
+            return
+
         level_path = str(DATA_DIR / "levels" / f"{next_level}.json")
 
         if not Path(level_path).is_file():
-            # Level file does not exist yet -- stay on current level.
             return
 
-        if self._scene_manager is not None:
-            new_scene = GameplayScene(
-                self._screen_width,
-                self._screen_height,
-                event_bus=self._event_bus,
-                level_path=level_path,
-            )
-            new_scene.scene_manager = self._scene_manager
-            self._scene_manager.replace(new_scene)
+        new_scene = GameplayScene(
+            self._screen_width,
+            self._screen_height,
+            event_bus=self._event_bus,
+            level_path=level_path,
+        )
+        new_scene.scene_manager = self._scene_manager
+        self._scene_manager.replace(new_scene)
 
     # ── Event callbacks ────────────────────────────────────────────
 

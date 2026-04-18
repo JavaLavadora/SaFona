@@ -88,6 +88,14 @@ D1 (Core Engine Bootstrap)
 - TileMap (3-layer rendering, collision types), PhysicsSystem (AABB, gravity, one-way platforms), Camera (smooth follow, bounds clamping, screen shake), LevelLoader, demo tilemap scene
 - `rendering/animation.py` extracted from `sprite_renderer.py` per architecture review
 
+**Deliverable 3: Player Entity & Movement** -- PR #22, Issue #21
+- Merged 2026-04-18, user signed off
+- 159 tests, all passing
+- Entity base class, Player FSM (idle, running, jumping, falling, wall_sliding, wall_jumping), GameplayScene
+- Nintendo-style wall jump (press into wall + jump), same-wall climb prevention (height tracking), variable jump height
+- Player decoupled from PhysicsSystem per architecture review (update_intent/post_physics split)
+- R key reset for testing convenience, 400ms wall jump lockout tuned with user
+
 ### In Progress
 
 (none yet)

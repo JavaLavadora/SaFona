@@ -382,8 +382,8 @@ class TestPatrolEdgeDetection:
         assert result.move_x == -1.0
         assert result.speed == 40
 
-    def test_new_damage_cancels_retreat(self):
-        """Taking damage during retreat should re-aggro toward player."""
+    def test_damage_during_retreat_does_not_cancel(self):
+        """Shots during retreat should not re-aggro (enemy can't cross gap)."""
         params = {"patrol_range": 10, "speed": 40}
         patrol = PatrolBehavior(params)
         patrol.reset(0.0)
@@ -398,9 +398,31 @@ class TestPatrolEdgeDetection:
         for _ in range(50):
             patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
 
-        # Hit again — should cancel retreat and re-aggro.
+        assert patrol._retreating or patrol._hesitation_timer > 0
+
+        # Hit again during retreat — should keep retreating.
         patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
-        assert patrol.aggro_timer > 0
+        assert patrol._retreating or patrol._hesitation_timer > 0
+
+    def test_aggro_attacks_when_in_range(self):
+        """During aggro chase, enemy should attack when close enough."""
+        params = {
+            "patrol_range": 5,
+            "speed": 40,
+            "attack_range": 2.0,
+            "attack_tell_time": 0.8,
+            "attack_cooldown": 2.0,
+        }
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_rect = pygame.Rect(120, 100, 24, 32)  # Within attack range.
+
+        patrol.on_damaged(120.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.attack_state == AttackState.TELL
 
 
 class TestChaseBehavior:

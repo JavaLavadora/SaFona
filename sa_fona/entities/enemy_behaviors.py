@@ -188,19 +188,20 @@ class PatrolBehavior(EnemyBehavior):
     def on_damaged(self, player_x: float, player_y: float) -> None:
         """React to taking damage by entering aggro state.
 
-        Interrupts any current attack cycle, retreat, and chases toward
-        the player's position for a few seconds.
+        If already retreating from a ledge, keep retreating — the enemy
+        can't cross the gap regardless of how many times it's hit.
+        Otherwise, interrupt any attack cycle and chase.
 
         Args:
             player_x: The player's X position in world pixels.
             player_y: The player's Y position in world pixels.
         """
+        if self._retreating or self._hesitation_timer > 0:
+            return
         self._aggro_timer = self._AGGRO_DURATION
         self._aggro_target_x = player_x
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
-        self._retreating = False
-        self._hesitation_timer = 0.0
 
     def _check_edge_ahead(
         self,
@@ -304,7 +305,16 @@ class PatrolBehavior(EnemyBehavior):
         ):
             chase_dir = 1.0 if dx_to_player > 0 else -1.0
 
-            if self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
+            # Within attack range: let the attack state machine handle it
+            # so the enemy can charge/attack instead of just trailing.
+            tell_time = self._attack_tell_time or self._charge_tell_time
+            if (
+                dist_to_player < self._attack_range
+                and self._cooldown_timer <= 0
+                and tell_time > 0
+            ):
+                pass  # Fall through to attack state machine below.
+            elif self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
                 self._direction = chase_dir
                 self._hesitation_timer = self._LEDGE_HESITATION
                 self._aggro_timer = 0.0

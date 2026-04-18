@@ -456,7 +456,9 @@ class GameplayScene(BaseScene):
         """
         for enemy in self._enemies:
             if enemy.active:
-                enemy.update_with_player(self._player.rect, dt)
+                enemy.update_with_player(
+                    self._player.rect, dt, tilemap=self._tilemap
+                )
 
     # ── Pickup collection ─────────────────────────────────────────
 

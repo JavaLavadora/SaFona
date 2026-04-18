@@ -128,7 +128,7 @@ class CombatSystem:
                 if not enemy.is_alive:
                     continue
                 if proj.rect.colliderect(enemy.rect):
-                    drops = self._handle_projectile_hit(proj, enemy)
+                    drops = self._handle_projectile_hit(proj, enemy, player)
                     dropped_pickups.extend(drops)
                     break  # Projectile destroyed, stop checking.
 
@@ -138,7 +138,7 @@ class CombatSystem:
                 if not enemy.is_alive:
                     continue
                 if hitbox.rect.colliderect(enemy.rect):
-                    drops = self._handle_melee_hit(hitbox, enemy)
+                    drops = self._handle_melee_hit(hitbox, enemy, player)
                     dropped_pickups.extend(drops)
 
         # 3. Enemy contact -> Player (if not invincible)
@@ -186,13 +186,14 @@ class CombatSystem:
                 self._player_visible = True
 
     def _handle_projectile_hit(
-        self, proj: Projectile, enemy: Enemy
+        self, proj: Projectile, enemy: Enemy, player: Player
     ) -> list[Pickup]:
         """Resolve a projectile hitting an enemy.
 
         Args:
             proj: The projectile that hit.
             enemy: The enemy that was hit.
+            player: The player entity (for aggro callback).
 
         Returns:
             Pickup drops if the enemy was killed.
@@ -210,6 +211,10 @@ class CombatSystem:
 
         applied = enemy.take_damage(proj.damage)
         if applied:
+            # Notify the behavior so it can aggro toward the player.
+            enemy.behavior.on_damaged(
+                float(player.rect.centerx), float(player.rect.centery)
+            )
             self._event_bus.publish(
                 "damage_dealt",
                 target_type="enemy",
@@ -219,13 +224,14 @@ class CombatSystem:
         return self._check_enemy_death(enemy)
 
     def _handle_melee_hit(
-        self, hitbox: MeleeHitbox, enemy: Enemy
+        self, hitbox: MeleeHitbox, enemy: Enemy, player: Player
     ) -> list[Pickup]:
         """Resolve a melee hitbox hitting an enemy.
 
         Args:
             hitbox: The melee hitbox.
             enemy: The enemy that was hit.
+            player: The player entity (for aggro callback).
 
         Returns:
             Pickup drops if the enemy was killed.
@@ -241,6 +247,10 @@ class CombatSystem:
 
         applied = enemy.take_damage(hitbox.damage)
         if applied:
+            # Notify the behavior so it can aggro toward the player.
+            enemy.behavior.on_damaged(
+                float(player.rect.centerx), float(player.rect.centery)
+            )
             self._event_bus.publish(
                 "damage_dealt",
                 target_type="enemy",

@@ -12,6 +12,7 @@ from sa_fona.entities.enemy_behaviors import (
     PatrolBehavior,
     create_behavior,
 )
+from sa_fona.level.tilemap import TileMap, TILE_SIZE
 
 
 @pytest.fixture(autouse=True)
@@ -132,6 +133,183 @@ class TestPatrolBehavior:
         # Should be in attacking state with charge speed.
         if result.attack_state == AttackState.ATTACKING:
             assert result.speed == 80
+
+
+class TestPatrolAggroBehavior:
+    """Tests for patrol behavior damage aggro response."""
+
+    def test_on_damaged_triggers_aggro(self):
+        """Patrol should enter aggro state when damaged."""
+        params = {"patrol_range": 5, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        patrol.on_damaged(300.0, 100.0)
+
+        assert patrol.aggro_timer > 0
+
+    def test_aggro_chases_toward_player(self):
+        """While aggroed, patrol should move toward the player."""
+        params = {"patrol_range": 5, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_rect = pygame.Rect(300, 100, 24, 32)  # Player to the right.
+
+        # Trigger aggro.
+        patrol.on_damaged(300.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 1.0  # Chase right.
+        assert result.speed == 40 * 1.4  # Aggro speed multiplier.
+
+    def test_aggro_chases_left(self):
+        """While aggroed, patrol should chase left if player is left."""
+        params = {"patrol_range": 5, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(200.0)
+
+        enemy_rect = pygame.Rect(200, 100, 16, 16)
+        player_rect = pygame.Rect(50, 100, 24, 32)  # Player to the left.
+
+        patrol.on_damaged(50.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == -1.0
+
+    def test_aggro_expires_after_duration(self):
+        """Aggro should expire after ~2 seconds, resuming patrol."""
+        params = {"patrol_range": 5, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 16, 16)
+        player_rect = pygame.Rect(500, 100, 24, 32)  # Far away.
+
+        patrol.on_damaged(500.0, 100.0)
+
+        # Advance past aggro duration (2.0 seconds).
+        for _ in range(150):
+            patrol.update(enemy_rect, player_rect, 1 / 60)
+
+        # Aggro should have expired.
+        assert patrol.aggro_timer <= 0
+
+        # Should now be in normal patrol.
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.speed == 40  # Normal patrol speed, not aggro.
+
+    def test_aggro_resets_on_behavior_reset(self):
+        """Reset should clear aggro state."""
+        params = {"patrol_range": 5, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        patrol.on_damaged(300.0, 100.0)
+        assert patrol.aggro_timer > 0
+
+        patrol.reset(100.0)
+        assert patrol.aggro_timer == 0
+
+
+class TestPatrolEdgeDetection:
+    """Tests for patrol behavior ledge edge detection."""
+
+    def _make_tilemap_with_gap(self):
+        """Create a tilemap with a platform and a gap.
+
+        Layout (5 wide, 4 tall):
+            Row 0: empty
+            Row 1: empty
+            Row 2: enemy level (all empty)
+            Row 3: solid, solid, solid, EMPTY, solid  <- gap at col 3
+        """
+        tile_data = {
+            "dimensions": {"width": 5, "height": 4},
+            "layers": {
+                "midground": [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 1, 1, 0, 1],
+                ],
+            },
+            "collision_types": {"solid": [1]},
+        }
+        return TileMap(tile_data)
+
+    def test_reverses_at_ledge(self):
+        """Patrol should reverse direction when approaching a gap."""
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        tilemap = self._make_tilemap_with_gap()
+
+        # Enemy at col 2, row 2 (just before the gap at col 3).
+        # Enemy feet are at row 2 bottom = row 3 start = y=48.
+        # Leading edge going right: x = 2*16 + 16 = 48.
+        # Probe: tile_x = 49//16 = 3, tile_y = 48//16 = 3.
+        # Tile (3, 3) = 0 (gap) -> should reverse.
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        player_rect = pygame.Rect(500, 100, 24, 32)  # Far away.
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Should have reversed from +1 to -1.
+        assert result.move_x == -1.0
+
+    def test_no_reverse_when_ground_ahead(self):
+        """Patrol should keep going when ground exists ahead."""
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        tilemap = self._make_tilemap_with_gap()
+
+        # Enemy at col 0, row 2. Ground at col 1, row 3 is solid.
+        enemy_rect = pygame.Rect(0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        player_rect = pygame.Rect(500, 100, 24, 32)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Should keep going right (ground ahead).
+        assert result.move_x == 1.0
+
+    def test_no_edge_detection_without_tilemap(self):
+        """Edge detection should be skipped when no tilemap is provided."""
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        # Enemy at a position that would be a ledge if tilemap were provided.
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        player_rect = pygame.Rect(500, 100, 24, 32)
+
+        # No tilemap -> no edge detection -> should move normally.
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 1.0
+
+    def test_aggro_cancels_at_ledge(self):
+        """Aggro chase should cancel when facing a ledge."""
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        tilemap = self._make_tilemap_with_gap()
+
+        # Enemy at col 2, row 2. Player is to the right past the gap.
+        enemy_rect = pygame.Rect(2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        player_rect = pygame.Rect(4 * TILE_SIZE, 2 * TILE_SIZE, 24, 32)
+
+        patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
+
+        # Update with tilemap -- should detect ledge and cancel aggro.
+        result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # Aggro should have been cancelled.
+        assert patrol.aggro_timer == 0
 
 
 class TestChaseBehavior:

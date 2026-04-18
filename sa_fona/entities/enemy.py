@@ -232,12 +232,14 @@ class Enemy(Entity):
         self,
         player_rect: pygame.Rect,
         dt: float,
+        tilemap: object | None = None,
     ) -> None:
         """Update behavior and apply movement.
 
         Args:
             player_rect: The player's bounding box.
             dt: Delta time in seconds.
+            tilemap: Optional tilemap for edge detection in behaviors.
         """
         # Tick invincibility.
         if self._invincibility_timer > 0:
@@ -245,7 +247,7 @@ class Enemy(Entity):
 
         # Get behavior decision.
         self._behavior_result = self.behavior.update(
-            self.rect, player_rect, dt
+            self.rect, player_rect, dt, tilemap=tilemap
         )
 
         # Apply movement.

@@ -15,8 +15,12 @@ from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+from typing import TYPE_CHECKING
 
 import pygame
+
+if TYPE_CHECKING:
+    from sa_fona.level.tilemap import TileMap
 
 
 class AttackState(Enum):
@@ -63,6 +67,7 @@ class EnemyBehavior(ABC):
         enemy_rect: pygame.Rect,
         player_rect: pygame.Rect,
         dt: float,
+        tilemap: TileMap | None = None,
     ) -> BehaviorResult:
         """Compute movement and attack decisions for one frame.
 
@@ -70,6 +75,7 @@ class EnemyBehavior(ABC):
             enemy_rect: The enemy's current bounding box.
             player_rect: The player's current bounding box.
             dt: Delta time in seconds.
+            tilemap: Optional tilemap for ground/edge detection.
 
         Returns:
             A BehaviorResult describing intended actions.
@@ -86,6 +92,17 @@ class EnemyBehavior(ABC):
         """
         return False
 
+    def on_damaged(self, player_x: float, player_y: float) -> None:
+        """React to taking damage from the player.
+
+        Default implementation does nothing. Subclasses can override to
+        trigger aggro or other reactive behaviors.
+
+        Args:
+            player_x: The player's X position in world pixels.
+            player_y: The player's Y position in world pixels.
+        """
+
     @abstractmethod
     def reset(self, spawn_x: float) -> None:
         """Reset the behavior to its initial state.
@@ -99,7 +116,9 @@ class PatrolBehavior(EnemyBehavior):
     """Walk back and forth within a patrol range.
 
     When the player enters attack range, the enemy performs an attack
-    with a tell (visual warning) before striking.
+    with a tell (visual warning) before striking.  If damaged from any
+    distance, the enemy temporarily chases toward the player for a few
+    seconds before resuming patrol.
 
     Params (from JSON):
         patrol_range: Range in tiles to patrol from spawn.
@@ -111,6 +130,11 @@ class PatrolBehavior(EnemyBehavior):
         attack_cooldown: Seconds between attacks.
         attack_tell_time: General attack tell time.
     """
+
+    # Duration in seconds that the enemy chases after being damaged.
+    _AGGRO_DURATION: float = 2.0
+    # Speed multiplier when chasing (aggro is faster than patrol).
+    _AGGRO_SPEED_MULTIPLIER: float = 1.4
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
@@ -132,6 +156,15 @@ class PatrolBehavior(EnemyBehavior):
         self._attack_timer: float = 0.0
         self._cooldown_timer: float = 0.0
 
+        # Aggro state: when damaged, temporarily chase the player.
+        self._aggro_timer: float = 0.0
+        self._aggro_target_x: float = 0.0
+
+    @property
+    def aggro_timer(self) -> float:
+        """Remaining aggro time in seconds (for testing)."""
+        return self._aggro_timer
+
     def reset(self, spawn_x: float) -> None:
         """Reset patrol to initial state centered on spawn.
 
@@ -143,19 +176,79 @@ class PatrolBehavior(EnemyBehavior):
         self._attack_state = AttackState.IDLE
         self._attack_timer = 0.0
         self._cooldown_timer = 0.0
+        self._aggro_timer = 0.0
+        self._aggro_target_x = 0.0
+
+    def on_damaged(self, player_x: float, player_y: float) -> None:
+        """React to taking damage by entering aggro state.
+
+        Interrupts normal patrol to chase toward the player's position
+        for a few seconds.
+
+        Args:
+            player_x: The player's X position in world pixels.
+            player_y: The player's Y position in world pixels.
+        """
+        self._aggro_timer = self._AGGRO_DURATION
+        self._aggro_target_x = player_x
+
+    def _check_edge_ahead(
+        self,
+        enemy_rect: pygame.Rect,
+        direction: float,
+        tilemap: TileMap | None,
+    ) -> bool:
+        """Check if there is solid ground one tile ahead of the enemy.
+
+        Probes the tile one step ahead horizontally and one tile below
+        the enemy's feet.  If no solid tile exists there, the enemy is
+        at a ledge.
+
+        Args:
+            enemy_rect: The enemy's current bounding box.
+            direction: Movement direction (-1.0 or 1.0).
+            tilemap: The level tilemap (None skips the check).
+
+        Returns:
+            True if there is NO ground ahead (i.e., the enemy is at
+            a ledge and should reverse).
+        """
+        if tilemap is None:
+            return False
+
+        from sa_fona.level.tilemap import TILE_SIZE
+
+        # Tile coordinate of the enemy's leading edge.
+        if direction > 0:
+            probe_x_px = enemy_rect.right + 1
+        else:
+            probe_x_px = enemy_rect.left - 1
+
+        # One tile below the enemy's feet.
+        probe_y_px = enemy_rect.bottom
+
+        tile_x = probe_x_px // TILE_SIZE
+        tile_y = probe_y_px // TILE_SIZE
+
+        return not tilemap.is_solid_at(tile_x, tile_y)
 
     def update(
         self,
         enemy_rect: pygame.Rect,
         player_rect: pygame.Rect,
         dt: float,
+        tilemap: TileMap | None = None,
     ) -> BehaviorResult:
         """Patrol back and forth; attack if player is in range.
+
+        Includes aggro response (chase on damage) and edge detection
+        (reverse at ledges).
 
         Args:
             enemy_rect: The enemy's current bounding box.
             player_rect: The player's current bounding box.
             dt: Delta time in seconds.
+            tilemap: Optional tilemap for edge detection.
 
         Returns:
             BehaviorResult with movement and attack data.
@@ -170,7 +263,30 @@ class PatrolBehavior(EnemyBehavior):
         if self._cooldown_timer > 0:
             self._cooldown_timer -= dt
 
-        # Attack state machine.
+        # Tick aggro timer.
+        if self._aggro_timer > 0:
+            self._aggro_timer -= dt
+
+        # ── Aggro chase (damage response) ─────────────────────────
+        # If aggroed and not mid-attack, chase toward the player.
+        if (
+            self._aggro_timer > 0
+            and self._attack_state == AttackState.IDLE
+        ):
+            # Face toward the player's current position (live tracking).
+            chase_dir = 1.0 if dx_to_player > 0 else -1.0
+
+            # Edge detection: reverse at ledges even during aggro.
+            if self._check_edge_ahead(enemy_rect, chase_dir, tilemap):
+                # At a ledge — stop chasing, cancel aggro early.
+                self._aggro_timer = 0.0
+            else:
+                self._direction = chase_dir
+                result.move_x = chase_dir
+                result.speed = self._speed * self._AGGRO_SPEED_MULTIPLIER
+                return result
+
+        # ── Attack state machine ──────────────────────────────────
         if self._attack_state == AttackState.IDLE:
             # Check if player is within attack range.
             tell_time = self._attack_tell_time or self._charge_tell_time
@@ -198,6 +314,11 @@ class PatrolBehavior(EnemyBehavior):
             elif current_x < self._origin_x - self._patrol_range:
                 self._direction = 1.0
                 result.move_x = 1.0
+
+            # Edge detection: reverse at ledges.
+            if self._check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
 
         elif self._attack_state == AttackState.TELL:
             # Showing the attack tell (visual warning).
@@ -329,6 +450,7 @@ class ChaseBehavior(EnemyBehavior):
         enemy_rect: pygame.Rect,
         player_rect: pygame.Rect,
         dt: float,
+        tilemap: TileMap | None = None,
     ) -> BehaviorResult:
         """Chase the player; attack when close enough.
 
@@ -336,6 +458,7 @@ class ChaseBehavior(EnemyBehavior):
             enemy_rect: The enemy's current bounding box.
             player_rect: The player's current bounding box.
             dt: Delta time in seconds.
+            tilemap: Optional tilemap (unused by chase behavior).
 
         Returns:
             BehaviorResult with movement and attack data.

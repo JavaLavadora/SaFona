@@ -131,10 +131,9 @@ class PatrolBehavior(EnemyBehavior):
         attack_tell_time: General attack tell time.
     """
 
-    # Duration in seconds that the enemy chases after being damaged.
-    _AGGRO_DURATION: float = 2.0
-    # Speed multiplier when chasing (aggro is faster than patrol).
-    _AGGRO_SPEED_MULTIPLIER: float = 1.4
+    _AGGRO_DURATION: float = 3.0
+    _AGGRO_SPEED_MULTIPLIER: float = 2.0
+    _AGGRO_MIN_SPEED: float = 50.0
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
@@ -290,7 +289,10 @@ class PatrolBehavior(EnemyBehavior):
             else:
                 self._direction = chase_dir
                 result.move_x = chase_dir
-                result.speed = self._speed * self._AGGRO_SPEED_MULTIPLIER
+                result.speed = max(
+                    self._speed * self._AGGRO_SPEED_MULTIPLIER,
+                    self._AGGRO_MIN_SPEED,
+                )
                 return result
 
         # ── Attack state machine ──────────────────────────────────

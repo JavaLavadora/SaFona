@@ -162,7 +162,7 @@ class TestPatrolAggroBehavior:
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 1.0  # Chase right.
-        assert result.speed == 40 * 1.4  # Aggro speed multiplier.
+        assert result.speed == max(40 * 2.0, 50.0)  # Aggro speed with min.
 
     def test_aggro_chases_left(self):
         """While aggroed, patrol should chase left if player is left."""
@@ -189,8 +189,8 @@ class TestPatrolAggroBehavior:
 
         patrol.on_damaged(500.0, 100.0)
 
-        # Advance past aggro duration (2.0 seconds).
-        for _ in range(150):
+        # Advance past aggro duration (3.0 seconds).
+        for _ in range(200):
             patrol.update(enemy_rect, player_rect, 1 / 60)
 
         # Aggro should have expired.
@@ -235,7 +235,7 @@ class TestPatrolAggroBehavior:
 
         result = patrol.update(enemy_rect, player_far, 1 / 60)
         assert result.move_x == 1.0
-        assert result.speed == 40 * 1.4
+        assert result.speed == max(40 * 2.0, 50.0)
 
     def test_aggro_overrides_attacking_state(self):
         """Damage during ATTACKING state should reset and allow aggro chase."""
@@ -261,6 +261,21 @@ class TestPatrolAggroBehavior:
         result = patrol.update(enemy_rect, player_far, 1 / 60)
         assert result.move_x == 1.0
         assert result.speed > 0
+
+    def test_aggro_uses_min_speed_for_slow_enemies(self):
+        """Slow enemies should use minimum aggro speed when chasing."""
+        params = {"patrol_range": 3, "speed": 20}
+        patrol = PatrolBehavior(params)
+        patrol.reset(100.0)
+
+        enemy_rect = pygame.Rect(100, 100, 24, 32)
+        player_rect = pygame.Rect(300, 100, 24, 32)
+
+        patrol.on_damaged(300.0, 100.0)
+
+        result = patrol.update(enemy_rect, player_rect, 1 / 60)
+        assert result.move_x == 1.0
+        assert result.speed == 50.0  # Min speed, not 20 * 2.0 = 40.
 
 
 class TestPatrolEdgeDetection:

@@ -354,19 +354,31 @@ class Player(Entity):
             and not locked
             and can_wj
         ):
-            # Wall jump.
-            self.velocity[1] = PLAYER_WALL_JUMP_FORCE_Y
-            self._wall_jump_origin_y = float(self.rect.y)
-            if self._touching_wall_left:
-                self.velocity[0] = PLAYER_WALL_JUMP_FORCE_X
-                self.facing_right = True
-                self._wall_jump_origin_side = "left"
+            # Nintendo-style wall jump: requires pressing AWAY from the
+            # wall plus jump.  If just jump is pressed (no direction or
+            # same direction as wall), the player detaches and falls.
+            pressing_away = (
+                (self._touching_wall_left and self._input_x > 0)
+                or (self._touching_wall_right and self._input_x < 0)
+            )
+            if pressing_away:
+                # Wall jump.
+                self.velocity[1] = PLAYER_WALL_JUMP_FORCE_Y
+                self._wall_jump_origin_y = float(self.rect.y)
+                if self._touching_wall_left:
+                    self.velocity[0] = PLAYER_WALL_JUMP_FORCE_X
+                    self.facing_right = True
+                    self._wall_jump_origin_side = "left"
+                else:
+                    self.velocity[0] = -PLAYER_WALL_JUMP_FORCE_X
+                    self.facing_right = False
+                    self._wall_jump_origin_side = "right"
+                self._wall_jump_lockout_timer = PLAYER_WALL_JUMP_LOCKOUT
+                self._jump_buffer_timer = 0.0
             else:
-                self.velocity[0] = -PLAYER_WALL_JUMP_FORCE_X
-                self.facing_right = False
-                self._wall_jump_origin_side = "right"
-            self._wall_jump_lockout_timer = PLAYER_WALL_JUMP_LOCKOUT
-            self._jump_buffer_timer = 0.0
+                # Detach from wall without wall jump forces (just fall).
+                self.velocity[0] = 0.0
+                self._jump_buffer_timer = 0.0
 
         # ── Variable jump height ───────────────────────────────
         if self._jump_released and self.velocity[1] < 0:

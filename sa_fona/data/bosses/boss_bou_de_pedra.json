@@ -1,0 +1,141 @@
+{
+  "boss_id": "bou_de_pedra",
+  "display_name": "Es Bou de Pedra",
+  "world": 1,
+  "health": 30,
+  "sprite": "boss_bou_de_pedra",
+  "music_slot": "boss_1_theme",
+  "intro_dialogue_id": "boss_1_intro",
+  "hitbox": {
+    "w": 56,
+    "h": 48
+  },
+  "contact_damage": 1.0,
+  "arena": {
+    "width": 25,
+    "height": 14,
+    "destructible_pillars": 4,
+    "pillar_positions": [
+      {"x": 5, "y": 10},
+      {"x": 10, "y": 10},
+      {"x": 15, "y": 10},
+      {"x": 20, "y": 10}
+    ],
+    "player_spawn": {"x": 2, "y": 11},
+    "boss_spawn": {"x": 20, "y": 9}
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "The Charge",
+      "hp_range": [0.66, 1.0],
+      "color": [140, 140, 140],
+      "patterns": [
+        {
+          "id": "bull_rush",
+          "tell_time": 1.0,
+          "damage": 1.5,
+          "punish_window": 2.5,
+          "weight": 0.6,
+          "params": {
+            "speed": 200,
+            "stun_on_wall_hit": true,
+            "destroys_pillars": true
+          }
+        },
+        {
+          "id": "headbutt",
+          "tell_time": 0.5,
+          "damage": 1.0,
+          "punish_window": 1.5,
+          "weight": 0.4,
+          "params": {
+            "range": 2.0
+          }
+        }
+      ],
+      "transition_effect": "roar_screen_shake"
+    },
+    {
+      "phase": 2,
+      "name": "The Stomp",
+      "hp_range": [0.33, 0.66],
+      "color": [220, 140, 40],
+      "patterns": [
+        {
+          "id": "bull_rush",
+          "tell_time": 0.8,
+          "damage": 1.5,
+          "punish_window": 2.5,
+          "weight": 0.35,
+          "params": {
+            "speed": 250,
+            "stun_on_wall_hit": true,
+            "destroys_pillars": true
+          }
+        },
+        {
+          "id": "ground_stomp",
+          "tell_time": 1.2,
+          "damage": 1.0,
+          "punish_window": 2.0,
+          "weight": 0.35,
+          "params": {
+            "shockwave_range": 6,
+            "direct_damage": 1.5
+          }
+        },
+        {
+          "id": "rock_hurl",
+          "tell_time": 0.8,
+          "damage": 1.0,
+          "punish_window": 1.5,
+          "weight": 0.3,
+          "params": {
+            "rock_count": 3
+          }
+        }
+      ],
+      "transition_effect": "core_reveal"
+    },
+    {
+      "phase": 3,
+      "name": "The Core",
+      "hp_range": [0.0, 0.33],
+      "color": [220, 40, 40],
+      "patterns": [
+        {
+          "id": "frenzy_rush",
+          "tell_time": 0.6,
+          "damage": 1.5,
+          "punish_window": 2.5,
+          "weight": 0.5,
+          "params": {
+            "speed": 280,
+            "bounces": 3
+          }
+        },
+        {
+          "id": "core_pulse",
+          "tell_time": 1.0,
+          "damage": 1.0,
+          "punish_window": 2.0,
+          "weight": 0.5,
+          "params": {
+            "radius": 8
+          }
+        }
+      ],
+      "weak_point": {
+        "location": "chest",
+        "charge_multiplier": 2.0,
+        "tier3_multiplier": 3.0
+      }
+    }
+  ],
+  "post_defeat": {
+    "mask_granted": "stone_slam",
+    "dialogue_id": "dimoni_sant_joan_grant",
+    "cutscene": "w1_post_boss"
+  }
+}

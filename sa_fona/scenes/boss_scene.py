@@ -1,0 +1,688 @@
+"""Boss arena scene extending GameplayScene with boss-specific logic.
+
+The BossScene sets up the boss arena, spawns the boss entity, manages
+phase transitions, boss health bar UI, boss-vs-player combat, and the
+intro/outro sequences.
+
+It reuses GameplayScene's player, physics, camera, and combat systems
+while adding boss-specific orchestration.
+"""
+
+from __future__ import annotations
+
+import pygame
+
+from sa_fona.config.settings import (
+    BASE_HEIGHT,
+    BASE_WIDTH,
+    DATA_DIR,
+    GAMEPLAY_BG_COLOR,
+    PLAYER_GRAVITY,
+    PLAYER_WALL_CHECK_MARGIN,
+)
+from sa_fona.core.camera import Camera
+from sa_fona.core.event_bus import EventBus
+from sa_fona.core.input_handler import InputState
+from sa_fona.entities.boss_entity import BossEntity, BossState
+from sa_fona.entities.bosses import get_boss_class
+from sa_fona.entities.player import Player
+from sa_fona.entities.projectile import Projectile
+from sa_fona.level.level_loader import LevelLoader
+from sa_fona.level.tilemap import TILE_SIZE, TileMap
+from sa_fona.scenes.base_scene import BaseScene
+from sa_fona.systems.combat import CombatSystem
+from sa_fona.systems.economy import EconomySystem
+from sa_fona.systems.physics import PhysicsSystem
+from sa_fona.systems.sling_system import SlingSystem
+from sa_fona.ui.boss_health_bar import BossHealthBar
+from sa_fona.ui.charge_indicator import ChargeIndicator
+from sa_fona.ui.hud import HUD
+
+
+class BossScene(BaseScene):
+    """Boss arena scene for boss encounters.
+
+    Manages the arena layout, boss entity, phase transitions, boss
+    health bar, and integrates with the existing combat and physics
+    systems.
+
+    Args:
+        boss_id: The boss identifier (e.g. "bou_de_pedra").
+        screen_width: Viewport width in pixels.
+        screen_height: Viewport height in pixels.
+        event_bus: Shared event bus.
+        level_path: Optional path to a level JSON for the arena.
+            If None, a procedural arena is generated.
+    """
+
+    def __init__(
+        self,
+        boss_id: str = "bou_de_pedra",
+        screen_width: int = BASE_WIDTH,
+        screen_height: int = BASE_HEIGHT,
+        event_bus: EventBus | None = None,
+        level_path: str | None = None,
+    ) -> None:
+        self._screen_width = screen_width
+        self._screen_height = screen_height
+        self._event_bus = event_bus or EventBus()
+        self._boss_id = boss_id
+
+        # Load boss definition.
+        self._boss_def = BossEntity.load_definition(boss_id)
+        arena_data = self._boss_def.get("arena", {})
+        arena_w = arena_data.get("width", 25)
+        arena_h = arena_data.get("height", 14)
+
+        # Build arena tilemap (procedural if no level_path).
+        if level_path is not None:
+            loader = LevelLoader()
+            level_data = loader.load(level_path)
+            self._tilemap = level_data.tilemap
+        else:
+            self._tilemap = self._build_arena_tilemap(arena_w, arena_h)
+
+        # Physics.
+        self._physics = PhysicsSystem(self._tilemap, gravity=PLAYER_GRAVITY)
+
+        # Camera.
+        self._camera = Camera(
+            self._tilemap.width_pixels,
+            self._tilemap.height_pixels,
+            screen_width,
+            screen_height,
+        )
+
+        # Player spawn.
+        player_spawn = arena_data.get("player_spawn", {"x": 2, "y": 11})
+        spawn_x = player_spawn.get("x", 2) * TILE_SIZE
+        spawn_y = player_spawn.get("y", 11) * TILE_SIZE
+        self._player = Player(spawn_x, spawn_y)
+
+        # Input state.
+        self._input_state = InputState()
+        self.quit_requested: bool = False
+
+        # Event bus subscriptions.
+        self._event_bus.subscribe("screen_shake", self._on_screen_shake)
+        self._event_bus.subscribe("boss_phase_change", self._on_boss_phase_change)
+        self._event_bus.subscribe("boss_defeated", self._on_boss_defeated)
+        self._event_bus.subscribe("player_died", self._on_player_died)
+
+        # Economy and sling.
+        self._economy = EconomySystem(self._event_bus)
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
+        self._projectiles: list[Projectile] = []
+        self._charge_indicator = ChargeIndicator()
+
+        # HUD.
+        starting_hearts = self._economy.get_starting_hearts()
+        self._hud = HUD(
+            self._event_bus,
+            max_hearts=int(starting_hearts),
+            current_hearts=starting_hearts,
+            stone_count=0,
+        )
+
+        # Combat system.
+        self._combat = CombatSystem(self._event_bus)
+        self._combat.set_player_health(starting_hearts, int(starting_hearts))
+
+        # Boss entity.
+        boss_spawn = arena_data.get("boss_spawn", {"x": 20, "y": 9})
+        boss_x = boss_spawn.get("x", 20) * TILE_SIZE
+        boss_y = boss_spawn.get("y", 9) * TILE_SIZE
+        arena_bounds = (0, 0, arena_w * TILE_SIZE, arena_h * TILE_SIZE)
+
+        boss_cls = get_boss_class(boss_id)
+        self._boss: BossEntity = boss_cls(
+            boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
+        )
+
+        # Setup pillars.
+        pillar_positions = arena_data.get("pillar_positions", [])
+        self._boss.setup_pillars(pillar_positions)
+
+        # Boss health bar.
+        phase_thresholds = [0.66, 0.33]
+        self._boss_health_bar = BossHealthBar(
+            boss_name=self._boss.display_name,
+            max_health=self._boss.max_health,
+            phase_thresholds=phase_thresholds,
+        )
+        if self._boss_def.get("phases"):
+            phase_name = self._boss_def["phases"][0].get("name", "")
+            self._boss_health_bar.set_phase(1, phase_name)
+
+        # Intro state.
+        self._intro_active: bool = True
+        self._intro_timer: float = 2.0  # Brief intro before fight starts.
+        self._intro_skippable: bool = False  # Skippable on retry.
+        self._fight_started: bool = False
+
+        # Defeat state.
+        self._boss_defeated: bool = False
+        self._defeat_timer: float = 0.0
+        self._defeat_duration: float = 3.0
+
+        # Game over state.
+        self._pending_game_over: bool = False
+
+        # Scene manager.
+        self._scene_manager = None
+
+    # ── Properties ─────────────────────────────────────────────────
+
+    @property
+    def player(self) -> Player:
+        """The player entity."""
+        return self._player
+
+    @property
+    def boss(self) -> BossEntity:
+        """The boss entity."""
+        return self._boss
+
+    @property
+    def camera(self) -> Camera:
+        """The camera."""
+        return self._camera
+
+    @property
+    def boss_health_bar(self) -> BossHealthBar:
+        """The boss health bar UI."""
+        return self._boss_health_bar
+
+    @property
+    def combat(self) -> CombatSystem:
+        """The combat system."""
+        return self._combat
+
+    @property
+    def scene_manager(self):
+        """Scene manager reference."""
+        return self._scene_manager
+
+    @scene_manager.setter
+    def scene_manager(self, value) -> None:
+        self._scene_manager = value
+
+    @property
+    def fight_started(self) -> bool:
+        """Whether the boss fight has started."""
+        return self._fight_started
+
+    # ── Scene lifecycle ────────────────────────────────────────────
+
+    def on_enter(self) -> None:
+        """Scene entered."""
+
+    def on_exit(self) -> None:
+        """Clean up subscriptions."""
+        self._event_bus.unsubscribe("screen_shake", self._on_screen_shake)
+        self._event_bus.unsubscribe("boss_phase_change", self._on_boss_phase_change)
+        self._event_bus.unsubscribe("boss_defeated", self._on_boss_defeated)
+        try:
+            self._event_bus.unsubscribe("player_died", self._on_player_died)
+        except ValueError:
+            pass
+        self._hud.cleanup()
+        self._economy.cleanup()
+        self._combat.cleanup()
+
+    def handle_input(self, input_state: InputState) -> None:
+        """Process input.
+
+        Args:
+            input_state: Current frame input snapshot.
+        """
+        self._input_state = input_state
+
+        # Skip intro on any key press during intro.
+        if self._intro_active and (
+            input_state.jump_pressed or input_state.attack_pressed
+        ):
+            if self._intro_skippable or self._intro_timer < 1.0:
+                self._end_intro()
+
+        if input_state.pause_pressed:
+            self.quit_requested = True
+
+        if input_state.reset_pressed:
+            self._reset_fight()
+
+        if not self._intro_active and not self._boss_defeated:
+            self._player.handle_input(input_state)
+
+    def update(self, dt: float) -> None:
+        """Update the boss scene.
+
+        Args:
+            dt: Delta time in seconds.
+        """
+        # Intro countdown.
+        if self._intro_active:
+            self._intro_timer -= dt
+            if self._intro_timer <= 0:
+                self._end_intro()
+            self._camera.follow(self._boss.rect, dt)
+            self._camera.update(dt)
+            return
+
+        # Defeat sequence.
+        if self._boss_defeated:
+            self._defeat_timer += dt
+            self._camera.update(dt)
+            return
+
+        # 1. Player intent.
+        self._player.update_intent(dt)
+
+        # 2. Physics.
+        self._player.rect, self._player.velocity, on_ground = (
+            self._physics.update_rect(
+                self._player.rect,
+                self._player.velocity,
+                dt,
+                self._player.on_ground,
+            )
+        )
+
+        # 3. Wall contact.
+        wall_left, wall_right = self._check_wall_contact(self._player.rect)
+
+        # 4. Post-physics.
+        self._player.post_physics(on_ground, wall_left, wall_right)
+
+        # 5. Sling system.
+        new_projectiles = self._sling_system.update(
+            self._input_state, self._player, dt
+        )
+        self._projectiles.extend(new_projectiles)
+
+        # 6. Update projectiles.
+        for proj in self._projectiles:
+            proj.update(dt)
+
+        # 7. Charge indicator.
+        self._charge_indicator.update(self._sling_system.charge_tier, dt)
+
+        # 8. Update boss.
+        self._boss.update_with_player(self._player.rect, dt)
+
+        # 9. Boss damage resolution (player attacks -> boss).
+        self._resolve_player_attacks_on_boss()
+
+        # 10. Boss attacks -> player.
+        self._resolve_boss_attacks_on_player()
+
+        # 11. Projectile tile collision.
+        self._check_projectile_tile_collision()
+
+        # 12. Update boss health bar.
+        self._boss_health_bar.set_health(self._boss.health)
+        self._boss_health_bar.update(dt)
+
+        # 13. Camera.
+        self._camera.follow(self._player.rect, dt)
+        self._camera.update(dt)
+
+        # 14. Game over.
+        if self._pending_game_over:
+            self._pending_game_over = False
+            self._push_game_over()
+
+    def render(self, surface: pygame.Surface) -> None:
+        """Draw the boss scene.
+
+        Args:
+            surface: Target surface.
+        """
+        surface.fill(GAMEPLAY_BG_COLOR)
+        cam_offset = self._camera.offset
+
+        # Tilemap layers.
+        self._tilemap.render_layer(surface, "background", cam_offset)
+        self._tilemap.render_layer(surface, "midground", cam_offset)
+
+        # Boss (includes pillars, projectiles, markers).
+        self._boss.render(surface, cam_offset)
+
+        # Player projectiles.
+        for proj in self._projectiles:
+            proj.render(surface, cam_offset)
+
+        # Melee hitboxes.
+        for hitbox in self._sling_system.melee_hitboxes:
+            sx = hitbox.rect.x - cam_offset[0]
+            sy = hitbox.rect.y - cam_offset[1]
+            melee_surf = pygame.Surface(
+                (hitbox.rect.width, hitbox.rect.height), pygame.SRCALPHA
+            )
+            melee_surf.fill((255, 255, 255, 120))
+            surface.blit(melee_surf, (sx, sy))
+
+        # Player.
+        if self._combat.player_visible:
+            self._player.render(surface, cam_offset)
+
+        # Charge indicator.
+        self._charge_indicator.render(surface, self._player.rect, cam_offset)
+
+        # Foreground.
+        self._tilemap.render_layer(surface, "foreground", cam_offset)
+
+        # HUD.
+        self._hud.render(surface)
+
+        # Boss health bar (on top of HUD).
+        self._boss_health_bar.render(surface)
+
+        # Intro overlay.
+        if self._intro_active:
+            self._render_intro(surface)
+
+        # Defeat overlay.
+        if self._boss_defeated:
+            self._render_defeat(surface)
+
+    # ── Combat resolution ──────────────────────────────────────────
+
+    def _resolve_player_attacks_on_boss(self) -> None:
+        """Check player projectiles and melee against the boss."""
+        if not self._boss.is_alive:
+            return
+
+        # Projectile -> Boss.
+        for proj in self._projectiles:
+            if not proj.active:
+                continue
+            if proj.rect.colliderect(self._boss.rect):
+                applied = self._boss.take_damage(
+                    proj.damage, charge_tier=proj.charge_tier
+                )
+                proj.on_hit_entity(self._boss)
+                break
+
+        # Melee -> Boss.
+        for hitbox in self._sling_system.melee_hitboxes:
+            if hitbox.rect.colliderect(self._boss.rect):
+                self._boss.take_damage(hitbox.damage, charge_tier=0)
+
+    def _resolve_boss_attacks_on_player(self) -> None:
+        """Check boss attacks against the player."""
+        if self._combat.player_invincible:
+            return
+        if self._combat.player_dead:
+            return
+
+        attack_rects = self._boss.get_attack_rects()
+        for attack_rect, damage in attack_rects:
+            # Check if a pillar blocks the attack (player hiding).
+            if self._boss.blocks_rush(self._player.rect):
+                continue
+            if self._player.rect.colliderect(attack_rect):
+                self._combat.deal_damage_to_player(damage)
+                break
+
+        # Contact damage when boss is idle/moving (non-attack contact).
+        if (
+            not self._combat.player_invincible
+            and not self._combat.player_dead
+            and self._boss.is_alive
+            and self._boss.state not in (BossState.PUNISH, BossState.PHASE_TRANSITION, BossState.DEFEATED)
+            and self._player.rect.colliderect(self._boss.rect)
+        ):
+            self._combat.deal_damage_to_player(self._boss.contact_damage)
+
+    # ── Physics helpers ────────────────────────────────────────────
+
+    def _check_wall_contact(
+        self, rect: pygame.Rect
+    ) -> tuple[bool, bool]:
+        """Probe for wall contact.
+
+        Args:
+            rect: Entity bounding box.
+
+        Returns:
+            (wall_left, wall_right) booleans.
+        """
+        margin = PLAYER_WALL_CHECK_MARGIN
+
+        left_probe = pygame.Rect(
+            rect.left - margin, rect.top + 2, margin, rect.height - 4
+        )
+        wall_left = len(self._physics.check_collision(left_probe, "solid")) > 0
+
+        right_probe = pygame.Rect(
+            rect.right, rect.top + 2, margin, rect.height - 4
+        )
+        wall_right = len(self._physics.check_collision(right_probe, "solid")) > 0
+
+        return wall_left, wall_right
+
+    def _check_projectile_tile_collision(self) -> None:
+        """Check player projectiles against the tilemap."""
+        for proj in self._projectiles:
+            if not proj.active:
+                continue
+            hits = self._physics.check_collision(proj.rect, "solid")
+            if hits:
+                proj.on_hit_tile()
+        self._projectiles = [p for p in self._projectiles if p.active]
+
+    # ── Arena generation ───────────────────────────────────────────
+
+    def _build_arena_tilemap(self, width: int, height: int) -> TileMap:
+        """Build a procedural boss arena tilemap.
+
+        Creates a flat arena with walls on the sides and a floor.
+
+        Args:
+            width: Arena width in tiles.
+            height: Arena height in tiles.
+
+        Returns:
+            A TileMap for the boss arena.
+        """
+        # Build tile data: solid border, empty interior.
+        midground = []
+        for row in range(height):
+            tile_row = []
+            for col in range(width):
+                if row == 0 or row >= height - 2:
+                    tile_row.append(1)  # Floor/ceiling.
+                elif col == 0 or col == width - 1:
+                    tile_row.append(1)  # Walls.
+                else:
+                    tile_row.append(0)  # Empty.
+            midground.append(tile_row)
+
+        # Create empty background and foreground layers.
+        empty_layer = [[0] * width for _ in range(height)]
+
+        tilemap_data = {
+            "dimensions": {
+                "width": width,
+                "height": height,
+            },
+            "tile_size": TILE_SIZE,
+            "layers": {
+                "background": empty_layer,
+                "midground": midground,
+                "foreground": empty_layer,
+            },
+            "collision_types": {
+                "solid": [1],
+                "one_way": [],
+                "hazard": [],
+                "breakable_slam": [],
+            },
+        }
+
+        return TileMap(tilemap_data)
+
+    # ── Intro / Defeat sequences ───────────────────────────────────
+
+    def _end_intro(self) -> None:
+        """End the intro and start the fight."""
+        self._intro_active = False
+        self._fight_started = True
+        self._boss.start_fight()
+        # Screen shake as the boss activates.
+        self._event_bus.publish("screen_shake", intensity=4.0, duration=0.3)
+
+    def _render_intro(self, surface: pygame.Surface) -> None:
+        """Render the intro overlay.
+
+        Args:
+            surface: Target surface.
+        """
+        # Semi-transparent dark overlay.
+        overlay = pygame.Surface(
+            (self._screen_width, self._screen_height), pygame.SRCALPHA
+        )
+        alpha = max(0, min(180, int(120 * (self._intro_timer / 2.0))))
+        overlay.fill((0, 0, 0, alpha))
+        surface.blit(overlay, (0, 0))
+
+        # Boss name text.
+        try:
+            font = pygame.font.Font(None, 24)
+            text = font.render(self._boss.display_name, False, (255, 255, 255))
+            tx = (self._screen_width - text.get_width()) // 2
+            ty = self._screen_height // 3
+            surface.blit(text, (tx, ty))
+        except pygame.error:
+            pass
+
+    def _render_defeat(self, surface: pygame.Surface) -> None:
+        """Render the defeat overlay.
+
+        Args:
+            surface: Target surface.
+        """
+        alpha = min(200, int(self._defeat_timer * 80))
+        overlay = pygame.Surface(
+            (self._screen_width, self._screen_height), pygame.SRCALPHA
+        )
+        overlay.fill((255, 255, 255, alpha))
+        surface.blit(overlay, (0, 0))
+
+        if self._defeat_timer > 1.0:
+            try:
+                font = pygame.font.Font(None, 20)
+                text = font.render("VICTORY!", False, (255, 220, 50))
+                tx = (self._screen_width - text.get_width()) // 2
+                ty = self._screen_height // 2 - 10
+                surface.blit(text, (tx, ty))
+            except pygame.error:
+                pass
+
+    # ── Reset ──────────────────────────────────────────────────────
+
+    def _reset_fight(self) -> None:
+        """Reset the boss fight from the beginning."""
+        arena_data = self._boss_def.get("arena", {})
+
+        # Reset player.
+        player_spawn = arena_data.get("player_spawn", {"x": 2, "y": 11})
+        spawn_x = player_spawn.get("x", 2) * TILE_SIZE
+        spawn_y = player_spawn.get("y", 11) * TILE_SIZE
+        self._player = Player(spawn_x, spawn_y)
+
+        # Reset boss.
+        boss_spawn = arena_data.get("boss_spawn", {"x": 20, "y": 9})
+        boss_x = boss_spawn.get("x", 20) * TILE_SIZE
+        boss_y = boss_spawn.get("y", 9) * TILE_SIZE
+        arena_w = arena_data.get("width", 25)
+        arena_h = arena_data.get("height", 14)
+        arena_bounds = (0, 0, arena_w * TILE_SIZE, arena_h * TILE_SIZE)
+
+        boss_cls = get_boss_class(self._boss_id)
+        self._boss = boss_cls(
+            boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
+        )
+        pillar_positions = arena_data.get("pillar_positions", [])
+        self._boss.setup_pillars(pillar_positions)
+
+        # Reset combat.
+        self._sling_system = SlingSystem(self._event_bus, self._economy.config)
+        self._projectiles.clear()
+        self._charge_indicator = ChargeIndicator()
+
+        starting_hearts = self._economy.get_starting_hearts()
+        self._hud.set_state(
+            max_hearts=int(starting_hearts),
+            current_hearts=starting_hearts,
+            stone_count=self._economy.stone_count,
+        )
+        self._combat.set_player_health(starting_hearts, int(starting_hearts))
+
+        # Reset boss health bar.
+        self._boss_health_bar = BossHealthBar(
+            boss_name=self._boss.display_name,
+            max_health=self._boss.max_health,
+            phase_thresholds=[0.66, 0.33],
+        )
+        if self._boss_def.get("phases"):
+            phase_name = self._boss_def["phases"][0].get("name", "")
+            self._boss_health_bar.set_phase(1, phase_name)
+
+        # Reset state.
+        self._intro_active = True
+        self._intro_timer = 1.0  # Shorter on retry.
+        self._intro_skippable = True  # Can skip on retry.
+        self._fight_started = False
+        self._boss_defeated = False
+        self._defeat_timer = 0.0
+        self._pending_game_over = False
+        self._input_state = InputState()
+
+    # ── Event handlers ─────────────────────────────────────────────
+
+    def _on_screen_shake(
+        self, intensity: float = 0.0, duration: float = 0.0
+    ) -> None:
+        """Handle screen_shake events.
+
+        Args:
+            intensity: Shake intensity.
+            duration: Shake duration.
+        """
+        self._camera.shake(intensity, duration)
+
+    def _on_boss_phase_change(self, **kwargs) -> None:
+        """Handle boss_phase_change events."""
+        new_phase = kwargs.get("new_phase", 1)
+        # Update health bar phase display.
+        phase_name = ""
+        if new_phase - 1 < len(self._boss_def.get("phases", [])):
+            phase_name = self._boss_def["phases"][new_phase - 1].get("name", "")
+        self._boss_health_bar.set_phase(new_phase, phase_name)
+
+    def _on_boss_defeated(self, **kwargs) -> None:
+        """Handle boss_defeated events."""
+        self._boss_defeated = True
+        self._defeat_timer = 0.0
+        self._event_bus.publish("screen_shake", intensity=10.0, duration=1.0)
+
+    def _on_player_died(self, **kwargs) -> None:
+        """Handle player death during boss fight."""
+        self._pending_game_over = True
+
+    def _push_game_over(self) -> None:
+        """Push the game over scene."""
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.game_over import GameOverScene
+
+        def _on_restart() -> None:
+            if self._scene_manager is not None:
+                self._scene_manager.pop()
+                self._reset_fight()
+
+        scene = GameOverScene(on_restart=_on_restart)
+        self._scene_manager.push(scene)

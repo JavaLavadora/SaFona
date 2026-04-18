@@ -293,8 +293,9 @@ class GameplayScene(BaseScene):
         )
         self._projectiles.extend(new_projectiles)
 
-        # 6. Update projectiles and check tilemap collision.
-        self._update_projectiles(dt)
+        # 6. Update projectiles (move only, no removal yet).
+        for proj in self._projectiles:
+            proj.update(dt)
 
         # 7. Update charge indicator.
         self._charge_indicator.update(self._sling_system.charge_tier, dt)
@@ -303,6 +304,8 @@ class GameplayScene(BaseScene):
         self._update_enemies(dt)
 
         # 9. Combat system: resolve all damage interactions.
+        #    Must run BEFORE projectile tile collision so projectiles
+        #    can hit enemies they overlap this frame.
         dropped_pickups = self._combat.update(
             self._player,
             self._enemies,
@@ -314,19 +317,22 @@ class GameplayScene(BaseScene):
         # Remove dead enemies.
         self._enemies = [e for e in self._enemies if e.active]
 
-        # 10. Check pickup collection (player overlaps pickup).
+        # 10. Projectile tile collision and cleanup (after combat).
+        self._check_projectile_tile_collision()
+
+        # 11. Check pickup collection (player overlaps pickup).
         self._check_pickup_collection()
 
-        # 11. Check breakable destruction (melee hitbox overlaps breakable).
+        # 12. Check breakable destruction (melee hitbox overlaps breakable).
         self._check_breakable_hits()
 
-        # 12. Check triggers.
+        # 13. Check triggers.
         self._trigger_system.update(self._player.rect)
 
         self._camera.follow(self._player.rect, dt)
         self._camera.update(dt)
 
-        # 14. Push pending dialogue scene (deferred from trigger callback).
+        # 15. Push pending dialogue scene (deferred from trigger callback).
         if self._pending_dialogue_id is not None:
             self._push_dialogue(self._pending_dialogue_id)
             self._pending_dialogue_id = None
@@ -525,19 +531,14 @@ class GameplayScene(BaseScene):
 
     # ── Projectile management ─────────────────────────────────────
 
-    def _update_projectiles(self, dt: float) -> None:
-        """Move projectiles, check tilemap collision, remove inactive.
-
-        Args:
-            dt: Delta time in seconds.
-        """
+    def _check_projectile_tile_collision(self) -> None:
+        """Check projectile-vs-tilemap collision and remove inactive."""
         for proj in self._projectiles:
-            proj.update(dt)
-            # Check solid tile collision.
+            if not proj.active:
+                continue
             hits = self._physics.check_collision(proj.rect, "solid")
             if hits:
                 proj.on_hit_tile()
-        # Remove inactive projectiles.
         self._projectiles = [p for p in self._projectiles if p.active]
 
     # ── Level reset ────────────────────────────────────────────────

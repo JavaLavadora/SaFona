@@ -931,3 +931,153 @@ class TestBossDoesNotRepeatPattern:
 
         # Should have at least selected headbutt at some point.
         assert "headbutt" in selections
+
+
+# ── Boss Registry tests ──────────────────────────────────────────
+
+
+class TestBossRegistry:
+    """Tests for the boss registry/factory."""
+
+    def test_get_bou_de_pedra_class(self):
+        from sa_fona.entities.bosses import get_boss_class
+
+        cls = get_boss_class("bou_de_pedra")
+        assert cls is BouDePedra
+
+    def test_unknown_boss_id_raises(self):
+        from sa_fona.entities.bosses import get_boss_class
+
+        with pytest.raises(ValueError, match="Unknown boss_id"):
+            get_boss_class("nonexistent_boss")
+
+
+# ── BossScene integration tests ──────────────────────────────────
+
+
+class TestBossSceneInit:
+    """Tests for BossScene instantiation."""
+
+    def test_scene_instantiates_with_defaults(self):
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        assert scene.player is not None
+        assert scene.boss is not None
+        assert scene.boss_health_bar is not None
+        assert scene.combat is not None
+
+    def test_scene_instantiates_with_event_bus(self):
+        from sa_fona.scenes.boss_scene import BossScene
+
+        bus = EventBus()
+        scene = BossScene(boss_id="bou_de_pedra", event_bus=bus)
+        assert scene.boss.boss_id == "bou_de_pedra"
+
+    def test_scene_boss_starts_in_intro(self):
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        assert scene.boss.state == BossState.INTRO
+        assert not scene.fight_started
+
+
+class TestBossSceneUpdateLoop:
+    """Tests that the BossScene update loop runs without errors."""
+
+    def test_update_runs_intro_frames(self):
+        """Simulate several frames during the intro phase."""
+        from sa_fona.scenes.boss_scene import BossScene
+        from sa_fona.core.input_handler import InputState
+
+        scene = BossScene()
+        scene.on_enter()
+        dt = 1.0 / 60.0
+        for _ in range(30):
+            scene.handle_input(InputState())
+            scene.update(dt)
+        # Boss should still be in intro or just transitioned.
+        # No exceptions means success.
+
+    def test_update_runs_fight_frames(self):
+        """Simulate frames after the fight starts."""
+        from sa_fona.scenes.boss_scene import BossScene
+        from sa_fona.core.input_handler import InputState
+
+        scene = BossScene()
+        scene.on_enter()
+        dt = 1.0 / 60.0
+
+        # Burn through the intro.
+        for _ in range(150):
+            scene.handle_input(InputState())
+            scene.update(dt)
+
+        assert scene.fight_started
+        # Run fight frames.
+        for _ in range(60):
+            scene.handle_input(InputState())
+            scene.update(dt)
+
+    def test_render_does_not_crash(self):
+        """Render the scene without errors."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene.on_enter()
+        surface = pygame.Surface((384, 216))
+        scene.update(1.0 / 60.0)
+        scene.render(surface)
+
+
+class TestBossSceneDamage:
+    """Tests for boss damage through BossScene combat integration."""
+
+    def test_boss_takes_damage_during_punish_window(self):
+        """Verify that the boss can be damaged through the scene during punish."""
+        from sa_fona.scenes.boss_scene import BossScene
+        from sa_fona.core.input_handler import InputState
+
+        scene = BossScene()
+        scene.on_enter()
+        dt = 1.0 / 60.0
+
+        # Burn through intro.
+        for _ in range(150):
+            scene.handle_input(InputState())
+            scene.update(dt)
+
+        assert scene.fight_started
+
+        # Force the boss into punish state for direct damage test.
+        scene.boss.start_fight()
+        scene.boss.update(2.0)   # Idle -> Tell.
+        scene.boss.update(2.0)   # Tell -> Attacking.
+        scene.boss.update(10.0)  # Attacking -> Punish.
+        assert scene.boss.state == BossState.PUNISH
+        assert scene.boss.is_vulnerable
+
+        hp_before = scene.boss.health
+        scene.boss.take_damage(3.0)
+        assert scene.boss.health == hp_before - 3.0
+
+    def test_player_takes_damage_via_public_api(self):
+        """Verify that deal_damage_to_player() works through the scene."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene.on_enter()
+
+        hearts_before = scene.combat.player_hearts
+        scene.combat.deal_damage_to_player(1.0)
+        assert scene.combat.player_hearts == hearts_before - 1.0
+        assert scene.combat.player_invincible
+
+    def test_cleanup_does_not_crash(self):
+        """Verify that on_exit cleans up without errors."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene.on_enter()
+        scene.update(1.0 / 60.0)
+        scene.on_exit()

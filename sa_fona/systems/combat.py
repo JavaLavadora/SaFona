@@ -163,6 +163,17 @@ class CombatSystem:
 
         return dropped_pickups
 
+    def deal_damage_to_player(self, amount: float) -> None:
+        """Apply damage to the player and enter invincibility.
+
+        Public API for external systems (e.g. BossScene) that need to
+        deal damage to the player outside the normal enemy pipeline.
+
+        Args:
+            amount: Damage in hearts.
+        """
+        self._deal_damage_to_player(amount)
+
     def cleanup(self) -> None:
         """Unsubscribe from EventBus events."""
         self._event_bus.unsubscribe("heart_collected", self._on_heart_collected)

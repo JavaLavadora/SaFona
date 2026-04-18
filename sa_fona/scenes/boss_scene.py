@@ -24,7 +24,7 @@ from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.boss_entity import BossEntity, BossState
-from sa_fona.entities.bosses.bou_de_pedra import BouDePedra
+from sa_fona.entities.bosses import get_boss_class
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
@@ -134,7 +134,8 @@ class BossScene(BaseScene):
         boss_y = boss_spawn.get("y", 9) * TILE_SIZE
         arena_bounds = (0, 0, arena_w * TILE_SIZE, arena_h * TILE_SIZE)
 
-        self._boss: BouDePedra = BouDePedra(
+        boss_cls = get_boss_class(boss_id)
+        self._boss: BossEntity = boss_cls(
             boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
         )
 
@@ -178,7 +179,7 @@ class BossScene(BaseScene):
         return self._player
 
     @property
-    def boss(self) -> BouDePedra:
+    def boss(self) -> BossEntity:
         """The boss entity."""
         return self._boss
 
@@ -421,7 +422,7 @@ class BossScene(BaseScene):
             if self._boss.blocks_rush(self._player.rect):
                 continue
             if self._player.rect.colliderect(attack_rect):
-                self._combat._deal_damage_to_player(damage)
+                self._combat.deal_damage_to_player(damage)
                 break
 
         # Contact damage when boss is idle/moving (non-attack contact).
@@ -432,7 +433,7 @@ class BossScene(BaseScene):
             and self._boss.state not in (BossState.PUNISH, BossState.PHASE_TRANSITION, BossState.DEFEATED)
             and self._player.rect.colliderect(self._boss.rect)
         ):
-            self._combat._deal_damage_to_player(self._boss.contact_damage)
+            self._combat.deal_damage_to_player(self._boss.contact_damage)
 
     # ── Physics helpers ────────────────────────────────────────────
 
@@ -599,7 +600,8 @@ class BossScene(BaseScene):
         arena_h = arena_data.get("height", 14)
         arena_bounds = (0, 0, arena_w * TILE_SIZE, arena_h * TILE_SIZE)
 
-        self._boss = BouDePedra(
+        boss_cls = get_boss_class(self._boss_id)
+        self._boss = boss_cls(
             boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
         )
         pillar_positions = arena_data.get("pillar_positions", [])

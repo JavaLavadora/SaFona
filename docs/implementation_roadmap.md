@@ -96,6 +96,13 @@ D1 (Core Engine Bootstrap)
 - Player decoupled from PhysicsSystem per architecture review (update_intent/post_physics split)
 - R key reset for testing convenience, 400ms wall jump lockout tuned with user
 
+**Deliverable 4: Sling Combat & Projectiles** -- PR #24, Issue #23
+- Merged 2026-04-18, user signed off
+- 213 tests, all passing
+- SlingSystem (tap melee + 3-tier charge ranged), Projectile entity, ChargeIndicator UI
+- economy.json with data-driven sling config, SlingSystem decoupled from Player
+- Attack keys: J/Z
+
 ### In Progress
 
 (none yet)

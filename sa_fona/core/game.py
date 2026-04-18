@@ -79,6 +79,7 @@ class Game:
         gameplay_scene = GameplayScene(
             BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
         )
+        gameplay_scene.scene_manager = self.scene_manager
         self.scene_manager.push(gameplay_scene)
 
         self._print_display_info(window_width, window_height)

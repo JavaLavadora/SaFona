@@ -1,0 +1,75 @@
+{
+  "w1_l1_bep_intro": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Ramon! Move! The sheep are acting strange!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "...They're always strange.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l1_movement_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Use the arrow keys or A/D to move. Press Space to jump!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l1_wall_jump_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "That wall looks climbable. Try jumping against it!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_test_level_intro": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Bon dia, Ramon! Welcome to the test level.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Another cursed place. Let's get this over with.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Press Enter to advance dialogue. Use Arrow Keys to move!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  }
+}

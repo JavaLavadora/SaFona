@@ -1,0 +1,54 @@
+{
+  "bep_sling_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Ramon, your sling! Press J to swing it. Hold J to charge a ranged shot!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "bep_wall_jump_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Press into a wall and jump to wall-jump. You can climb tall walls this way!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "bep_save_point_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "This looks like a safe spot. Llorencc might set up shop here someday.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "bep_level_end_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "I can see the exit up ahead! Keep going, Ramon!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  }
+}

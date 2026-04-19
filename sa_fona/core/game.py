@@ -163,9 +163,6 @@ class Game:
 
     def _return_to_menu(self) -> None:
         """Replace the current scene with the main menu."""
-        active = self.scene_manager.active_scene
-        if hasattr(active, "on_exit"):
-            active.on_exit()
         menu = MainMenuScene(
             BASE_WIDTH, BASE_HEIGHT,
             event_bus=self.event_bus,

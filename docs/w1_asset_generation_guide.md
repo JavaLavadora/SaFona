@@ -23,6 +23,7 @@ All prompts share these requirements:
 - **Consistency**: All poses of the same character must have identical colors, proportions, and style
 - **Separation**: Each pose/tile must be clearly separated with green space between them
 - **Orientation**: Characters face RIGHT by default (left-facing is generated via code flip)
+- **Numbered grid**: Every prompt must request a numbered grid. Ask the AI to "Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced." This makes it easy to identify which pose is which during processing.
 
 ---
 
@@ -48,7 +49,16 @@ All prompts share these requirements:
   > 12) Taking damage -- body recoiling backward, arms up defensively, pained expression, facing right
   > 13) Death/defeated -- collapsed on ground, face down, limbs splayed, facing right
   >
-  > Character design: medium-length dark hair swept backwards held by a cloth headband, deeply tanned olive skin, knee-length white robe/tunic with V-neck showing chest, bright red sash/belt at waist, leather brown arm bracers on forearms, bare tanned legs visible below the robe, leather sandals, holding a fona (Balearic sling -- a long braided cord with a pouch, NOT a Y-shaped slingshot). Stocky determined warrior. Perpetually unimpressed expression. Clean pixel art, no anti-aliasing, no smoothing. Each pose should be clearly separated with green space between them. All poses must be the SAME character with identical colors and proportions. The LEGS must be clearly different between walk poses -- exaggerate the stride.
+  > Character design: medium-length dark hair swept backwards held by a cloth headband, deeply tanned olive skin, knee-length white robe/tunic with V-neck showing chest, bright red sash/belt at waist, leather brown arm bracers on forearms, bare tanned legs visible below the robe, leather sandals, holding a fona (Balearic sling -- a long braided cord with a pouch, NOT a Y-shaped slingshot). Stocky determined warrior. Perpetually unimpressed expression. Clean pixel art, no anti-aliasing, no smoothing. Each pose should be clearly separated with green space between them. All poses must be the SAME character with identical colors and proportions. The LEGS must be clearly different between walk poses -- exaggerate the stride. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → idle frame
+  - 2-5 → walk cycle (4 frames)
+  - 6-7 → jump (ascending, descending)
+  - 8 → wall slide
+  - 9-11 → sling attack (wind-up, mid-rotation, release)
+  - 12 → hit/damage
+  - 13 → death/defeated
 
   *Will generate sprite sheets*:
   - `idle.png` -- 4 frames (24x32 each) -- breathing bob generated from pose 1
@@ -84,7 +94,15 @@ All prompts share these requirements:
   > 11) Excited -- body bouncing up, ears perked forward, happy wide eyes, mouth open
   > 12) Faint glow aura -- same idle pose but with a subtle magical glow outline around the body (curse effect)
   >
-  > Creature design: very small (fits in a 16x16 pixel box), round compact body with short woolly brown-grey fur, two small forward-curving horns on top of head, large dark expressive eyes (the most prominent feature), tiny hooves, short stubby tail. Looks like a sheep-goat hybrid -- cute and round. The creature should look lovable and slightly hapless. Clean pixel art, no anti-aliasing, no smoothing. Each pose clearly separated with green space.
+  > Creature design: very small (fits in a 16x16 pixel box), round compact body with short woolly brown-grey fur, two small forward-curving horns on top of head, large dark expressive eyes (the most prominent feature), tiny hooves, short stubby tail. Looks like a sheep-goat hybrid -- cute and round. The creature should look lovable and slightly hapless. Clean pixel art, no anti-aliasing, no smoothing. Each pose clearly separated with green space. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1-4 → idle variants (standing, curious, chewing, sleeping)
+  - 5-8 → walk cycle (4 frames)
+  - 9 → jump
+  - 10 → scared/startled
+  - 11 → excited
+  - 12 → curse glow aura
 
   *Will generate sprite sheets*:
   - `idle.png` -- 4 frames (16x16) -- breathing/ear flick cycle from poses 1-4
@@ -118,7 +136,15 @@ All prompts share these requirements:
   > 9) Hit/damaged -- recoiling, eyes flickering, facing right
   > 10) Death -- collapsing sideways, red glow fading, eyes dimming
   >
-  > Design: a normal Mediterranean sheep but corrupted by dimoni energy. White-grey wool tinged darker, glowing red eyes (the key visual indicator of possession), slight reddish-purple aura around the body. Small horns. Approximately 16x16 pixels when scaled. Clean pixel art, no anti-aliasing.
+  > Design: a normal Mediterranean sheep but corrupted by dimoni energy. White-grey wool tinged darker, glowing red eyes (the key visual indicator of possession), slight reddish-purple aura around the body. Small horns. Approximately 16x16 pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1-2 → idle (standing, variant)
+  - 3-6 → walk cycle (4 frames)
+  - 7 → charge tell
+  - 8 → charging
+  - 9 → hit/damaged
+  - 10 → death
 
   *Will generate sprite sheets*:
   - `possessed_sheep_idle.png` -- 2 frames (16x16) -- poses 1-2
@@ -149,7 +175,16 @@ All prompts share these requirements:
   > 10) Hit/stunned -- recoiling backward, dazed expression, club lowered
   > 11) Death -- falling backward, club dropping, defeated
   >
-  > Design: a rival warrior from a competing talayotic tribe. Slightly taller and leaner than Ramon. Leather tunic (darker brown), leather arm wrappings, stone club weapon, messy dark hair, war paint stripes on face. Hostile but clearly human -- not a monster. Approximately 16 wide x 24 tall pixels when scaled. Clean pixel art, no anti-aliasing.
+  > Design: a rival warrior from a competing talayotic tribe. Slightly taller and leaner than Ramon. Leather tunic (darker brown), leather arm wrappings, stone club weapon, messy dark hair, war paint stripes on face. Hostile but clearly human -- not a monster. Approximately 16 wide x 24 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1-2 → idle (standing, variant)
+  - 3-6 → walk cycle (4 frames)
+  - 7 → attack tell
+  - 8 → attack swing
+  - 9 → blocking
+  - 10 → hit/stunned
+  - 11 → death
 
   *Will generate sprite sheets*:
   - `rival_warrior_idle.png` -- 2 frames (16x24) -- poses 1-2
@@ -179,7 +214,15 @@ All prompts share these requirements:
   > 8) Hit/stunned -- cracks flickering, body rocking backward, small stone chips flying off
   > 9) Death/crumbling -- body breaking apart into stone chunks, amber glow fading, collapsing
   >
-  > Design: a talayotic stone guardian animated by ancient dimoni energy. Made of stacked rough limestone blocks in a humanoid shape. Dark grey stone body with glowing amber/orange energy visible in the cracks between stone segments. No face -- just a vaguely head-shaped stone block on top. Very heavy and slow-looking. Approximately 24 wide x 32 tall pixels when scaled. Clean pixel art, no anti-aliasing.
+  > Design: a talayotic stone guardian animated by ancient dimoni energy. Made of stacked rough limestone blocks in a humanoid shape. Dark grey stone body with glowing amber/orange energy visible in the cracks between stone segments. No face -- just a vaguely head-shaped stone block on top. Very heavy and slow-looking. Approximately 24 wide x 32 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1-2 → idle (standing, variant)
+  - 3-5 → walk cycle (3 frames)
+  - 6 → attack tell
+  - 7 → attack swing
+  - 8 → hit/stunned
+  - 9 → death/crumbling
 
   *Will generate sprite sheets*:
   - `stone_guardian_idle.png` -- 2 frames (24x32) -- poses 1-2
@@ -214,7 +257,20 @@ All prompts share these requirements:
   > 12) Phase transition -- body glowing intensely white, stone cracking and reforming, energy surge
   > 13) Defeated -- crumbling apart, amber energy dissipating, stone chunks falling, collapsing
   >
-  > Design: Es Bou de Pedra is a giant stone bull inspired by talayotic bronze-age bull worship figurines. Built from rough-hewn Mediterranean limestone blocks in the shape of a charging bull. Massive curved stone horns. Glowing amber/orange energy visible in cracks between stone segments (this is dimoni energy animating it). No organic features -- purely stone and magical energy. The exposed core (Phase 3) is a glowing red weak point in the chest. Approximately 40 wide x 36 tall pixels when scaled. Clean pixel art, no anti-aliasing.
+  > Design: Es Bou de Pedra is a giant stone bull inspired by talayotic bronze-age bull worship figurines. Built from rough-hewn Mediterranean limestone blocks in the shape of a charging bull. Massive curved stone horns. Glowing amber/orange energy visible in cracks between stone segments (this is dimoni energy animating it). No organic features -- purely stone and magical energy. The exposed core (Phase 3) is a glowing red weak point in the chest. Approximately 40 wide x 36 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → idle phase 1 (grey stone)
+  - 2 → idle phase 2 (orange-tinted)
+  - 3 → idle phase 3 (red-tinted, exposed core)
+  - 4 → bull rush tell
+  - 5 → bull rush charging
+  - 6-7 → headbutt (tell, strike)
+  - 8-9 → ground stomp (tell, impact)
+  - 10 → rock hurl
+  - 11 → stunned/punish window
+  - 12 → phase transition
+  - 13 → defeated/crumbling
 
   *Will generate sprite sheets*:
   - `boss_bou_idle_p1.png` -- 2 frames (40x36) -- pose 1 with breathing bob
@@ -245,7 +301,11 @@ All prompts share these requirements:
   > 1) Intact pillar -- a tall ancient talayotic stone column, rough-hewn Mediterranean limestone, slightly wider at top (capstone), carved with faint bull motifs, approximately 16 wide x 48 tall pixels
   > 2) Destroyed pillar -- same pillar but shattered: broken base stub remaining, stone chunks scattered, dust cloud, rubble on ground
   >
-  > Design: ancient talayotic construction, warm grey limestone with subtle ochre undertones, consistent with the World 1 tileset palette. Clean pixel art, no anti-aliasing.
+  > Design: ancient talayotic construction, warm grey limestone with subtle ochre undertones, consistent with the World 1 tileset palette. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2) placed above or below each item. Arrange both versions in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → intact pillar
+  - 2 → destroyed pillar
 
   *Will generate*:
   - `pillar_intact.png` -- 1 frame (16x48)
@@ -265,7 +325,13 @@ All prompts share these requirements:
   > 3) Core pulse -- a circular red energy wave expanding outward, menacing red glow, approximately 24x16 pixels
   > 4) Shadow marker -- a dark elliptical shadow on the ground indicating where a rock will land, approximately 16x6 pixels
   >
-  > Clean pixel art, no anti-aliasing. Each item clearly separated.
+  > Clean pixel art, no anti-aliasing. Each item clearly separated. Number each item clearly (1, 2, 3, 4) placed above or below each sprite. Arrange all items in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → rock projectile
+  - 2 → shockwave
+  - 3 → core pulse
+  - 4 → shadow marker
 
   *Will generate*:
   - `boss_rock.png` -- 1 frame (8x8)
@@ -438,7 +504,32 @@ All prompts share these requirements:
 
 ---
 
-### 10. Tilesets
+### 10. Player Ground Shadow
+
+- [ ] **Player Ground Shadow** -- `assets/ai_sources/vfx_ground_shadow/image.png`
+
+  > Pixel art of an elliptical ground shadow for a 2D platformer character, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 3 sizes in a horizontal row:
+  >
+  > 1) Small shadow -- a dark semi-transparent ellipse, approximately 12x4 pixels, soft edges fading outward, dark grey/black at ~40% opacity
+  > 2) Medium shadow -- same style ellipse, approximately 18x5 pixels, slightly lighter (character is higher off ground)
+  > 3) Large shadow -- same style ellipse, approximately 24x6 pixels, lightest (character is at max jump height)
+  >
+  > Clean pixel art. The shadow should look natural on stone/grass terrain. Pure black with varying transparency levels. Number each size clearly (1, 2, 3) placed above or below each shadow.
+
+  *Pose mapping:*
+  - 1 → grounded / low height shadow
+  - 2 → mid-height shadow
+  - 3 → max-height shadow (faintest)
+
+  *Will generate*:
+  - `player_shadow.png` -- 3 frames (24x6 each, smaller ones centered)
+
+  *Frame dimensions*: 24x6 pixels
+  *Notes*: Currently the player casts no ground shadow. The shadow should render below the player's feet, scaling/fading based on distance from ground. Improves spatial awareness during jumps.
+
+---
+
+### 11. Tilesets
 
 #### 10a. World 1 Outdoor Tileset (Sa Talaia)
 
@@ -499,7 +590,7 @@ All prompts share these requirements:
 
 ---
 
-### 11. Backgrounds
+### 12. Backgrounds
 
 - [ ] **W1 Outdoor Background** -- `assets/ai_sources/bg_world1/image.png`
 
@@ -534,7 +625,7 @@ All prompts share these requirements:
 
 ---
 
-### 12. Dialogue Portraits
+### 13. Dialogue Portraits
 
 The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as colored rectangles with initials. Each character needs portrait variants matching the dialogue data's `"portrait"` field values.
 
@@ -618,7 +709,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
 ---
 
-### 13. UI Elements
+### 14. UI Elements
 
 #### 13a. HUD Heart Icon
 
@@ -739,7 +830,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
 ---
 
-### 14. Main Menu & Screens
+### 15. Main Menu & Screens
 
 - [ ] **Title Screen Logo** -- `assets/ai_sources/ui_title/image.png`
 
@@ -765,7 +856,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
 ---
 
-### 15. Effects & Particles (Nice-to-Have)
+### 16. Effects & Particles (Nice-to-Have)
 
 These are lower priority visual polish items. Generate these after all essential assets above are complete.
 

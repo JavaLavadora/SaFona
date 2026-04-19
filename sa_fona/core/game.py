@@ -155,7 +155,24 @@ class Game:
             # Check if the active scene wants to quit.
             active = self.scene_manager.active_scene
             if hasattr(active, "quit_requested") and active.quit_requested:
-                self.running = False
+                active.quit_requested = False
+                if isinstance(active, MainMenuScene):
+                    self.running = False
+                else:
+                    self._return_to_menu()
+
+    def _return_to_menu(self) -> None:
+        """Replace the current scene with the main menu."""
+        active = self.scene_manager.active_scene
+        if hasattr(active, "on_exit"):
+            active.on_exit()
+        menu = MainMenuScene(
+            BASE_WIDTH, BASE_HEIGHT,
+            event_bus=self.event_bus,
+            save_system=self.save_system,
+        )
+        menu.scene_manager = self.scene_manager
+        self.scene_manager.replace(menu)
 
     def _update(self, dt: float) -> None:
         """Advance game state by dt seconds.

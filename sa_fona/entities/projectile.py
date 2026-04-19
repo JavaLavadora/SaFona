@@ -14,7 +14,7 @@ import pygame
 
 from sa_fona.config.settings import PLAYER_GRAVITY
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 _PROJECTILE_GRAVITY: float = PLAYER_GRAVITY * 0.5
 
@@ -113,7 +113,7 @@ class Projectile(Entity):
         if projectile_type == ProjectileType.BASIC_STONE:
             tier = max(1, min(3, charge_tier))
             path = f"assets/sprites/projectiles/stone_tier{tier}.png"
-            frames = load_sprite_sheet_from_file(path, width, height)
+            frames = load_frame_strip(path, width, height)
             if frames:
                 return frames[0]
 

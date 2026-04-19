@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import pygame
 
 from sa_fona.rendering.animation import Animation
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 _PLACEHOLDER_COLORS: list[tuple[str, tuple[int, int, int]]] = [
@@ -16,10 +16,6 @@ _PLACEHOLDER_COLORS: list[tuple[str, tuple[int, int, int]]] = [
     ("enemy", (200, 50, 50)),
 ]
 _DEFAULT_COLOR: tuple[int, int, int] = (255, 255, 255)
-
-_PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-)
 
 
 def _color_for_asset(asset_id: str) -> tuple[int, int, int]:
@@ -43,39 +39,18 @@ def load_sprite_sheet_from_file(
 ) -> list[pygame.Surface] | None:
     """Load a PNG sprite sheet and slice it into frames.
 
+    Delegates to :func:`sa_fona.rendering.asset_loader.load_frame_strip`
+    so that all sprite loading shares a single cache and code-path.
+
     Args:
-        path: Filesystem path to the PNG file.
+        path: Path to the PNG file, relative to the project root.
         frame_width: Width of a single frame in pixels.
         frame_height: Height of a single frame in pixels.
 
     Returns:
         List of pygame Surfaces, or None if the file doesn't exist.
     """
-    full_path = os.path.join(_PROJECT_ROOT, path)
-    if not os.path.isfile(full_path):
-        return None
-
-    try:
-        sheet = pygame.image.load(full_path).convert_alpha()
-    except pygame.error:
-        return None
-
-    sheet_width = sheet.get_width()
-    sheet_height = sheet.get_height()
-
-    # Ensure the sheet is tall enough for the requested frame height.
-    if sheet_height < frame_height:
-        return None
-
-    num_frames = sheet_width // frame_width
-
-    frames: list[pygame.Surface] = []
-    for i in range(num_frames):
-        frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
-        if frame_rect.right <= sheet_width and frame_rect.bottom <= sheet_height:
-            frame_surface = sheet.subsurface(frame_rect).copy()
-            frames.append(frame_surface)
-    return frames if frames else None
+    return load_frame_strip(path, frame_width, frame_height)
 
 
 class SpriteRenderer:

@@ -32,9 +32,9 @@ from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
-from sa_fona.rendering.effects import EffectRenderer
 from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.level.trigger import TriggerSystem, TriggerType
+from sa_fona.rendering.effects import EffectRenderer
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.combat import CombatSystem
 from sa_fona.systems.economy import EconomySystem
@@ -766,7 +766,7 @@ class GameplayScene(BaseScene):
         """Check melee hitbox overlap with breakables and destroy on hit."""
         for hitbox in self._sling_system.melee_hitboxes:
             for breakable in self._breakables:
-                if not breakable.active:
+                if not breakable.active or breakable._breaking:
                     continue
                 if hitbox.rect.colliderect(breakable.rect):
                     stone_yield = self._economy.get_breakable_yield(

@@ -28,7 +28,7 @@ from sa_fona.entities.enemy_behaviors import (
     create_behavior,
 )
 from sa_fona.entities.pickup import Pickup, PickupType
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 if TYPE_CHECKING:
     from sa_fona.level.tilemap import TileMap
@@ -156,7 +156,7 @@ class Enemy(Entity):
             "_death_frames": "death",
         }
         for attr, suffix in anim_map.items():
-            frames = load_sprite_sheet_from_file(
+            frames = load_frame_strip(
                 f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
                 self._sprite_w, self._sprite_h,
             )

@@ -10,7 +10,7 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 # Companion dimensions (placeholder).
 COMPANION_WIDTH = 16
@@ -80,7 +80,7 @@ class Companion(Entity):
             "_excited_frames": "excited",
         }
         for attr, name in anim_map.items():
-            frames = load_sprite_sheet_from_file(
+            frames = load_frame_strip(
                 f"assets/sprites/bep/{name}.png",
                 COMPANION_WIDTH, COMPANION_HEIGHT,
             )
@@ -138,6 +138,23 @@ class Companion(Entity):
         else:
             self._is_moving = False
 
+    def _current_frames(self) -> list[pygame.Surface]:
+        """Return the frame list for the current animation state.
+
+        Returns:
+            The appropriate frame list, or an empty list when no
+            sprites are loaded.
+        """
+        if self._anim_state == "scared" and self._scared_frames:
+            return self._scared_frames
+        if self._anim_state == "excited" and self._excited_frames:
+            return self._excited_frames
+        if self._is_moving and self._walk_frames:
+            return self._walk_frames
+        if self._idle_frames:
+            return self._idle_frames
+        return []
+
     def set_emotion(self, emotion: str) -> None:
         """Set Bep's emotion state for animation.
 
@@ -157,18 +174,7 @@ class Companion(Entity):
         """
         self._bob_timer += dt * BOB_SPEED
 
-        # Select frames based on current state.
-        if self._anim_state == "scared" and self._scared_frames:
-            frames = self._scared_frames
-        elif self._anim_state == "excited" and self._excited_frames:
-            frames = self._excited_frames
-        elif self._is_moving and self._walk_frames:
-            frames = self._walk_frames
-        elif self._idle_frames:
-            frames = self._idle_frames
-        else:
-            frames = []
-
+        frames = self._current_frames()
         if frames:
             self._anim_timer += dt
             if self._anim_timer >= self._anim_speed:
@@ -189,18 +195,7 @@ class Companion(Entity):
         screen_x = self.rect.x - camera_offset[0]
         screen_y = self.rect.y - camera_offset[1] + bob_y
 
-        # Select the correct frame set for current state.
-        if self._anim_state == "scared" and self._scared_frames:
-            frames = self._scared_frames
-        elif self._anim_state == "excited" and self._excited_frames:
-            frames = self._excited_frames
-        elif self._is_moving and self._walk_frames:
-            frames = self._walk_frames
-        elif self._idle_frames:
-            frames = self._idle_frames
-        else:
-            frames = []
-
+        frames = self._current_frames()
         if frames:
             idx = self._anim_frame % len(frames)
             surface.blit(frames[idx], (screen_x, screen_y))

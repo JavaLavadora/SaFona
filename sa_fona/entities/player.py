@@ -28,7 +28,7 @@ from sa_fona.config.settings import (
 )
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 class PlayerState(Enum):
@@ -145,7 +145,7 @@ class Player(Entity):
             "_death_frames": "death",
         }
         for attr, name in anim_paths.items():
-            frames = load_sprite_sheet_from_file(
+            frames = load_frame_strip(
                 f"assets/sprites/ramon/{name}.png",
                 PLAYER_WIDTH, PLAYER_HEIGHT,
             )

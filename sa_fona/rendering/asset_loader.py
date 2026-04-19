@@ -1,8 +1,11 @@
-"""Centralized asset loading utilities for UI elements and portraits.
+"""Centralized asset loading utilities for sprites, UI elements, and portraits.
 
 Provides safe loading functions that return None when an asset file
 is missing, allowing callers to fall back to placeholder rendering.
 All paths are resolved relative to the project root.
+
+Entity sprite loading should go through :func:`load_frame_strip` so
+that a single cache and code-path is used project-wide.
 """
 
 from __future__ import annotations
@@ -171,3 +174,34 @@ def load_portrait(portrait_key: str) -> pygame.Surface | None:
     if not path:
         return None
     return load_image(path)
+
+
+def clear_caches() -> None:
+    """Reset all module-level caches in this module.
+
+    Useful for level transitions and testing where loaded assets
+    should be freed or reloaded from disk.
+    """
+    global _manifest_cache
+    _manifest_cache = None
+    _image_cache.clear()
+    _frame_strip_cache.clear()
+
+
+def clear_all_caches() -> None:
+    """Reset every asset cache across the project.
+
+    Calls :func:`clear_caches` for this module, plus the per-module
+    clear functions in ``effects`` and ``bou_de_pedra``.
+    """
+    clear_caches()
+
+    # Import peer modules lazily to avoid circular imports at the
+    # module level -- they already depend on us.
+    from sa_fona.rendering.effects import clear_caches as _clear_effects
+    from sa_fona.entities.bosses.bou_de_pedra import (
+        clear_caches as _clear_boss,
+    )
+
+    _clear_effects()
+    _clear_boss()

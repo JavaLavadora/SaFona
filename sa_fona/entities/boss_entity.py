@@ -22,7 +22,7 @@ import pygame
 from sa_fona.config.settings import DATA_DIR
 from sa_fona.core.event_bus import EventBus
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 class BossState(Enum):
@@ -494,25 +494,28 @@ class BossEntity(Entity):
 
     # ── Sprite loading ─────────────────────────────────────────────
 
+    # Map boss_id -> short prefix used in asset filenames.
+    _BOSS_PREFIX_MAP: dict[str, str] = {
+        "bou_de_pedra": "bou",
+    }
+
     def _load_boss_sprites(self) -> None:
         """Load boss sprite sheets from assets/sprites/boss/.
 
-        Attempts to load sprites keyed by boss_id prefix (e.g. "bou").
-        Populates ``_boss_sprites`` dict with state-name -> frame list
-        mappings.
+        Attempts to load sprites keyed by a short prefix derived from
+        the boss_id via ``_BOSS_PREFIX_MAP``.  Falls back to using the
+        full boss_id when no mapping exists.  Populates
+        ``_boss_sprites`` dict with state-name -> frame list mappings.
         """
-        boss_prefix = self.boss_id.replace("_", "").split("de")[0].strip("_")
-        # Try common boss sprite naming conventions.
+        short_prefix = self._BOSS_PREFIX_MAP.get(self.boss_id, self.boss_id)
         sprite_names = [
             "idle_p1", "idle_p2", "idle_p3",
             "rush", "headbutt", "stomp", "hurl",
             "stunned", "transition", "death",
         ]
         for name in sprite_names:
-            # Try boss_id-based path first (e.g. bou_idle_p1.png).
-            short_prefix = self.boss_id.replace("bou_de_pedra", "bou")
             path = f"assets/sprites/boss/{short_prefix}_{name}.png"
-            frames = load_sprite_sheet_from_file(
+            frames = load_frame_strip(
                 path, self._width, self._height,
             )
             if frames:

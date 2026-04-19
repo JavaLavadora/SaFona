@@ -20,7 +20,7 @@ import pygame
 from sa_fona.core.event_bus import EventBus
 from sa_fona.entities.boss_entity import BossEntity, BossState
 from sa_fona.level.tilemap import TILE_SIZE
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 if TYPE_CHECKING:
     pass
@@ -46,29 +46,43 @@ def _load_boss_sub_sprites() -> None:
         return
     _boss_sprites_loaded = True
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_rock.png", 8, 8)
+    frames = load_frame_strip("assets/sprites/boss/boss_rock.png", 8, 8)
     if frames:
         _boss_rock_sprite = frames[0]
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_shockwave.png", 16, 8)
+    frames = load_frame_strip("assets/sprites/boss/boss_shockwave.png", 16, 8)
     if frames:
         _boss_shockwave_sprite = frames[0]
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_pulse.png", 24, 16)
+    frames = load_frame_strip("assets/sprites/boss/boss_pulse.png", 24, 16)
     if frames:
         _boss_pulse_sprite = frames[0]
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_shadow.png", 16, 6)
+    frames = load_frame_strip("assets/sprites/boss/boss_shadow.png", 16, 6)
     if frames:
         _boss_shadow_sprite = frames[0]
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/pillar_intact.png", 16, 48)
+    frames = load_frame_strip("assets/sprites/boss/pillar_intact.png", 16, 48)
     if frames:
         _pillar_intact_sprite = frames[0]
 
-    frames = load_sprite_sheet_from_file("assets/sprites/boss/pillar_destroyed.png", 16, 48)
+    frames = load_frame_strip("assets/sprites/boss/pillar_destroyed.png", 16, 48)
     if frames:
         _pillar_destroyed_sprite = frames[0]
+
+
+def clear_caches() -> None:
+    """Reset module-level boss sub-element sprite caches."""
+    global _boss_rock_sprite, _boss_shockwave_sprite, _boss_pulse_sprite
+    global _boss_shadow_sprite, _pillar_intact_sprite, _pillar_destroyed_sprite
+    global _boss_sprites_loaded
+    _boss_rock_sprite = None
+    _boss_shockwave_sprite = None
+    _boss_pulse_sprite = None
+    _boss_shadow_sprite = None
+    _pillar_intact_sprite = None
+    _pillar_destroyed_sprite = None
+    _boss_sprites_loaded = False
 
 
 class BossProjectile:
@@ -136,7 +150,6 @@ class BossProjectile:
         """
         if not self.active:
             return
-        _load_boss_sub_sprites()
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
 
@@ -222,7 +235,6 @@ class ShadowMarker:
         """
         if not self.active:
             return
-        _load_boss_sub_sprites()
         sx = int(self.x) - camera_offset[0]
         sy = int(self.y) - camera_offset[1]
 
@@ -256,19 +268,21 @@ class DestructiblePillar:
     ) -> None:
         """Draw the pillar using a sprite or fallback rectangles.
 
+        Destroyed pillars are not rendered.
+
         Args:
             surface: Target surface.
             camera_offset: Camera offset.
         """
-        _load_boss_sub_sprites()
+        if not self.active:
+            return
+
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
 
-        if self.active and _pillar_intact_sprite is not None:
+        if _pillar_intact_sprite is not None:
             surface.blit(_pillar_intact_sprite, (sx, sy))
-        elif not self.active and _pillar_destroyed_sprite is not None:
-            surface.blit(_pillar_destroyed_sprite, (sx, sy))
-        elif self.active:
+        else:
             # Fallback: drawn rectangles.
             pygame.draw.rect(surface, (100, 90, 80), (sx, sy, self.rect.width, self.rect.height))
             pygame.draw.rect(surface, (70, 60, 50), (sx, sy, self.rect.width, self.rect.height), 2)
@@ -332,6 +346,10 @@ class BouDePedra(BossEntity):
 
         # Ground Y for shockwaves (bottom of arena minus one tile).
         self._ground_y = self._arena_bottom - TILE_SIZE
+
+        # Eagerly load boss sub-element sprites so render() never
+        # triggers lazy loading on the hot path.
+        _load_boss_sub_sprites()
 
     # ── Pillar Setup ───────────────────────────────────────────────
 

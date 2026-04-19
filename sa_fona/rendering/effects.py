@@ -82,6 +82,11 @@ def _get_frames(effect_type: str) -> list[pygame.Surface] | None:
     return frames
 
 
+def clear_caches() -> None:
+    """Reset the module-level effect frame cache."""
+    _frame_cache.clear()
+
+
 @dataclass
 class _ActiveEffect:
     """State for a single playing effect instance."""

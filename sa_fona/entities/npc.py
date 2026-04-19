@@ -14,7 +14,7 @@ import pygame
 
 from sa_fona.config.settings import COLORS
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 # NPC placeholder dimensions (slightly taller than the player).
@@ -188,7 +188,7 @@ class NPC(Entity):
         """Load real NPC sprites or create a placeholder surface."""
         states = self._NPC_SPRITE_STATES.get(self._npc_base, {})
         for state_name, path in states.items():
-            frames = load_sprite_sheet_from_file(
+            frames = load_frame_strip(
                 path, self._sprite_w, self._sprite_h,
             )
             if frames:

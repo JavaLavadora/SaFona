@@ -20,6 +20,7 @@
     },
     {
       "input": "assets/ai_sources/bep/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/bep/idle.png",
@@ -41,13 +42,13 @@
         },
         {
           "file": "assets/sprites/bep/scared.png",
-          "poses": [10],
+          "poses": [8],
           "frame_width": 16,
           "frame_height": 16
         },
         {
           "file": "assets/sprites/bep/excited.png",
-          "poses": [11],
+          "poses": [9],
           "frame_width": 16,
           "frame_height": 16
         }
@@ -55,22 +56,35 @@
     },
     {
       "input": "assets/ai_sources/possessed_sheep/image.png",
+      "min_area": 3000,
       "outputs": [
         {
+          "file": "assets/sprites/enemies/possessed_sheep_idle.png",
+          "poses": [1, 2],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/enemies/possessed_sheep_walk.png",
+          "poses": [3, 4, 5, 3],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
           "file": "assets/sprites/enemies/possessed_sheep_charge.png",
-          "poses": [7, 8],
+          "poses": [5, 6],
           "frame_width": 16,
           "frame_height": 16
         },
         {
           "file": "assets/sprites/enemies/possessed_sheep_hit.png",
-          "poses": [9],
+          "poses": [7],
           "frame_width": 16,
           "frame_height": 16
         },
         {
           "file": "assets/sprites/enemies/possessed_sheep_death.png",
-          "poses": [10],
+          "poses": [8],
           "frame_width": 16,
           "frame_height": 16
         }
@@ -78,28 +92,41 @@
     },
     {
       "input": "assets/ai_sources/rival_warrior/image.png",
+      "min_area": 3000,
       "outputs": [
         {
+          "file": "assets/sprites/enemies/rival_warrior_idle.png",
+          "poses": [1, 2],
+          "frame_width": 16,
+          "frame_height": 24
+        },
+        {
+          "file": "assets/sprites/enemies/rival_warrior_walk.png",
+          "poses": [3, 4, 3, 4],
+          "frame_width": 16,
+          "frame_height": 24
+        },
+        {
           "file": "assets/sprites/enemies/rival_warrior_attack.png",
-          "poses": [7, 8],
+          "poses": [5, 6],
           "frame_width": 16,
           "frame_height": 24
         },
         {
           "file": "assets/sprites/enemies/rival_warrior_block.png",
-          "poses": [9],
+          "poses": [7],
           "frame_width": 16,
           "frame_height": 24
         },
         {
           "file": "assets/sprites/enemies/rival_warrior_hit.png",
-          "poses": [10],
+          "poses": [8],
           "frame_width": 16,
           "frame_height": 24
         },
         {
           "file": "assets/sprites/enemies/rival_warrior_death.png",
-          "poses": [11],
+          "poses": [9],
           "frame_width": 16,
           "frame_height": 24
         }
@@ -107,22 +134,35 @@
     },
     {
       "input": "assets/ai_sources/stone_guardian/image.png",
+      "min_area": 3000,
       "outputs": [
         {
+          "file": "assets/sprites/enemies/stone_guardian_idle.png",
+          "poses": [1, 2],
+          "frame_width": 24,
+          "frame_height": 32
+        },
+        {
+          "file": "assets/sprites/enemies/stone_guardian_walk.png",
+          "poses": [3, 4, 3],
+          "frame_width": 24,
+          "frame_height": 32
+        },
+        {
           "file": "assets/sprites/enemies/stone_guardian_attack.png",
-          "poses": [6, 7],
+          "poses": [5, 6],
           "frame_width": 24,
           "frame_height": 32
         },
         {
           "file": "assets/sprites/enemies/stone_guardian_hit.png",
-          "poses": [8],
+          "poses": [7],
           "frame_width": 24,
           "frame_height": 32
         },
         {
           "file": "assets/sprites/enemies/stone_guardian_death.png",
-          "poses": [9],
+          "poses": [8],
           "frame_width": 24,
           "frame_height": 32
         }
@@ -130,6 +170,8 @@
     },
     {
       "input": "assets/ai_sources/boss_bou_de_pedra/image.png",
+      "min_area": 3000,
+      "note": "9 real poses: 3 idle colors, charging(wide-skip), headbutt, stomp, stunned, transition(ghost), death(rubble)",
       "outputs": [
         {
           "file": "assets/sprites/boss/bou_idle_p1.png",
@@ -151,43 +193,43 @@
         },
         {
           "file": "assets/sprites/boss/bou_rush.png",
-          "poses": [4, 5],
+          "poses": [5],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_headbutt.png",
-          "poses": [6, 7],
+          "poses": [5, 6],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_stomp.png",
-          "poses": [8, 9],
+          "poses": [6],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_hurl.png",
-          "poses": [10],
+          "poses": [6],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_stunned.png",
-          "poses": [11],
+          "poses": [7],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_transition.png",
-          "poses": [12],
+          "poses": [8],
           "frame_width": 40,
           "frame_height": 36
         },
         {
           "file": "assets/sprites/boss/bou_death.png",
-          "poses": [13],
+          "poses": [9],
           "frame_width": 40,
           "frame_height": 36
         }
@@ -195,6 +237,7 @@
     },
     {
       "input": "assets/ai_sources/npc_dimoni/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/npcs/dimoni_idle.png",
@@ -224,6 +267,7 @@
     },
     {
       "input": "assets/ai_sources/npc_llorencc/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/npcs/llorencc_idle.png",
@@ -247,6 +291,7 @@
     },
     {
       "input": "assets/ai_sources/projectile_stone/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/projectiles/stone_tier1.png",
@@ -270,6 +315,7 @@
     },
     {
       "input": "assets/ai_sources/boss_pillar/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/boss/pillar_intact.png",
@@ -287,6 +333,7 @@
     },
     {
       "input": "assets/ai_sources/boss_projectiles/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/boss/boss_rock.png",
@@ -316,6 +363,7 @@
     },
     {
       "input": "assets/ai_sources/pickup_heart/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/pickups/heart.png",
@@ -327,6 +375,7 @@
     },
     {
       "input": "assets/ai_sources/pickup_stone/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/pickups/stone.png",
@@ -338,6 +387,7 @@
     },
     {
       "input": "assets/ai_sources/pickup_shield/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/pickups/shield.png",
@@ -349,6 +399,7 @@
     },
     {
       "input": "assets/ai_sources/breakable_pot/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/breakables/pot.png",
@@ -366,6 +417,7 @@
     },
     {
       "input": "assets/ai_sources/breakable_crate/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/sprites/breakables/crate.png",
@@ -383,6 +435,7 @@
     },
     {
       "input": "assets/ai_sources/portrait_ramon/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/portraits/ramon_neutral.png",
@@ -412,6 +465,7 @@
     },
     {
       "input": "assets/ai_sources/portrait_bep/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/portraits/bep_happy.png",
@@ -441,6 +495,7 @@
     },
     {
       "input": "assets/ai_sources/portrait_dimoni/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/portraits/dimoni_menacing.png",
@@ -464,6 +519,7 @@
     },
     {
       "input": "assets/ai_sources/portrait_llorencc/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/portraits/llorencc_neutral.png",
@@ -487,6 +543,7 @@
     },
     {
       "input": "assets/ai_sources/fx_dust/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/effects/dust.png",
@@ -498,6 +555,7 @@
     },
     {
       "input": "assets/ai_sources/fx_impact/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/effects/impact.png",
@@ -509,6 +567,7 @@
     },
     {
       "input": "assets/ai_sources/fx_dimoni_aura/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/effects/dimoni_aura.png",
@@ -520,6 +579,7 @@
     },
     {
       "input": "assets/ai_sources/fx_portal/image.png",
+      "min_area": 3000,
       "outputs": [
         {
           "file": "assets/effects/portal.png",

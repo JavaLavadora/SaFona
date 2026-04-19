@@ -61,14 +61,21 @@ def load_sprite_sheet_from_file(
         return None
 
     sheet_width = sheet.get_width()
+    sheet_height = sheet.get_height()
+
+    # Ensure the sheet is tall enough for the requested frame height.
+    if sheet_height < frame_height:
+        return None
+
     num_frames = sheet_width // frame_width
 
     frames: list[pygame.Surface] = []
     for i in range(num_frames):
         frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
-        frame_surface = sheet.subsurface(frame_rect).copy()
-        frames.append(frame_surface)
-    return frames
+        if frame_rect.right <= sheet_width and frame_rect.bottom <= sheet_height:
+            frame_surface = sheet.subsurface(frame_rect).copy()
+            frames.append(frame_surface)
+    return frames if frames else None
 
 
 class SpriteRenderer:

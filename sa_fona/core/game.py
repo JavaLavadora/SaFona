@@ -28,6 +28,8 @@ from sa_fona.core.scene_manager import SceneManager
 from sa_fona.rendering.pixel_scaler import PixelScaler
 from sa_fona.rendering.sprite_renderer import SpriteRenderer
 from sa_fona.scenes.gameplay import GameplayScene
+from sa_fona.scenes.main_menu import MainMenuScene
+from sa_fona.systems.save_system import SaveSystem
 
 
 class Game:
@@ -47,13 +49,19 @@ class Game:
         sprite_renderer: Generates and caches placeholder sprite surfaces.
     """
 
-    def __init__(self, level_path: str | None = None) -> None:
+    def __init__(
+        self,
+        level_path: str | None = None,
+        skip_menu: bool = False,
+    ) -> None:
         """Initialise Pygame and create the game window.
 
         Args:
             level_path: Optional explicit path to a level JSON file.
                 If ``None``, tries World 1 Level 1, then falls back to
                 the test level.
+            skip_menu: If True, bypass the main menu and load gameplay
+                directly (used by --level and --boss CLI flags).
         """
         pygame.init()
 
@@ -75,23 +83,36 @@ class Game:
         self.event_bus = EventBus()
         self.scene_manager = SceneManager()
 
+        # Save system (single slot).
+        self.save_system = SaveSystem(self.event_bus)
+
         # Load asset manifest and create sprite renderer.
         manifest_path = DATA_DIR / "asset_manifest.json"
         with open(manifest_path, "r", encoding="utf-8") as fh:
             full_manifest = json.load(fh)
         self.sprite_renderer = SpriteRenderer(full_manifest.get("sprites", {}))
 
-        # Resolve the starting level.
-        if level_path is None:
-            level_path = self._resolve_starting_level()
+        if skip_menu:
+            # Bypass menu: load gameplay directly (for --level / --boss).
+            if level_path is None:
+                level_path = self._resolve_starting_level()
 
-        # Push the gameplay scene as the initial scene.
-        gameplay_scene = GameplayScene(
-            BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
-            level_path=level_path,
-        )
-        gameplay_scene.scene_manager = self.scene_manager
-        self.scene_manager.push(gameplay_scene)
+            gameplay_scene = GameplayScene(
+                BASE_WIDTH, BASE_HEIGHT, event_bus=self.event_bus,
+                level_path=level_path,
+            )
+            gameplay_scene.scene_manager = self.scene_manager
+            gameplay_scene.save_system = self.save_system
+            self.scene_manager.push(gameplay_scene)
+        else:
+            # Show main menu.
+            menu_scene = MainMenuScene(
+                BASE_WIDTH, BASE_HEIGHT,
+                event_bus=self.event_bus,
+                save_system=self.save_system,
+            )
+            menu_scene.scene_manager = self.scene_manager
+            self.scene_manager.push(menu_scene)
 
         self._print_display_info(window_width, window_height)
 

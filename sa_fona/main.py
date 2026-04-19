@@ -4,9 +4,13 @@ Run with::
 
     python -m sa_fona.main
 
-Optionally specify a level to load::
+Optionally specify a level to load (bypasses main menu)::
 
     python -m sa_fona.main --level world1/level_1_2
+
+Or jump directly to a boss fight::
+
+    python -m sa_fona.main --boss bou_de_pedra
 """
 
 from __future__ import annotations
@@ -38,7 +42,7 @@ def main() -> None:
         boss_id = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "bou_de_pedra"
 
         from sa_fona.core.game import Game as _G
-        game = _G(level_path=level_path)
+        game = _G(level_path=level_path, skip_menu=True)
 
         from sa_fona.scenes.boss_scene import BossScene
         boss_scene = BossScene(
@@ -56,7 +60,13 @@ def main() -> None:
             pygame.quit()
             sys.exit(0)
 
-    game = Game(level_path=level_path)
+    # --level flag: bypass menu, go directly to that level.
+    if level_path is not None:
+        game = Game(level_path=level_path, skip_menu=True)
+    else:
+        # Default: show main menu.
+        game = Game(level_path=None, skip_menu=False)
+
     try:
         game.run()
     except KeyboardInterrupt:

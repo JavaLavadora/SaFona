@@ -115,10 +115,16 @@ class Player(Entity):
         self._jump_frames: list[pygame.Surface] = []
         self._wall_slide_frames: list[pygame.Surface] = []
         self._wall_jump_frames: list[pygame.Surface] = []
+        self._sling_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
         self._walk_anim_speed: float = 0.1
+        self._sling_anim_speed: float = 0.08
+
+        # Sling animation state set externally by the gameplay scene.
+        # Values: "none", "charging", "releasing".
+        self._sling_anim_state: str = "none"
 
         idle = load_sprite_sheet_from_file(
             "assets/sprites/ramon/idle.png", PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -150,9 +156,16 @@ class Player(Entity):
         if wall_jump:
             self._wall_jump_frames = wall_jump
 
+        sling = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/sling.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if sling:
+            self._sling_frames = sling
+
         has_sprites = bool(
             self._idle_frames or self._walk_frames or self._jump_frames
             or self._wall_slide_frames or self._wall_jump_frames
+            or self._sling_frames
         )
 
         for state, key in _STATE_KEY.items():
@@ -210,6 +223,25 @@ class Player(Entity):
         for same-wall re-grab prevention.
         """
         return self._wall_jump_origin_side
+
+    @property
+    def sling_anim_state(self) -> str:
+        """The sling animation state: ``"none"``, ``"charging"``, or ``"releasing"``.
+
+        Set by the gameplay scene based on SlingSystem state.
+        """
+        return self._sling_anim_state
+
+    @sling_anim_state.setter
+    def sling_anim_state(self, value: str) -> None:
+        if value not in ("none", "charging", "releasing"):
+            value = "none"
+        if value != self._sling_anim_state:
+            self._sling_anim_state = value
+            # Reset sling animation frame on state change.
+            if value != "none":
+                self._anim_frame = 0
+                self._anim_timer = 0.0
 
     @property
     def wall_jump_origin_y(self) -> float | None:
@@ -303,7 +335,37 @@ class Player(Entity):
     # ── Private helpers ────────────────────────────────────────────
 
     def _update_sprite(self, dt: float) -> None:
-        """Select the correct sprite frame, with animation and flipping."""
+        """Select the correct sprite frame, with animation and flipping.
+
+        Sling animation takes priority over movement state when active.
+        During ``"charging"`` the sprite cycles through frames 0 and 1
+        (wind-up and mid-rotation) for a spinning effect.  During
+        ``"releasing"`` it shows frame 2 (the release pose).
+        """
+        # Sling animation overrides movement animation when active.
+        if self._sling_anim_state != "none" and self._sling_frames:
+            if self._sling_anim_state == "charging":
+                # Cycle through frames 0 and 1 (wind-up, mid-rotation).
+                charge_frames = self._sling_frames[:2]
+                self._anim_timer += dt
+                if self._anim_timer >= self._sling_anim_speed:
+                    self._anim_timer -= self._sling_anim_speed
+                    self._anim_frame = (self._anim_frame + 1) % len(charge_frames)
+                if self._anim_frame >= len(charge_frames):
+                    self._anim_frame = 0
+                base = charge_frames[self._anim_frame]
+            else:
+                # "releasing" -- show frame 2 (release pose).
+                base = self._sling_frames[-1]
+                self._anim_frame = 0
+                self._anim_timer = 0.0
+
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+
         if self._state != self._prev_state:
             self._anim_frame = 0
             self._anim_timer = 0.0

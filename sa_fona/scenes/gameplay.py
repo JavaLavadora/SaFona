@@ -373,6 +373,14 @@ class GameplayScene(BaseScene):
         )
         self._projectiles.extend(new_projectiles)
 
+        # 5b. Sync sling animation state to the player sprite.
+        if self._sling_system.state == "charging":
+            self._player.sling_anim_state = "charging"
+        elif self._sling_system.state == "cooldown" and new_projectiles:
+            self._player.sling_anim_state = "releasing"
+        elif self._sling_system.state == "idle":
+            self._player.sling_anim_state = "none"
+
         # 6. Update projectiles (move only, no removal yet).
         for proj in self._projectiles:
             proj.update(dt)

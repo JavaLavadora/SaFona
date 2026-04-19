@@ -19,7 +19,7 @@ Pixel art sprite sheet of a Balearic slinger warrior character, 16-bit SNES styl
 
 Character design: medium-length dark hair swept backwards held by a cloth headband, deeply tanned olive skin, knee-length white robe/tunic with V-neck showing chest, bright red sash/belt at waist, leather brown arm bracers on forearms, bare tanned legs visible below the robe, leather sandals, holding a sling with dangling cord. Stocky determined warrior. Clean pixel art, no anti-aliasing, no smoothing. Each pose should be clearly separated with green space between them. All poses must be the SAME character with identical colors and proportions.
 
-## Processing Notes
+## Processing Notes (v1)
 
 - Green background removed via chroma key (g - r > 40 and g - b > 40 and g > 80)
 - 8 poses detected by finding vertical gaps in alpha channel
@@ -30,3 +30,16 @@ Character design: medium-length dark hair swept backwards held by a cloth headba
 - Idle animation: 4 frames via 1px upper-body shift (breathing bob)
 - Walk animation: 6 frames cycling walk_a / idle / walk_b
 - Sling frames saved separately for future attack animation integration
+
+## Processing Notes (v2 — tools/process_ramon_sprites.py)
+
+- New AI image (assets/image.png): 1536x1024, 9 actual poses on green background
+- 7 top-level regions detected; rightmost (x=879..1507, w=628) split by density into 3 sling sub-poses
+- Poses: idle, 4 walk frames, jump ascending, sling wind-up, sling mid-rotation, sling release
+- Jump descending synthesized from jump ascending (1px shift down)
+- Wall slide synthesized from idle (horizontal flip + 1px shift up)
+- Scale factor: 0.1435 (idle 209px -> 30px target)
+- Walk: 4 base frames -> 8-frame cycle [0, 1, 2, 3, 2, 1, 0, 1]
+- Sling: 3 frames (wind-up, mid-rotation, release)
+- Idle: 4 frames (breathing bob at 62% waist line)
+- All sheets: 24x32 frames, RGBA, NEAREST scaling, alpha hard-threshold at 100

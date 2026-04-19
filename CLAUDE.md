@@ -1,5 +1,13 @@
 # Sa Fona — Project Guide
 
+## RULE #1 — Mandatory Development Workflow (NEVER BYPASS)
+
+1. **The PM (Na Francina / orchestrator) NEVER writes or modifies code.** All changes are implemented by developer agents (N'Andreu, En Tomeu).
+2. **All changes go through feature branches and PRs.** Never commit to master directly.
+3. **All PRs are reviewed** by En Pau and En Miquel before merge consideration.
+4. **User (Toni) approval is MANDATORY before any merge to master.** Reviewer approval alone is NOT sufficient. Launch the game, let the user test, and WAIT for explicit approval.
+5. **User feedback = developer task.** When the user reports bugs or requests changes, spawn a developer agent. The PM does NOT implement fixes.
+
 ## Overview
 Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame (Python)**. Set across the Balearic Islands through different historical eras, the player controls Ramon, a grumpy talayotic slinger cursed into time-traveling with his myotragus companion Bep.
 

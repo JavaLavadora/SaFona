@@ -124,10 +124,6 @@ class MainMenuScene(BaseScene):
         Args:
             input_state: Current frame input snapshot.
         """
-        if input_state.pause_pressed:
-            self.quit_requested = True
-            return
-
         # Navigate: left = previous option, right = next option.
         if input_state.move_left:
             self._move_selection(-1)

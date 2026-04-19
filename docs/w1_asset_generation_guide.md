@@ -683,7 +683,7 @@ All prompts share these requirements:
 
 The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as colored rectangles with initials. Each character needs portrait variants matching the dialogue data's `"portrait"` field values.
 
-#### 12a. Ramon Portraits
+#### 13a. Ramon Portraits
 
 - [ ] **Ramon Dialogue Portraits** -- `assets/ai_sources/portrait_ramon/image.png`
 
@@ -710,7 +710,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Used in `world1_dialogue.json` with portrait values: `"ramon_annoyed"`, `"ramon_neutral"`. Adding surprised and determined for future dialogue.
 
-#### 12b. Bep Portraits
+#### 13b. Bep Portraits
 
 - [ ] **Bep Dialogue Portraits** -- `assets/ai_sources/portrait_bep/image.png`
 
@@ -737,7 +737,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Used in `world1_dialogue.json` with portrait values: `"bep_excited"`, `"bep_neutral"`, `"bep_scared"`. Most dialogue in W1 is Bep giving hints.
 
-#### 12c. Dimoni Portrait
+#### 13c. Dimoni Portrait
 
 - [ ] **Dimoni Dialogue Portrait** -- `assets/ai_sources/portrait_dimoni/image.png`
 
@@ -761,32 +761,35 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Used in the post-boss cutscene dialogue. Speaker is "Dimoni" in `post_boss_w1.json`.
 
-#### 12d. Llorencc Portrait
+#### 13d. Llorencc Portrait
 
 - [ ] **Llorencc Dialogue Portrait** -- `assets/ai_sources/portrait_llorencc/image.png`
 
   > Pixel art portrait of Llorencc the Menorcan scholar-warrior NPC, 16-bit SNES style, on a solid bright green (#00FF00) background. Show in a horizontal row:
   >
-  > 1) llorencc_friendly -- warm friendly face, slight smile, scholarly look, dark hair, tanned skin, visible satchel strap over shoulder, facing slightly left
-  > 2) llorencc_excited -- same face but eyes lit up with enthusiasm, mouth open explaining something, gesturing with one hand visible
+  > 1) llorencc_neutral -- calm neutral expression, scholarly look, dark hair, tanned skin, visible satchel strap over shoulder, facing slightly left
+  > 2) llorencc_friendly -- warm friendly face, slight smile, same character
+  > 3) llorencc_excited -- same face but eyes lit up with enthusiasm, mouth open explaining something, gesturing with one hand visible
   >
-  > Each portrait approximately 44x44 pixels. Clean pixel art. Number each portrait clearly (1, 2) placed above or below each portrait. Arrange both portraits in a single horizontal row, evenly spaced.
+  > Each portrait approximately 44x44 pixels. Clean pixel art. Number each portrait clearly (1, 2, 3) placed above or below each portrait. Arrange all portraits in a single horizontal row, evenly spaced.
 
   *Pose mapping:*
-  - 1 → llorencc_friendly
-  - 2 → llorencc_excited
+  - 1 → llorencc_neutral
+  - 2 → llorencc_friendly
+  - 3 → llorencc_excited
 
   *Will generate*:
+  - `llorencc_neutral.png` -- 44x44
   - `llorencc_friendly.png` -- 44x44
   - `llorencc_excited.png` -- 44x44
 
-  *Notes*: Used in shop dialogue (`llorencc_shop.json`).
+  *Notes*: `llorencc_neutral` is referenced in `world2_dialogue.json`. Used in shop and story dialogues.
 
 ---
 
 ### 14. UI Elements
 
-#### 13a. HUD Heart Icon
+#### 14a. HUD Heart Icon
 
 - [ ] **HUD Heart Icons** -- `assets/ai_sources/ui_hearts/image.png`
 
@@ -810,7 +813,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently rendered as diamond shapes via code. Real heart icons would match classic platformer HUD conventions.
 
-#### 13b. HUD Stone Counter Icon
+#### 14b. HUD Stone Counter Icon
 
 - [ ] **HUD Stone Icon** -- `assets/ai_sources/ui_stone_icon/image.png`
 
@@ -828,7 +831,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently a grey circle drawn via code.
 
-#### 13c. Mask HUD Icon
+#### 14c. Mask HUD Icon
 
 - [ ] **Stone Slam Mask Icon** -- `assets/ai_sources/ui_mask_stone_slam/image.png`
 
@@ -849,7 +852,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently rendered as a golden/grey square via code (`_MASK_ICON_SIZE=14`).
 
-#### 13d. Dialogue Box Frame
+#### 14d. Dialogue Box Frame
 
 - [ ] **Dialogue Box UI Frame** -- `assets/ai_sources/ui_dialogue_frame/image.png`
 
@@ -867,7 +870,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently the dialogue box is rendered with solid color fills and 1px borders via code. A proper 9-slice frame would significantly improve presentation.
 
-#### 13e. Shop UI Frame
+#### 14e. Shop UI Frame
 
 - [ ] **Shop UI Frame** -- `assets/ai_sources/ui_shop_frame/image.png`
 
@@ -882,7 +885,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently rendered entirely with code-drawn rectangles and system fonts. A proper UI skin would match the game's Mediterranean aesthetic.
 
-#### 13f. Boss Health Bar Frame
+#### 14f. Boss Health Bar Frame
 
 - [ ] **Boss Health Bar UI** -- `assets/ai_sources/ui_boss_health_bar/image.png`
 
@@ -904,7 +907,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
 
   *Notes*: Currently drawn with basic rectangles and lines via code.
 
-#### 13g. Charge Indicator
+#### 14g. Charge Indicator
 
 - [ ] **Sling Charge Indicator** -- `assets/ai_sources/ui_charge_indicator/image.png`
 

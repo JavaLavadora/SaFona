@@ -149,3 +149,41 @@ class TestGameplaySceneLifecycle:
 
         # After exit, the subscriber list for screen_shake should be empty.
         assert len(bus._subscribers["screen_shake"]) == 0
+
+
+class TestSlingAnimationStateSync:
+    """Tests for sling animation state mapping from SlingSystem to player."""
+
+    def test_idle_maps_to_none(self, scene: GameplayScene) -> None:
+        """SlingSystem 'idle' state maps to player sling_anim_state 'none'."""
+        scene.on_enter()
+        scene._sling_system._state = "idle"
+        scene.handle_input(InputState())
+        scene.update(1.0 / 60.0)
+        assert scene.player.sling_anim_state == "none"
+
+    def test_pressed_maps_to_charging(self, scene: GameplayScene) -> None:
+        """SlingSystem 'pressed' state maps to player sling_anim_state 'charging'."""
+        scene.on_enter()
+        scene._sling_system._state = "pressed"
+        scene.handle_input(InputState())
+        scene.update(1.0 / 60.0)
+        assert scene.player.sling_anim_state == "charging"
+
+    def test_charging_maps_to_charging(self, scene: GameplayScene) -> None:
+        """SlingSystem 'charging' state maps to player sling_anim_state 'charging'."""
+        scene.on_enter()
+        scene._sling_system._state = "charging"
+        scene.handle_input(InputState())
+        scene.update(1.0 / 60.0)
+        assert scene.player.sling_anim_state == "charging"
+
+    def test_cooldown_maps_to_releasing(self, scene: GameplayScene) -> None:
+        """SlingSystem 'cooldown' maps to 'releasing' unconditionally."""
+        scene.on_enter()
+        scene._sling_system._state = "cooldown"
+        # Set a non-zero cooldown timer so it doesn't expire in one tick.
+        scene._sling_system._cooldown_timer = 0.15
+        scene.handle_input(InputState())
+        scene.update(1.0 / 60.0)
+        assert scene.player.sling_anim_state == "releasing"

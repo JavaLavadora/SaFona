@@ -33,7 +33,7 @@ Character design: medium-length dark hair swept backwards held by a cloth headba
 
 ## Processing Notes (v2 — tools/process_ramon_sprites.py)
 
-- New AI image (assets/image.png): 1536x1024, 9 actual poses on green background
+- New AI image (assets/ai_sources/ramon/image.png): 1536x1024, 9 actual poses on green background
 - 7 top-level regions detected; rightmost (x=879..1507, w=628) split by density into 3 sling sub-poses
 - Poses: idle, 4 walk frames, jump ascending, sling wind-up, sling mid-rotation, sling release
 - Jump descending synthesized from jump ascending (1px shift down)

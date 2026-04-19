@@ -15,7 +15,7 @@ Usage:
     python tools/process_ramon_sprites.py [input_image]
 
 Defaults:
-    input:  assets/image.png
+    input:  assets/ai_sources/ramon/image.png
     output: assets/sprites/ramon/
 """
 
@@ -493,7 +493,7 @@ def main() -> None:
     input_path = (
         Path(sys.argv[1])
         if len(sys.argv) > 1
-        else PROJECT_ROOT / "assets" / "image.png"
+        else PROJECT_ROOT / "assets" / "ai_sources" / "ramon" / "image.png"
     )
     output_dir = PROJECT_ROOT / "assets" / "sprites" / "ramon"
 

@@ -108,6 +108,8 @@ class BossScene(BaseScene):
         spawn_x = player_spawn.get("x", 2) * TILE_SIZE
         spawn_y = player_spawn.get("y", 11) * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
+        # Snap player feet to the floor (top of floor row = (arena_h - 2) * TILE_SIZE).
+        self._player.rect.bottom = (arena_h - 2) * TILE_SIZE
 
         # Input state.
         self._input_state = InputState()
@@ -148,6 +150,8 @@ class BossScene(BaseScene):
         self._boss: BossEntity = boss_cls(
             boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
         )
+        # Snap boss feet to the floor.
+        self._boss.rect.bottom = (arena_h - 2) * TILE_SIZE
 
         # Setup pillars.
         pillar_positions = arena_data.get("pillar_positions", [])
@@ -410,16 +414,6 @@ class BossScene(BaseScene):
         # Player projectiles.
         for proj in self._projectiles:
             proj.render(surface, cam_offset)
-
-        # Melee hitboxes.
-        for hitbox in self._sling_system.melee_hitboxes:
-            sx = hitbox.rect.x - cam_offset[0]
-            sy = hitbox.rect.y - cam_offset[1]
-            melee_surf = pygame.Surface(
-                (hitbox.rect.width, hitbox.rect.height), pygame.SRCALPHA
-            )
-            melee_surf.fill((255, 255, 255, 120))
-            surface.blit(melee_surf, (sx, sy))
 
         # Player.
         if self._combat.player_visible:
@@ -742,6 +736,8 @@ class BossScene(BaseScene):
         spawn_x = player_spawn.get("x", 2) * TILE_SIZE
         spawn_y = player_spawn.get("y", 11) * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
+        arena_h = arena_data.get("height", 14)
+        self._player.rect.bottom = (arena_h - 2) * TILE_SIZE
 
         # Reset boss.
         boss_spawn = arena_data.get("boss_spawn", {"x": 20, "y": 9})
@@ -755,6 +751,7 @@ class BossScene(BaseScene):
         self._boss = boss_cls(
             boss_x, boss_y, self._boss_def, self._event_bus, arena_bounds
         )
+        self._boss.rect.bottom = (arena_h - 2) * TILE_SIZE
         pillar_positions = arena_data.get("pillar_positions", [])
         self._boss.setup_pillars(pillar_positions)
 

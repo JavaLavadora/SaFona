@@ -170,26 +170,72 @@ def generate_sprite_sheet(
     print(f"  {output_path.relative_to(PROJECT_ROOT)} ({width*len(frames)}x{height}, {len(frames)} frames)")
 
 
+def generate_custom_sprite(
+    palette: dict[str, tuple[int, int, int, int]],
+    grids: list[str],
+    width: int,
+    height: int,
+    output_path: Path,
+    label: str,
+) -> None:
+    """Generate a sprite sheet from raw palette/grids (no module wrapper)."""
+    frames = [grid_to_frame(g, palette, width, height) for g in grids]
+    sheet = frames_to_sheet(frames, width, height)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(str(output_path))
+    print(f"  {output_path.relative_to(PROJECT_ROOT)} ({width*len(frames)}x{height}, {len(frames)} frames)")
+
+
 SPRITE_REGISTRY: list[dict[str, str]] = [
+    # Player
+    {"module": "tools.sprite_defs.ramon", "animation": "idle", "manifest_key": "ramon_idle"},
+    {"module": "tools.sprite_defs.ramon", "animation": "walk", "manifest_key": "ramon_walk"},
+    {"module": "tools.sprite_defs.ramon", "animation": "jump", "manifest_key": "ramon_jump"},
+    {"module": "tools.sprite_defs.ramon", "animation": "wall_slide", "manifest_key": "ramon_wall_slide"},
+    {"module": "tools.sprite_defs.ramon", "animation": "wall_jump", "manifest_key": "ramon_wall_jump"},
+    # Companion
+    {"module": "tools.sprite_defs.bep", "animation": "idle", "manifest_key": "bep_idle"},
+    # Enemies
+    {"module": "tools.sprite_defs.possessed_sheep", "animation": "idle", "manifest_key": "enemy_possessed_sheep_idle"},
+    {"module": "tools.sprite_defs.possessed_sheep", "animation": "walk", "manifest_key": "enemy_possessed_sheep_walk"},
+    {"module": "tools.sprite_defs.rival_warrior", "animation": "idle", "manifest_key": "enemy_rival_warrior_idle"},
+    {"module": "tools.sprite_defs.rival_warrior", "animation": "walk", "manifest_key": "enemy_rival_warrior_walk"},
+    {"module": "tools.sprite_defs.stone_guardian", "animation": "idle", "manifest_key": "enemy_stone_guardian_idle"},
+    {"module": "tools.sprite_defs.stone_guardian", "animation": "walk", "manifest_key": "enemy_stone_guardian_walk"},
+]
+
+CUSTOM_SPRITES: list[dict] = [
     {
-        "module": "tools.sprite_defs.ramon",
-        "animation": "idle",
-        "manifest_key": "ramon_idle",
+        "module": "tools.sprite_defs.pickups",
+        "palette_attr": "HEART_PALETTE_MAP",
+        "grids_attr": "HEART",
+        "width_attr": "HEART_W",
+        "height_attr": "HEART_H",
+        "manifest_key": "pickup_heart",
     },
     {
-        "module": "tools.sprite_defs.ramon",
-        "animation": "walk",
-        "manifest_key": "ramon_walk",
+        "module": "tools.sprite_defs.pickups",
+        "palette_attr": "STONE_PALETTE_MAP",
+        "grids_attr": "STONE",
+        "width_attr": "STONE_W",
+        "height_attr": "STONE_H",
+        "manifest_key": "pickup_stone",
     },
     {
-        "module": "tools.sprite_defs.ramon",
-        "animation": "jump",
-        "manifest_key": "ramon_jump",
+        "module": "tools.sprite_defs.breakables",
+        "palette_attr": "POT_PALETTE_MAP",
+        "grids_attr": "POT",
+        "width_attr": "POT_W",
+        "height_attr": "POT_H",
+        "manifest_key": "breakable_pot",
     },
     {
-        "module": "tools.sprite_defs.bep",
-        "animation": "idle",
-        "manifest_key": "bep_idle",
+        "module": "tools.sprite_defs.breakables",
+        "palette_attr": "CRATE_PALETTE_MAP",
+        "grids_attr": "CRATE",
+        "width_attr": "CRATE_W",
+        "height_attr": "CRATE_H",
+        "manifest_key": "breakable_crate",
     },
 ]
 
@@ -222,6 +268,29 @@ def main() -> None:
                 expected_height=manifest_entry.get("frame_height"),
                 expected_frames=manifest_entry.get("frame_count"),
             )
+            generated += 1
+        except (ValueError, KeyError) as exc:
+            print(f"  ERROR ({manifest_key}): {exc}")
+            errors += 1
+
+    for entry in CUSTOM_SPRITES:
+        mod = importlib.import_module(entry["module"])
+        manifest_key = entry["manifest_key"]
+        manifest_entry = manifest.get(manifest_key, {})
+
+        palette = getattr(mod, entry["palette_attr"])
+        grids = getattr(mod, entry["grids_attr"])
+        width = getattr(mod, entry["width_attr"])
+        height = getattr(mod, entry["height_attr"])
+
+        output_path = (
+            ASSETS_DIR / Path(manifest_entry["path"]).relative_to("assets")
+            if "path" in manifest_entry
+            else ASSETS_DIR / "sprites" / f"{manifest_key}.png"
+        )
+
+        try:
+            generate_custom_sprite(palette, grids, width, height, output_path, manifest_key)
             generated += 1
         except (ValueError, KeyError) as exc:
             print(f"  ERROR ({manifest_key}): {exc}")

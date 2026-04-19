@@ -113,6 +113,8 @@ class Player(Entity):
         self._idle_frames: list[pygame.Surface] = []
         self._walk_frames: list[pygame.Surface] = []
         self._jump_frames: list[pygame.Surface] = []
+        self._wall_slide_frames: list[pygame.Surface] = []
+        self._wall_jump_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
@@ -136,8 +138,21 @@ class Player(Entity):
         if jump:
             self._jump_frames = jump
 
+        wall_slide = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/wall_slide.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if wall_slide:
+            self._wall_slide_frames = wall_slide
+
+        wall_jump = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/wall_jump.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if wall_jump:
+            self._wall_jump_frames = wall_jump
+
         has_sprites = bool(
             self._idle_frames or self._walk_frames or self._jump_frames
+            or self._wall_slide_frames or self._wall_jump_frames
         )
 
         for state, key in _STATE_KEY.items():
@@ -149,6 +164,10 @@ class Player(Entity):
                 self._surfaces[state] = self._jump_frames[0]
             elif self._jump_frames and state == PlayerState.FALLING:
                 self._surfaces[state] = self._jump_frames[-1]
+            elif self._wall_slide_frames and state == PlayerState.WALL_SLIDING:
+                self._surfaces[state] = self._wall_slide_frames[0]
+            elif self._wall_jump_frames and state == PlayerState.WALL_JUMPING:
+                self._surfaces[state] = self._wall_jump_frames[0]
             elif has_sprites:
                 surf = pygame.Surface(
                     (PLAYER_WIDTH, PLAYER_HEIGHT), pygame.SRCALPHA,
@@ -316,6 +335,10 @@ class Player(Entity):
             else:
                 self._sprite = base
             return
+        elif self._state == PlayerState.WALL_SLIDING and self._wall_slide_frames:
+            frames = self._wall_slide_frames
+        elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
+            frames = self._wall_jump_frames
 
         if frames:
             self._anim_timer += dt

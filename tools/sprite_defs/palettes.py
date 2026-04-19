@@ -73,6 +73,77 @@ POSSESSED_SHEEP_PALETTE: dict[str, tuple[int, int, int, int]] = {
     "H": (180, 165, 140, 255),
 }
 
+# ── Rival Warrior ────────────────────────────────────────────
+RIVAL_WARRIOR_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "s": (110, 75, 42, 255),       # skin
+    "S": (90, 60, 34, 255),        # skin shadow
+    "e": (220, 210, 200, 255),     # eye white
+    "E": (35, 25, 15, 255),        # pupil
+    "h": (50, 35, 22, 255),        # hair
+    "H": (70, 50, 32, 255),        # hair highlight
+    "a": (140, 100, 60, 255),      # animal hide armor
+    "A": (120, 85, 50, 255),       # armor shadow
+    "l": (100, 70, 40, 255),       # leather strap
+    "w": (160, 150, 130, 255),     # weapon (stone spear)
+    "W": (140, 130, 110, 255),     # weapon shadow
+    "g": (100, 68, 38, 255),       # legs
+    "G": (85, 56, 30, 255),        # legs shadow
+    "f": (80, 55, 32, 255),        # feet
+}
+
+# ── Stone Guardian ───────────────────────────────────────────
+STONE_GUARDIAN_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "s": (130, 130, 135, 255),     # stone base
+    "S": (150, 150, 155, 255),     # stone light
+    "d": (100, 100, 105, 255),     # stone dark
+    "D": (80, 80, 85, 255),        # stone very dark
+    "e": (80, 200, 80, 255),       # eye glow
+    "E": (120, 255, 120, 255),     # eye bright
+    "m": (70, 100, 55, 255),       # moss
+    "M": (90, 120, 70, 255),       # moss light
+    "c": (60, 60, 65, 255),        # crack
+}
+
+# ── Pickups ──────────────────────────────────────────────────
+HEART_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "r": (220, 40, 40, 255),       # heart red
+    "R": (255, 80, 80, 255),       # heart light
+    "d": (180, 30, 30, 255),       # heart dark
+    "w": (255, 180, 180, 255),     # highlight
+}
+
+STONE_PICKUP_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "s": (160, 155, 140, 255),     # stone base
+    "S": (185, 180, 165, 255),     # stone light
+    "d": (130, 125, 110, 255),     # stone dark
+    "D": (110, 105, 90, 255),      # stone shadow
+    "h": (200, 195, 180, 255),     # highlight
+}
+
+# ── Breakables ───────────────────────────────────────────────
+BREAKABLE_POT_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "p": (180, 120, 60, 255),      # clay body
+    "P": (200, 140, 75, 255),      # clay light
+    "d": (150, 95, 45, 255),       # clay dark
+    "D": (130, 80, 35, 255),       # clay shadow
+    "r": (165, 108, 55, 255),      # rim
+    "R": (195, 135, 70, 255),      # rim light
+}
+
+BREAKABLE_CRATE_PALETTE: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    "w": (160, 120, 70, 255),      # wood base
+    "W": (180, 140, 85, 255),      # wood light
+    "d": (130, 95, 55, 255),       # wood dark
+    "D": (110, 80, 45, 255),       # wood shadow
+    "n": (100, 70, 38, 255),       # nails/metal
+}
+
 # ── World 1 palette (for tilesets, backgrounds) ──────────────
 WORLD1_COLORS = {
     "ochre": (200, 160, 100),

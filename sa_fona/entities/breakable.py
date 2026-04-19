@@ -16,6 +16,7 @@ import random
 import pygame
 
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 from sa_fona.entities.pickup import Pickup, PickupType
 
 # Breakable dimensions (pixels).
@@ -53,16 +54,25 @@ class Breakable(Entity):
         self._build_sprite()
 
     def _build_sprite(self) -> None:
-        """Create a placeholder sprite based on breakable type."""
+        """Load a real sprite or create a placeholder."""
+        sprite_map = {
+            "breakable_pot": "assets/sprites/breakables/pot.png",
+            "breakable_crate": "assets/sprites/breakables/crate.png",
+        }
+        path = sprite_map.get(self.breakable_type)
+        if path:
+            frames = load_sprite_sheet_from_file(path, BREAKABLE_WIDTH, BREAKABLE_HEIGHT)
+            if frames:
+                self._sprite = frames[0]
+                return
+
         color = _BREAKABLE_COLORS.get(self.breakable_type, (140, 90, 40))
         surf = pygame.Surface((BREAKABLE_WIDTH, BREAKABLE_HEIGHT))
         surf.fill(color)
 
-        # Draw a border.
         border_color = tuple(max(0, c - 40) for c in color)
         pygame.draw.rect(surf, border_color, (0, 0, BREAKABLE_WIDTH, BREAKABLE_HEIGHT), 1)
 
-        # Crates get an X pattern.
         if "crate" in self.breakable_type:
             pygame.draw.line(surf, border_color, (0, 0), (BREAKABLE_WIDTH - 1, BREAKABLE_HEIGHT - 1), 1)
             pygame.draw.line(surf, border_color, (BREAKABLE_WIDTH - 1, 0), (0, BREAKABLE_HEIGHT - 1), 1)

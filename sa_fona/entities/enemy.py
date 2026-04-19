@@ -28,6 +28,7 @@ from sa_fona.entities.enemy_behaviors import (
     create_behavior,
 )
 from sa_fona.entities.pickup import Pickup, PickupType
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 if TYPE_CHECKING:
     from sa_fona.level.tilemap import TileMap
@@ -116,18 +117,46 @@ class Enemy(Entity):
         self._sprite_w = sprite_w
         self._sprite_h = sprite_h
         self._base_color = _ENEMY_COLORS.get(enemy_type, _DEFAULT_ENEMY_COLOR)
+
+        self._idle_frames: list[pygame.Surface] = []
+        self._walk_frames: list[pygame.Surface] = []
+        self._anim_timer: float = 0.0
+        self._anim_frame: int = 0
+        self._anim_speed: float = 0.2
+        self._walk_anim_speed: float = 0.12
+        self._has_sprites: bool = False
+
         self._build_sprite()
 
-        # Font for label.
+        # Font for label (only used when no sprites).
         self._font: pygame.font.Font | None = None
 
     def _build_sprite(self) -> None:
-        """Create a placeholder colored rectangle sprite."""
-        surf = pygame.Surface((self._sprite_w, self._sprite_h))
-        surf.fill(self._base_color)
-        border_color = tuple(max(0, c - 40) for c in self._base_color)
-        pygame.draw.rect(surf, border_color, (0, 0, self._sprite_w, self._sprite_h), 1)
-        self._sprite = surf
+        """Load real sprites or create a placeholder colored rectangle."""
+        idle = load_sprite_sheet_from_file(
+            f"assets/sprites/enemies/{self.enemy_type}_idle.png",
+            self._sprite_w, self._sprite_h,
+        )
+        if idle:
+            self._idle_frames = idle
+            self._has_sprites = True
+
+        walk = load_sprite_sheet_from_file(
+            f"assets/sprites/enemies/{self.enemy_type}_walk.png",
+            self._sprite_w, self._sprite_h,
+        )
+        if walk:
+            self._walk_frames = walk
+            self._has_sprites = True
+
+        if self._has_sprites:
+            self._sprite = (self._idle_frames or self._walk_frames)[0]
+        else:
+            surf = pygame.Surface((self._sprite_w, self._sprite_h))
+            surf.fill(self._base_color)
+            border_color = tuple(max(0, c - 40) for c in self._base_color)
+            pygame.draw.rect(surf, border_color, (0, 0, self._sprite_w, self._sprite_h), 1)
+            self._sprite = surf
 
     # ── Properties ─────────────────────────────────────────────────
 
@@ -315,6 +344,8 @@ class Enemy(Entity):
         if tilemap is not None and self.velocity[0] != 0:
             self._resolve_wall_collision(tilemap)
 
+        self._update_sprite(dt)
+
     def _resolve_wall_collision(self, tilemap: TileMap) -> None:
         """Push enemy out of solid tiles after horizontal movement."""
         top_ty = self.rect.top // TILE_SIZE
@@ -336,6 +367,31 @@ class Enemy(Entity):
                     self._sub_x = float(self.rect.x)
                     self.velocity[0] = 0
                     return
+
+    def _update_sprite(self, dt: float) -> None:
+        """Select the correct sprite frame based on movement state."""
+        if not self._has_sprites:
+            return
+
+        is_moving = abs(self.velocity[0]) > 0.5
+        frames = self._walk_frames if is_moving and self._walk_frames else self._idle_frames
+        speed = self._walk_anim_speed if is_moving else self._anim_speed
+
+        if not frames:
+            return
+
+        self._anim_timer += dt
+        if self._anim_timer >= speed:
+            self._anim_timer -= speed
+            self._anim_frame = (self._anim_frame + 1) % len(frames)
+        if self._anim_frame >= len(frames):
+            self._anim_frame = 0
+
+        base = frames[self._anim_frame]
+        if not self.facing_right:
+            self._sprite = pygame.transform.flip(base, True, False)
+        else:
+            self._sprite = base
 
     def render(
         self,
@@ -391,16 +447,17 @@ class Enemy(Entity):
                 stun_surf.fill(_STUN_COLOR)
                 surface.blit(stun_surf, (vis_x, vis_y))
 
-        try:
-            if self._font is None:
-                self._font = pygame.font.Font(None, 14)
-            label_char = self.enemy_type[0].upper()
-            label = self._font.render(label_char, False, (0, 0, 0))
-            lx = vis_x + (self._sprite_w - label.get_width()) // 2
-            ly = vis_y + (self._sprite_h - label.get_height()) // 2
-            surface.blit(label, (lx, ly))
-        except (pygame.error, IndexError):
-            pass
+        if not self._has_sprites:
+            try:
+                if self._font is None:
+                    self._font = pygame.font.Font(None, 14)
+                label_char = self.enemy_type[0].upper()
+                label = self._font.render(label_char, False, (0, 0, 0))
+                lx = vis_x + (self._sprite_w - label.get_width()) // 2
+                ly = vis_y + (self._sprite_h - label.get_height()) // 2
+                surface.blit(label, (lx, ly))
+            except (pygame.error, IndexError):
+                pass
 
 
 class EnemyFactory:

@@ -18,6 +18,7 @@ from enum import Enum, auto
 import pygame
 
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 
 class PickupType(Enum):
@@ -61,12 +62,22 @@ class Pickup(Entity):
         self._build_sprite()
 
     def _build_sprite(self) -> None:
-        """Create a placeholder sprite based on the pickup type."""
+        """Load a real sprite or create a placeholder."""
+        sprite_map = {
+            PickupType.HEART: "assets/sprites/pickups/heart.png",
+            PickupType.STONE: "assets/sprites/pickups/stone.png",
+        }
+        path = sprite_map.get(self.pickup_type)
+        if path:
+            frames = load_sprite_sheet_from_file(path, PICKUP_WIDTH, PICKUP_HEIGHT)
+            if frames:
+                self._sprite = frames[0]
+                return
+
         surf = pygame.Surface((PICKUP_WIDTH, PICKUP_HEIGHT), pygame.SRCALPHA)
         surf.fill((0, 0, 0, 0))
 
         if self.pickup_type == PickupType.HEART:
-            # Red diamond shape.
             cx = PICKUP_WIDTH // 2
             cy = PICKUP_HEIGHT // 2
             points = [
@@ -78,7 +89,6 @@ class Pickup(Entity):
             pygame.draw.polygon(surf, (220, 40, 40), points)
             pygame.draw.polygon(surf, (180, 30, 30), points, 1)
         elif self.pickup_type == PickupType.STONE:
-            # Grey circle.
             cx = PICKUP_WIDTH // 2
             cy = PICKUP_HEIGHT // 2
             radius = min(cx, cy) - 1

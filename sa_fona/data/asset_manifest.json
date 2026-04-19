@@ -18,17 +18,83 @@
       "frame_height": 32,
       "frame_count": 2
     },
+    "ramon_wall_slide": {
+      "path": "assets/sprites/ramon/wall_slide.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
+    "ramon_wall_jump": {
+      "path": "assets/sprites/ramon/wall_jump.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
     "bep_idle": {
       "path": "assets/sprites/bep/idle.png",
       "frame_width": 16,
       "frame_height": 16,
       "frame_count": 4
     },
-    "enemy_possessed_sheep": {
-      "path": "assets/sprites/enemies/possessed_sheep.png",
+    "enemy_possessed_sheep_idle": {
+      "path": "assets/sprites/enemies/possessed_sheep_idle.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 2
+    },
+    "enemy_possessed_sheep_walk": {
+      "path": "assets/sprites/enemies/possessed_sheep_walk.png",
       "frame_width": 16,
       "frame_height": 16,
       "frame_count": 4
+    },
+    "enemy_rival_warrior_idle": {
+      "path": "assets/sprites/enemies/rival_warrior_idle.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 2
+    },
+    "enemy_rival_warrior_walk": {
+      "path": "assets/sprites/enemies/rival_warrior_walk.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 4
+    },
+    "enemy_stone_guardian_idle": {
+      "path": "assets/sprites/enemies/stone_guardian_idle.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
+    "enemy_stone_guardian_walk": {
+      "path": "assets/sprites/enemies/stone_guardian_walk.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 3
+    },
+    "pickup_heart": {
+      "path": "assets/sprites/pickups/heart.png",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 1
+    },
+    "pickup_stone": {
+      "path": "assets/sprites/pickups/stone.png",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 1
+    },
+    "breakable_pot": {
+      "path": "assets/sprites/breakables/pot.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "breakable_crate": {
+      "path": "assets/sprites/breakables/crate.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
     }
   },
   "tilesets": {

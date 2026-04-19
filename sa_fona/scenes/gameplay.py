@@ -538,7 +538,20 @@ class GameplayScene(BaseScene):
         self._hud.render(surface)
 
     def _render_sky(self, surface: pygame.Surface) -> None:
-        """Draw a Mediterranean sky gradient as the background."""
+        """Draw the level background or a Mediterranean sky gradient fallback.
+
+        If a background image was loaded from the level data, it is
+        rendered at the full surface size.  Otherwise a procedural
+        sky gradient is drawn.
+        """
+        bg = self._level_data.background
+        if bg is not None:
+            w, h = surface.get_size()
+            if not hasattr(self, "_bg_cache") or self._bg_cache.get_size() != (w, h):
+                self._bg_cache = pygame.transform.scale(bg, (w, h))
+            surface.blit(self._bg_cache, (0, 0))
+            return
+
         w, h = surface.get_size()
         if not hasattr(self, "_sky_cache") or self._sky_cache.get_size() != (w, h):
             sky = pygame.Surface((w, h))
@@ -832,6 +845,12 @@ class GameplayScene(BaseScene):
         loader = LevelLoader()
         self._level_data = loader.load(self._level_path)
         self._tilemap = self._level_data.tilemap
+
+        # Invalidate background cache so the new level's background is used.
+        if hasattr(self, "_bg_cache"):
+            del self._bg_cache
+        if hasattr(self, "_sky_cache"):
+            del self._sky_cache
 
         self._physics = PhysicsSystem(self._tilemap, gravity=PLAYER_GRAVITY)
         self._camera = Camera(

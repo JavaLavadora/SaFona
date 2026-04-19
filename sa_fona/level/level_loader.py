@@ -24,6 +24,7 @@ class LevelData:
         metadata: Level metadata (world, name, music, etc.).
         player_spawn: ``(tile_x, tile_y)`` grid coordinates for the player.
         companion_spawn: ``(tile_x, tile_y)`` grid coordinates for the companion.
+        background: Optional background surface for the level.
     """
 
     tilemap: TileMap
@@ -33,6 +34,7 @@ class LevelData:
     metadata: dict = field(default_factory=dict)
     player_spawn: tuple[int, int] = (0, 0)
     companion_spawn: tuple[int, int] = (0, 0)
+    background: pygame.Surface | None = None
 
 
 class LevelLoader:
@@ -62,6 +64,7 @@ class LevelLoader:
 
         tileset_surface = self._load_tileset(data)
         tilemap = TileMap(tile_data=data, tileset_surface=tileset_surface)
+        background_surface = self._load_background(data)
 
         player_spawn_raw = data.get("player_spawn", {"x": 0, "y": 0})
         companion_spawn_raw = data.get("companion_spawn", {"x": 0, "y": 0})
@@ -74,6 +77,7 @@ class LevelLoader:
             metadata=data.get("metadata", {}),
             player_spawn=(player_spawn_raw["x"], player_spawn_raw["y"]),
             companion_spawn=(companion_spawn_raw["x"], companion_spawn_raw["y"]),
+            background=background_surface,
         )
 
     @staticmethod
@@ -92,5 +96,35 @@ class LevelLoader:
             return None
         try:
             return pygame.image.load(str(tileset_path)).convert_alpha()
+        except pygame.error:
+            return None
+
+    @staticmethod
+    def _load_background(data: dict) -> pygame.Surface | None:
+        """Try to load the background image for the level.
+
+        The metadata ``background`` field contains an identifier like
+        ``"world1_bg"``.  The ``_bg`` suffix is stripped to find the
+        actual file at ``assets/backgrounds/<base_name>.png``.
+
+        Returns None if the background file doesn't exist or the
+        identifier is empty/``"none"``, allowing graceful fallback
+        to the procedural sky gradient.
+        """
+        metadata = data.get("metadata", {})
+        bg_id = metadata.get("background", "")
+        if not bg_id or bg_id == "none":
+            return None
+
+        # Strip the conventional ``_bg`` suffix if present.
+        base_name = bg_id
+        if base_name.endswith("_bg"):
+            base_name = base_name[:-3]
+
+        bg_path = ASSETS_DIR / "backgrounds" / f"{base_name}.png"
+        if not bg_path.is_file():
+            return None
+        try:
+            return pygame.image.load(str(bg_path)).convert()
         except pygame.error:
             return None

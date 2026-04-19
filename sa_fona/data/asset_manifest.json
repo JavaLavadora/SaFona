@@ -10,7 +10,7 @@
       "path": "assets/sprites/ramon/walk.png",
       "frame_width": 24,
       "frame_height": 32,
-      "frame_count": 8
+      "frame_count": 6
     },
     "ramon_jump": {
       "path": "assets/sprites/ramon/jump.png",
@@ -36,11 +36,47 @@
       "frame_height": 32,
       "frame_count": 3
     },
+    "ramon_hit": {
+      "path": "assets/sprites/ramon/hit.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 1
+    },
+    "ramon_death": {
+      "path": "assets/sprites/ramon/death.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 1
+    },
     "bep_idle": {
       "path": "assets/sprites/bep/idle.png",
       "frame_width": 16,
       "frame_height": 16,
       "frame_count": 4
+    },
+    "bep_walk": {
+      "path": "assets/sprites/bep/walk.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 4
+    },
+    "bep_jump": {
+      "path": "assets/sprites/bep/jump.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "bep_scared": {
+      "path": "assets/sprites/bep/scared.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "bep_excited": {
+      "path": "assets/sprites/bep/excited.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
     },
     "enemy_possessed_sheep_idle": {
       "path": "assets/sprites/enemies/possessed_sheep_idle.png",
@@ -54,6 +90,24 @@
       "frame_height": 16,
       "frame_count": 4
     },
+    "enemy_possessed_sheep_charge": {
+      "path": "assets/sprites/enemies/possessed_sheep_charge.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 2
+    },
+    "enemy_possessed_sheep_hit": {
+      "path": "assets/sprites/enemies/possessed_sheep_hit.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "enemy_possessed_sheep_death": {
+      "path": "assets/sprites/enemies/possessed_sheep_death.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
     "enemy_rival_warrior_idle": {
       "path": "assets/sprites/enemies/rival_warrior_idle.png",
       "frame_width": 16,
@@ -65,6 +119,30 @@
       "frame_width": 16,
       "frame_height": 24,
       "frame_count": 4
+    },
+    "enemy_rival_warrior_attack": {
+      "path": "assets/sprites/enemies/rival_warrior_attack.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 2
+    },
+    "enemy_rival_warrior_block": {
+      "path": "assets/sprites/enemies/rival_warrior_block.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 1
+    },
+    "enemy_rival_warrior_hit": {
+      "path": "assets/sprites/enemies/rival_warrior_hit.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 1
+    },
+    "enemy_rival_warrior_death": {
+      "path": "assets/sprites/enemies/rival_warrior_death.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 1
     },
     "enemy_stone_guardian_idle": {
       "path": "assets/sprites/enemies/stone_guardian_idle.png",
@@ -78,20 +156,206 @@
       "frame_height": 32,
       "frame_count": 3
     },
+    "enemy_stone_guardian_attack": {
+      "path": "assets/sprites/enemies/stone_guardian_attack.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
+    "enemy_stone_guardian_hit": {
+      "path": "assets/sprites/enemies/stone_guardian_hit.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 1
+    },
+    "enemy_stone_guardian_death": {
+      "path": "assets/sprites/enemies/stone_guardian_death.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 1
+    },
+    "boss_bou_idle_p1": {
+      "path": "assets/sprites/boss/bou_idle_p1.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_idle_p2": {
+      "path": "assets/sprites/boss/bou_idle_p2.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_idle_p3": {
+      "path": "assets/sprites/boss/bou_idle_p3.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_rush": {
+      "path": "assets/sprites/boss/bou_rush.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 2
+    },
+    "boss_bou_headbutt": {
+      "path": "assets/sprites/boss/bou_headbutt.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 2
+    },
+    "boss_bou_stomp": {
+      "path": "assets/sprites/boss/bou_stomp.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 2
+    },
+    "boss_bou_hurl": {
+      "path": "assets/sprites/boss/bou_hurl.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_stunned": {
+      "path": "assets/sprites/boss/bou_stunned.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_transition": {
+      "path": "assets/sprites/boss/bou_transition.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_bou_death": {
+      "path": "assets/sprites/boss/bou_death.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "boss_pillar_intact": {
+      "path": "assets/sprites/boss/pillar_intact.png",
+      "frame_width": 16,
+      "frame_height": 48,
+      "frame_count": 1
+    },
+    "boss_pillar_destroyed": {
+      "path": "assets/sprites/boss/pillar_destroyed.png",
+      "frame_width": 16,
+      "frame_height": 48,
+      "frame_count": 1
+    },
+    "boss_rock": {
+      "path": "assets/sprites/boss/boss_rock.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 1
+    },
+    "boss_shockwave": {
+      "path": "assets/sprites/boss/boss_shockwave.png",
+      "frame_width": 16,
+      "frame_height": 8,
+      "frame_count": 1
+    },
+    "boss_pulse": {
+      "path": "assets/sprites/boss/boss_pulse.png",
+      "frame_width": 24,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "boss_shadow": {
+      "path": "assets/sprites/boss/boss_shadow.png",
+      "frame_width": 16,
+      "frame_height": 6,
+      "frame_count": 1
+    },
+    "npc_dimoni_idle": {
+      "path": "assets/sprites/npcs/dimoni_idle.png",
+      "frame_width": 24,
+      "frame_height": 40,
+      "frame_count": 1
+    },
+    "npc_dimoni_laugh": {
+      "path": "assets/sprites/npcs/dimoni_laugh.png",
+      "frame_width": 24,
+      "frame_height": 40,
+      "frame_count": 1
+    },
+    "npc_dimoni_grant": {
+      "path": "assets/sprites/npcs/dimoni_grant.png",
+      "frame_width": 24,
+      "frame_height": 40,
+      "frame_count": 1
+    },
+    "npc_dimoni_angry": {
+      "path": "assets/sprites/npcs/dimoni_angry.png",
+      "frame_width": 24,
+      "frame_height": 40,
+      "frame_count": 1
+    },
+    "npc_llorencc_idle": {
+      "path": "assets/sprites/npcs/llorencc_idle.png",
+      "frame_width": 20,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "npc_llorencc_talk": {
+      "path": "assets/sprites/npcs/llorencc_talk.png",
+      "frame_width": 20,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "npc_llorencc_shop": {
+      "path": "assets/sprites/npcs/llorencc_shop.png",
+      "frame_width": 20,
+      "frame_height": 36,
+      "frame_count": 1
+    },
+    "projectile_stone_tier1": {
+      "path": "assets/sprites/projectiles/stone_tier1.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 1
+    },
+    "projectile_stone_tier2": {
+      "path": "assets/sprites/projectiles/stone_tier2.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 1
+    },
+    "projectile_stone_tier3": {
+      "path": "assets/sprites/projectiles/stone_tier3.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 1
+    },
     "pickup_heart": {
       "path": "assets/sprites/pickups/heart.png",
       "frame_width": 12,
       "frame_height": 12,
-      "frame_count": 1
+      "frame_count": 2
     },
     "pickup_stone": {
       "path": "assets/sprites/pickups/stone.png",
       "frame_width": 12,
       "frame_height": 12,
-      "frame_count": 1
+      "frame_count": 2
+    },
+    "pickup_shield": {
+      "path": "assets/sprites/pickups/shield.png",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 2
     },
     "breakable_pot": {
       "path": "assets/sprites/breakables/pot.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "breakable_pot_break": {
+      "path": "assets/sprites/breakables/pot_break.png",
       "frame_width": 16,
       "frame_height": 16,
       "frame_count": 1
@@ -101,6 +365,108 @@
       "frame_width": 16,
       "frame_height": 16,
       "frame_count": 1
+    },
+    "breakable_crate_break": {
+      "path": "assets/sprites/breakables/crate_break.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1
+    },
+    "effect_dust": {
+      "path": "assets/effects/dust.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 4
+    },
+    "effect_impact": {
+      "path": "assets/effects/impact.png",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 3
+    },
+    "effect_dimoni_aura": {
+      "path": "assets/effects/dimoni_aura.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 3
+    },
+    "effect_portal": {
+      "path": "assets/effects/portal.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 4
+    }
+  },
+  "portraits": {
+    "ramon_neutral": {
+      "path": "assets/portraits/ramon_neutral.png",
+      "width": 44,
+      "height": 44
+    },
+    "ramon_angry": {
+      "path": "assets/portraits/ramon_angry.png",
+      "width": 44,
+      "height": 44
+    },
+    "ramon_surprised": {
+      "path": "assets/portraits/ramon_surprised.png",
+      "width": 44,
+      "height": 44
+    },
+    "ramon_smirk": {
+      "path": "assets/portraits/ramon_smirk.png",
+      "width": 44,
+      "height": 44
+    },
+    "bep_happy": {
+      "path": "assets/portraits/bep_happy.png",
+      "width": 44,
+      "height": 44
+    },
+    "bep_scared": {
+      "path": "assets/portraits/bep_scared.png",
+      "width": 44,
+      "height": 44
+    },
+    "bep_sleepy": {
+      "path": "assets/portraits/bep_sleepy.png",
+      "width": 44,
+      "height": 44
+    },
+    "bep_excited": {
+      "path": "assets/portraits/bep_excited.png",
+      "width": 44,
+      "height": 44
+    },
+    "dimoni_menacing": {
+      "path": "assets/portraits/dimoni_menacing.png",
+      "width": 44,
+      "height": 44
+    },
+    "dimoni_laughing": {
+      "path": "assets/portraits/dimoni_laughing.png",
+      "width": 44,
+      "height": 44
+    },
+    "dimoni_granting": {
+      "path": "assets/portraits/dimoni_granting.png",
+      "width": 44,
+      "height": 44
+    },
+    "llorencc_neutral": {
+      "path": "assets/portraits/llorencc_neutral.png",
+      "width": 44,
+      "height": 44
+    },
+    "llorencc_friendly": {
+      "path": "assets/portraits/llorencc_friendly.png",
+      "width": 44,
+      "height": 44
+    },
+    "llorencc_excited": {
+      "path": "assets/portraits/llorencc_excited.png",
+      "width": 44,
+      "height": 44
     }
   },
   "tilesets": {

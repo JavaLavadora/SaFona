@@ -1,0 +1,533 @@
+{
+  "sources": [
+    {
+      "input": "assets/ai_sources/ramon/image.png",
+      "note": "Only process NEW poses 12-13 (hit/death) if they exist. Poses 1-11 already processed by process_ramon_sprites.py.",
+      "outputs": [
+        {
+          "file": "assets/sprites/ramon/hit.png",
+          "poses": [12],
+          "frame_width": 24,
+          "frame_height": 32
+        },
+        {
+          "file": "assets/sprites/ramon/death.png",
+          "poses": [13],
+          "frame_width": 24,
+          "frame_height": 32
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/bep/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/bep/idle.png",
+          "poses": [1, 2, 3, 4],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/bep/walk.png",
+          "poses": [5, 6, 7, 8],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/bep/jump.png",
+          "poses": [9],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/bep/scared.png",
+          "poses": [10],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/bep/excited.png",
+          "poses": [11],
+          "frame_width": 16,
+          "frame_height": 16
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/possessed_sheep/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/enemies/possessed_sheep_charge.png",
+          "poses": [7, 8],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/enemies/possessed_sheep_hit.png",
+          "poses": [9],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/enemies/possessed_sheep_death.png",
+          "poses": [10],
+          "frame_width": 16,
+          "frame_height": 16
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/rival_warrior/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/enemies/rival_warrior_attack.png",
+          "poses": [7, 8],
+          "frame_width": 16,
+          "frame_height": 24
+        },
+        {
+          "file": "assets/sprites/enemies/rival_warrior_block.png",
+          "poses": [9],
+          "frame_width": 16,
+          "frame_height": 24
+        },
+        {
+          "file": "assets/sprites/enemies/rival_warrior_hit.png",
+          "poses": [10],
+          "frame_width": 16,
+          "frame_height": 24
+        },
+        {
+          "file": "assets/sprites/enemies/rival_warrior_death.png",
+          "poses": [11],
+          "frame_width": 16,
+          "frame_height": 24
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/stone_guardian/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/enemies/stone_guardian_attack.png",
+          "poses": [6, 7],
+          "frame_width": 24,
+          "frame_height": 32
+        },
+        {
+          "file": "assets/sprites/enemies/stone_guardian_hit.png",
+          "poses": [8],
+          "frame_width": 24,
+          "frame_height": 32
+        },
+        {
+          "file": "assets/sprites/enemies/stone_guardian_death.png",
+          "poses": [9],
+          "frame_width": 24,
+          "frame_height": 32
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/boss_bou_de_pedra/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/boss/bou_idle_p1.png",
+          "poses": [1],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_idle_p2.png",
+          "poses": [2],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_idle_p3.png",
+          "poses": [3],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_rush.png",
+          "poses": [4, 5],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_headbutt.png",
+          "poses": [6, 7],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_stomp.png",
+          "poses": [8, 9],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_hurl.png",
+          "poses": [10],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_stunned.png",
+          "poses": [11],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_transition.png",
+          "poses": [12],
+          "frame_width": 40,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/boss/bou_death.png",
+          "poses": [13],
+          "frame_width": 40,
+          "frame_height": 36
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/npc_dimoni/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/npcs/dimoni_idle.png",
+          "poses": [1],
+          "frame_width": 24,
+          "frame_height": 40
+        },
+        {
+          "file": "assets/sprites/npcs/dimoni_laugh.png",
+          "poses": [2],
+          "frame_width": 24,
+          "frame_height": 40
+        },
+        {
+          "file": "assets/sprites/npcs/dimoni_grant.png",
+          "poses": [3],
+          "frame_width": 24,
+          "frame_height": 40
+        },
+        {
+          "file": "assets/sprites/npcs/dimoni_angry.png",
+          "poses": [4],
+          "frame_width": 24,
+          "frame_height": 40
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/npc_llorencc/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/npcs/llorencc_idle.png",
+          "poses": [1],
+          "frame_width": 20,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/npcs/llorencc_talk.png",
+          "poses": [2],
+          "frame_width": 20,
+          "frame_height": 36
+        },
+        {
+          "file": "assets/sprites/npcs/llorencc_shop.png",
+          "poses": [3],
+          "frame_width": 20,
+          "frame_height": 36
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/projectile_stone/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/projectiles/stone_tier1.png",
+          "poses": [1],
+          "frame_width": 8,
+          "frame_height": 8
+        },
+        {
+          "file": "assets/sprites/projectiles/stone_tier2.png",
+          "poses": [2],
+          "frame_width": 8,
+          "frame_height": 8
+        },
+        {
+          "file": "assets/sprites/projectiles/stone_tier3.png",
+          "poses": [3],
+          "frame_width": 8,
+          "frame_height": 8
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/boss_pillar/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/boss/pillar_intact.png",
+          "poses": [1],
+          "frame_width": 16,
+          "frame_height": 48
+        },
+        {
+          "file": "assets/sprites/boss/pillar_destroyed.png",
+          "poses": [2],
+          "frame_width": 16,
+          "frame_height": 48
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/boss_projectiles/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/boss/boss_rock.png",
+          "poses": [1],
+          "frame_width": 8,
+          "frame_height": 8
+        },
+        {
+          "file": "assets/sprites/boss/boss_shockwave.png",
+          "poses": [2],
+          "frame_width": 16,
+          "frame_height": 8
+        },
+        {
+          "file": "assets/sprites/boss/boss_pulse.png",
+          "poses": [3],
+          "frame_width": 24,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/boss/boss_shadow.png",
+          "poses": [4],
+          "frame_width": 16,
+          "frame_height": 6
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/pickup_heart/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/pickups/heart.png",
+          "poses": [1, 2],
+          "frame_width": 12,
+          "frame_height": 12
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/pickup_stone/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/pickups/stone.png",
+          "poses": [1, 2],
+          "frame_width": 12,
+          "frame_height": 12
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/pickup_shield/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/pickups/shield.png",
+          "poses": [1, 2],
+          "frame_width": 12,
+          "frame_height": 12
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/breakable_pot/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/breakables/pot.png",
+          "poses": [1],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/breakables/pot_break.png",
+          "poses": [2],
+          "frame_width": 16,
+          "frame_height": 16
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/breakable_crate/image.png",
+      "outputs": [
+        {
+          "file": "assets/sprites/breakables/crate.png",
+          "poses": [1],
+          "frame_width": 16,
+          "frame_height": 16
+        },
+        {
+          "file": "assets/sprites/breakables/crate_break.png",
+          "poses": [2],
+          "frame_width": 16,
+          "frame_height": 16
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/portrait_ramon/image.png",
+      "outputs": [
+        {
+          "file": "assets/portraits/ramon_neutral.png",
+          "poses": [1],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/ramon_angry.png",
+          "poses": [2],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/ramon_surprised.png",
+          "poses": [3],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/ramon_smirk.png",
+          "poses": [4],
+          "frame_width": 44,
+          "frame_height": 44
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/portrait_bep/image.png",
+      "outputs": [
+        {
+          "file": "assets/portraits/bep_happy.png",
+          "poses": [1],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/bep_scared.png",
+          "poses": [2],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/bep_sleepy.png",
+          "poses": [3],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/bep_excited.png",
+          "poses": [4],
+          "frame_width": 44,
+          "frame_height": 44
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/portrait_dimoni/image.png",
+      "outputs": [
+        {
+          "file": "assets/portraits/dimoni_menacing.png",
+          "poses": [1],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/dimoni_laughing.png",
+          "poses": [2],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/dimoni_granting.png",
+          "poses": [3],
+          "frame_width": 44,
+          "frame_height": 44
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/portrait_llorencc/image.png",
+      "outputs": [
+        {
+          "file": "assets/portraits/llorencc_neutral.png",
+          "poses": [1],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/llorencc_friendly.png",
+          "poses": [2],
+          "frame_width": 44,
+          "frame_height": 44
+        },
+        {
+          "file": "assets/portraits/llorencc_excited.png",
+          "poses": [3],
+          "frame_width": 44,
+          "frame_height": 44
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/fx_dust/image.png",
+      "outputs": [
+        {
+          "file": "assets/effects/dust.png",
+          "poses": [1, 2, 3, 4],
+          "frame_width": 8,
+          "frame_height": 8
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/fx_impact/image.png",
+      "outputs": [
+        {
+          "file": "assets/effects/impact.png",
+          "poses": [1, 2, 3],
+          "frame_width": 12,
+          "frame_height": 12
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/fx_dimoni_aura/image.png",
+      "outputs": [
+        {
+          "file": "assets/effects/dimoni_aura.png",
+          "poses": [1, 2, 3],
+          "frame_width": 16,
+          "frame_height": 16
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/fx_portal/image.png",
+      "outputs": [
+        {
+          "file": "assets/effects/portal.png",
+          "poses": [1, 2, 3, 4],
+          "frame_width": 24,
+          "frame_height": 32
+        }
+      ]
+    }
+  ]
+}

@@ -4,8 +4,8 @@ NPCs are non-hostile entities placed in levels that the player can
 interact with (via the Interact key).  Each NPC has a type that
 determines its behaviour (e.g. ``shop`` opens the shop overlay).
 
-Placeholder rendering draws a tall coloured rectangle with the NPC's
-initial letter, consistent with the project's placeholder aesthetic.
+Uses real sprite PNGs from assets/sprites/npcs/ when available,
+falling back to coloured rectangles with initial letters.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ import pygame
 
 from sa_fona.config.settings import COLORS
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 
 # NPC placeholder dimensions (slightly taller than the player).
@@ -37,6 +38,27 @@ class NPC(Entity):
         label: Single character displayed on the placeholder sprite.
     """
 
+    # Sprite state name mapping for NPC animations.
+    _NPC_SPRITE_STATES: dict[str, dict[str, str]] = {
+        "llorencc": {
+            "idle": "assets/sprites/npcs/llorencc_idle.png",
+            "talk": "assets/sprites/npcs/llorencc_talk.png",
+            "shop": "assets/sprites/npcs/llorencc_shop.png",
+        },
+        "dimoni": {
+            "idle": "assets/sprites/npcs/dimoni_idle.png",
+            "laugh": "assets/sprites/npcs/dimoni_laugh.png",
+            "grant": "assets/sprites/npcs/dimoni_grant.png",
+            "angry": "assets/sprites/npcs/dimoni_angry.png",
+        },
+    }
+
+    # Sprite dimensions per NPC type.
+    _NPC_SPRITE_SIZES: dict[str, tuple[int, int]] = {
+        "llorencc": (20, 36),
+        "dimoni": (24, 40),
+    }
+
     def __init__(
         self,
         x: float,
@@ -45,12 +67,23 @@ class NPC(Entity):
         npc_type: str = "shop",
         label: str = "L",
     ) -> None:
-        super().__init__(x, y, _NPC_WIDTH, _NPC_HEIGHT)
+        # Determine actual sprite size for this NPC.
+        npc_base = npc_id.split("_")[0] if "_" in npc_id else npc_id
+        sprite_size = self._NPC_SPRITE_SIZES.get(npc_base, (_NPC_WIDTH, _NPC_HEIGHT))
+        super().__init__(x, y, sprite_size[0], sprite_size[1])
         self._npc_id = npc_id
+        self._npc_base = npc_base
         self._npc_type = npc_type
         self._label = label
+        self._sprite_w = sprite_size[0]
+        self._sprite_h = sprite_size[1]
 
-        # Build placeholder sprite.
+        # Sprite frames for different states.
+        self._sprite_states: dict[str, pygame.Surface] = {}
+        self._current_state: str = "idle"
+        self._has_sprites: bool = False
+
+        # Build sprite (tries real assets first).
         self._build_sprite()
 
         # Pre-compute the interaction rect (wider than visual).
@@ -84,10 +117,20 @@ class NPC(Entity):
             dt: Delta time in seconds (unused).
         """
 
+    def set_sprite_state(self, state: str) -> None:
+        """Change the NPC's visual state (e.g. idle, talk, shop).
+
+        Args:
+            state: State key (e.g. "idle", "talk", "shop", "laugh").
+        """
+        if state in self._sprite_states:
+            self._current_state = state
+            self._sprite = self._sprite_states[state]
+
     def render(
         self, surface: pygame.Surface, camera_offset: tuple[int, int],
     ) -> None:
-        """Draw the NPC placeholder rectangle with label.
+        """Draw the NPC using sprites or a placeholder rectangle.
 
         Args:
             surface: Target pygame Surface.
@@ -96,24 +139,30 @@ class NPC(Entity):
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
 
-        # Green rectangle placeholder.
-        pygame.draw.rect(
-            surface, COLORS["GREEN"], (sx, sy, self.rect.width, self.rect.height),
-        )
-        # Outline.
-        pygame.draw.rect(
-            surface, (30, 120, 50), (sx, sy, self.rect.width, self.rect.height), 1,
-        )
+        if self._has_sprites and self._sprite is not None:
+            surface.blit(self._sprite, (sx, sy))
+        else:
+            # Fallback: green rectangle.
+            pygame.draw.rect(
+                surface, COLORS["GREEN"],
+                (sx, sy, self.rect.width, self.rect.height),
+            )
+            pygame.draw.rect(
+                surface, (30, 120, 50),
+                (sx, sy, self.rect.width, self.rect.height), 1,
+            )
+            try:
+                font = pygame.font.Font(None, 16)
+                label_surf = font.render(self._label, False, (255, 255, 255))
+                lx = sx + (self.rect.width - label_surf.get_width()) // 2
+                ly = sy + (self.rect.height - label_surf.get_height()) // 2
+                surface.blit(label_surf, (lx, ly))
+            except pygame.error:
+                pass
 
+        # Floating type indicator above the NPC.
         try:
             font = pygame.font.Font(None, 16)
-            # Label letter (centred).
-            label_surf = font.render(self._label, False, (255, 255, 255))
-            lx = sx + (self.rect.width - label_surf.get_width()) // 2
-            ly = sy + (self.rect.height - label_surf.get_height()) // 2
-            surface.blit(label_surf, (lx, ly))
-
-            # Floating type indicator above the NPC.
             tag = "SHOP" if self._npc_type == "shop" else self._npc_type.upper()
             tag_surf = font.render(tag, False, (255, 220, 80))
             tx = sx + (self.rect.width - tag_surf.get_width()) // 2
@@ -136,7 +185,25 @@ class NPC(Entity):
     # ── Private ───────────────────────────────────────────────────
 
     def _build_sprite(self) -> None:
-        """Create the placeholder sprite surface."""
-        surf = pygame.Surface((self.rect.width, self.rect.height))
-        surf.fill(COLORS["GREEN"])
-        self._sprite = surf
+        """Load real NPC sprites or create a placeholder surface."""
+        states = self._NPC_SPRITE_STATES.get(self._npc_base, {})
+        for state_name, path in states.items():
+            frames = load_sprite_sheet_from_file(
+                path, self._sprite_w, self._sprite_h,
+            )
+            if frames:
+                self._sprite_states[state_name] = frames[0]
+                self._has_sprites = True
+
+        if self._has_sprites:
+            # Set initial sprite to idle (or first available state).
+            if "idle" in self._sprite_states:
+                self._sprite = self._sprite_states["idle"]
+            else:
+                first_key = next(iter(self._sprite_states))
+                self._sprite = self._sprite_states[first_key]
+        else:
+            # Fallback: green rectangle.
+            surf = pygame.Surface((self.rect.width, self.rect.height))
+            surf.fill(COLORS["GREEN"])
+            self._sprite = surf

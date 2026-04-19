@@ -122,11 +122,21 @@ class Enemy(Entity):
 
         self._idle_frames: list[pygame.Surface] = []
         self._walk_frames: list[pygame.Surface] = []
+        self._charge_frames: list[pygame.Surface] = []
+        self._attack_frames: list[pygame.Surface] = []
+        self._block_frames: list[pygame.Surface] = []
+        self._hit_frames: list[pygame.Surface] = []
+        self._death_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.2
         self._walk_anim_speed: float = 0.12
         self._has_sprites: bool = False
+
+        # Death animation state.
+        self._playing_death: bool = False
+        self._death_timer: float = 0.0
+        self._death_frame: int = 0
 
         self._build_sprite()
 
@@ -135,24 +145,34 @@ class Enemy(Entity):
 
     def _build_sprite(self) -> None:
         """Load real sprites or create a placeholder colored rectangle."""
-        idle = load_sprite_sheet_from_file(
-            f"assets/sprites/enemies/{self.enemy_type}_idle.png",
-            self._sprite_w, self._sprite_h,
-        )
-        if idle:
-            self._idle_frames = idle
-            self._has_sprites = True
-
-        walk = load_sprite_sheet_from_file(
-            f"assets/sprites/enemies/{self.enemy_type}_walk.png",
-            self._sprite_w, self._sprite_h,
-        )
-        if walk:
-            self._walk_frames = walk
-            self._has_sprites = True
+        # Load all available animation states.
+        anim_map = {
+            "_idle_frames": "idle",
+            "_walk_frames": "walk",
+            "_charge_frames": "charge",
+            "_attack_frames": "attack",
+            "_block_frames": "block",
+            "_hit_frames": "hit",
+            "_death_frames": "death",
+        }
+        for attr, suffix in anim_map.items():
+            frames = load_sprite_sheet_from_file(
+                f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
+                self._sprite_w, self._sprite_h,
+            )
+            if frames:
+                setattr(self, attr, frames)
+                self._has_sprites = True
 
         if self._has_sprites:
-            self._sprite = (self._idle_frames or self._walk_frames)[0]
+            self._sprite = (self._idle_frames or self._walk_frames or [None])[0]
+            if self._sprite is None:
+                # Use any available frames.
+                for attr in anim_map:
+                    frames_list = getattr(self, attr)
+                    if frames_list:
+                        self._sprite = frames_list[0]
+                        break
         else:
             surf = pygame.Surface((self._sprite_w, self._sprite_h))
             surf.fill(self._base_color)
@@ -371,13 +391,36 @@ class Enemy(Entity):
                     return
 
     def _update_sprite(self, dt: float) -> None:
-        """Select the correct sprite frame based on movement state."""
+        """Select the correct sprite frame based on combat/movement state."""
         if not self._has_sprites:
             return
 
-        is_moving = abs(self.velocity[0]) > 0.5
-        frames = self._walk_frames if is_moving and self._walk_frames else self._idle_frames
-        speed = self._walk_anim_speed if is_moving else self._anim_speed
+        # Determine which frame set to use based on state.
+        frames: list[pygame.Surface] | None = None
+        speed = self._anim_speed
+
+        if self._playing_death and self._death_frames:
+            frames = self._death_frames
+            speed = 0.15
+        elif self._invincibility_timer > 0 and self._hit_frames:
+            frames = self._hit_frames
+            speed = 0.15
+        elif self.is_blocking and self._block_frames:
+            frames = self._block_frames
+            speed = self._anim_speed
+        elif self.is_attacking and self._attack_frames:
+            frames = self._attack_frames
+            speed = 0.12
+        elif self.is_in_tell and self._charge_frames:
+            frames = self._charge_frames
+            speed = 0.12
+        else:
+            is_moving = abs(self.velocity[0]) > 0.5
+            if is_moving and self._walk_frames:
+                frames = self._walk_frames
+                speed = self._walk_anim_speed
+            else:
+                frames = self._idle_frames
 
         if not frames:
             return

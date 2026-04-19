@@ -20,9 +20,55 @@ import pygame
 from sa_fona.core.event_bus import EventBus
 from sa_fona.entities.boss_entity import BossEntity, BossState
 from sa_fona.level.tilemap import TILE_SIZE
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 if TYPE_CHECKING:
     pass
+
+
+# Pre-load boss sub-element sprites (cached at module level).
+_boss_rock_sprite: pygame.Surface | None = None
+_boss_shockwave_sprite: pygame.Surface | None = None
+_boss_pulse_sprite: pygame.Surface | None = None
+_boss_shadow_sprite: pygame.Surface | None = None
+_pillar_intact_sprite: pygame.Surface | None = None
+_pillar_destroyed_sprite: pygame.Surface | None = None
+_boss_sprites_loaded: bool = False
+
+
+def _load_boss_sub_sprites() -> None:
+    """Load boss sub-element sprites once."""
+    global _boss_rock_sprite, _boss_shockwave_sprite, _boss_pulse_sprite
+    global _boss_shadow_sprite, _pillar_intact_sprite, _pillar_destroyed_sprite
+    global _boss_sprites_loaded
+
+    if _boss_sprites_loaded:
+        return
+    _boss_sprites_loaded = True
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_rock.png", 8, 8)
+    if frames:
+        _boss_rock_sprite = frames[0]
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_shockwave.png", 16, 8)
+    if frames:
+        _boss_shockwave_sprite = frames[0]
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_pulse.png", 24, 16)
+    if frames:
+        _boss_pulse_sprite = frames[0]
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/boss_shadow.png", 16, 6)
+    if frames:
+        _boss_shadow_sprite = frames[0]
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/pillar_intact.png", 16, 48)
+    if frames:
+        _pillar_intact_sprite = frames[0]
+
+    frames = load_sprite_sheet_from_file("assets/sprites/boss/pillar_destroyed.png", 16, 48)
+    if frames:
+        _pillar_destroyed_sprite = frames[0]
 
 
 class BossProjectile:
@@ -82,7 +128,7 @@ class BossProjectile:
         surface: pygame.Surface,
         camera_offset: tuple[int, int],
     ) -> None:
-        """Draw the projectile.
+        """Draw the projectile using sprites or fallback shapes.
 
         Args:
             surface: Target surface.
@@ -90,26 +136,51 @@ class BossProjectile:
         """
         if not self.active:
             return
+        _load_boss_sub_sprites()
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
 
         if self.proj_type == "rock":
-            pygame.draw.circle(
-                surface, (120, 100, 80), (sx + self.rect.width // 2, sy + self.rect.height // 2),
-                self.rect.width // 2,
-            )
+            if _boss_rock_sprite is not None:
+                # Scale to match projectile rect if needed.
+                if (_boss_rock_sprite.get_width() != self.rect.width
+                        or _boss_rock_sprite.get_height() != self.rect.height):
+                    scaled = pygame.transform.scale(
+                        _boss_rock_sprite, (self.rect.width, self.rect.height),
+                    )
+                    surface.blit(scaled, (sx, sy))
+                else:
+                    surface.blit(_boss_rock_sprite, (sx, sy))
+            else:
+                pygame.draw.circle(
+                    surface, (120, 100, 80),
+                    (sx + self.rect.width // 2, sy + self.rect.height // 2),
+                    self.rect.width // 2,
+                )
         elif self.proj_type == "shockwave":
-            shock_surf = pygame.Surface(
-                (self.rect.width, self.rect.height), pygame.SRCALPHA
-            )
-            shock_surf.fill((200, 180, 60, 160))
-            surface.blit(shock_surf, (sx, sy))
+            if _boss_shockwave_sprite is not None:
+                scaled = pygame.transform.scale(
+                    _boss_shockwave_sprite, (self.rect.width, self.rect.height),
+                )
+                surface.blit(scaled, (sx, sy))
+            else:
+                shock_surf = pygame.Surface(
+                    (self.rect.width, self.rect.height), pygame.SRCALPHA
+                )
+                shock_surf.fill((200, 180, 60, 160))
+                surface.blit(shock_surf, (sx, sy))
         elif self.proj_type == "pulse":
-            pulse_surf = pygame.Surface(
-                (self.rect.width, self.rect.height), pygame.SRCALPHA
-            )
-            pulse_surf.fill((255, 80, 80, 120))
-            surface.blit(pulse_surf, (sx, sy))
+            if _boss_pulse_sprite is not None:
+                scaled = pygame.transform.scale(
+                    _boss_pulse_sprite, (self.rect.width, self.rect.height),
+                )
+                surface.blit(scaled, (sx, sy))
+            else:
+                pulse_surf = pygame.Surface(
+                    (self.rect.width, self.rect.height), pygame.SRCALPHA
+                )
+                pulse_surf.fill((255, 80, 80, 120))
+                surface.blit(pulse_surf, (sx, sy))
 
 
 class ShadowMarker:
@@ -143,7 +214,7 @@ class ShadowMarker:
         surface: pygame.Surface,
         camera_offset: tuple[int, int],
     ) -> None:
-        """Draw the shadow marker as a dark ellipse.
+        """Draw the shadow marker using a sprite or a dark ellipse fallback.
 
         Args:
             surface: Target surface.
@@ -151,11 +222,16 @@ class ShadowMarker:
         """
         if not self.active:
             return
+        _load_boss_sub_sprites()
         sx = int(self.x) - camera_offset[0]
         sy = int(self.y) - camera_offset[1]
-        marker_surf = pygame.Surface((16, 6), pygame.SRCALPHA)
-        pygame.draw.ellipse(marker_surf, (40, 40, 40, 140), (0, 0, 16, 6))
-        surface.blit(marker_surf, (sx - 8, sy - 3))
+
+        if _boss_shadow_sprite is not None:
+            surface.blit(_boss_shadow_sprite, (sx - 8, sy - 3))
+        else:
+            marker_surf = pygame.Surface((16, 6), pygame.SRCALPHA)
+            pygame.draw.ellipse(marker_surf, (40, 40, 40, 140), (0, 0, 16, 6))
+            surface.blit(marker_surf, (sx - 8, sy - 3))
 
 
 class DestructiblePillar:
@@ -178,20 +254,25 @@ class DestructiblePillar:
         surface: pygame.Surface,
         camera_offset: tuple[int, int],
     ) -> None:
-        """Draw the pillar.
+        """Draw the pillar using a sprite or fallback rectangles.
 
         Args:
             surface: Target surface.
             camera_offset: Camera offset.
         """
-        if not self.active:
-            return
+        _load_boss_sub_sprites()
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
-        pygame.draw.rect(surface, (100, 90, 80), (sx, sy, self.rect.width, self.rect.height))
-        pygame.draw.rect(surface, (70, 60, 50), (sx, sy, self.rect.width, self.rect.height), 2)
-        # Pillar cap.
-        pygame.draw.rect(surface, (120, 110, 100), (sx - 2, sy - 4, self.rect.width + 4, 6))
+
+        if self.active and _pillar_intact_sprite is not None:
+            surface.blit(_pillar_intact_sprite, (sx, sy))
+        elif not self.active and _pillar_destroyed_sprite is not None:
+            surface.blit(_pillar_destroyed_sprite, (sx, sy))
+        elif self.active:
+            # Fallback: drawn rectangles.
+            pygame.draw.rect(surface, (100, 90, 80), (sx, sy, self.rect.width, self.rect.height))
+            pygame.draw.rect(surface, (70, 60, 50), (sx, sy, self.rect.width, self.rect.height), 2)
+            pygame.draw.rect(surface, (120, 110, 100), (sx - 2, sy - 4, self.rect.width + 4, 6))
 
 
 class BouDePedra(BossEntity):

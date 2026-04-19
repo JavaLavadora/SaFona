@@ -58,14 +58,35 @@ class Companion(Entity):
         self._bob_timer: float = 0.0
         self._font: pygame.font.Font | None = None
         self._idle_frames: list[pygame.Surface] = []
+        self._walk_frames: list[pygame.Surface] = []
+        self._jump_frames: list[pygame.Surface] = []
+        self._scared_frames: list[pygame.Surface] = []
+        self._excited_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.25
-        frames = load_sprite_sheet_from_file(
-            "assets/sprites/bep/idle.png", COMPANION_WIDTH, COMPANION_HEIGHT,
-        )
-        if frames:
-            self._idle_frames = frames
+        self._has_sprites: bool = False
+
+        # Current state for animation selection.
+        self._anim_state: str = "idle"
+        self._is_moving: bool = False
+
+        # Load all available sprite sheets.
+        anim_map = {
+            "_idle_frames": "idle",
+            "_walk_frames": "walk",
+            "_jump_frames": "jump",
+            "_scared_frames": "scared",
+            "_excited_frames": "excited",
+        }
+        for attr, name in anim_map.items():
+            frames = load_sprite_sheet_from_file(
+                f"assets/sprites/bep/{name}.png",
+                COMPANION_WIDTH, COMPANION_HEIGHT,
+            )
+            if frames:
+                setattr(self, attr, frames)
+                self._has_sprites = True
 
     def follow(self, player_rect: pygame.Rect, dt: float) -> None:
         """Update Bep's position to follow the player.
@@ -113,6 +134,20 @@ class Companion(Entity):
 
             self.rect.x += int(move_x)
             self.rect.y += int(move_y)
+            self._is_moving = True
+        else:
+            self._is_moving = False
+
+    def set_emotion(self, emotion: str) -> None:
+        """Set Bep's emotion state for animation.
+
+        Args:
+            emotion: One of "idle", "scared", "excited".
+        """
+        if emotion in ("scared", "excited", "idle"):
+            self._anim_state = emotion
+            self._anim_frame = 0
+            self._anim_timer = 0.0
 
     def update(self, dt: float) -> None:
         """Update the bob and sprite animation timers.
@@ -122,11 +157,23 @@ class Companion(Entity):
         """
         self._bob_timer += dt * BOB_SPEED
 
-        if self._idle_frames:
+        # Select frames based on current state.
+        if self._anim_state == "scared" and self._scared_frames:
+            frames = self._scared_frames
+        elif self._anim_state == "excited" and self._excited_frames:
+            frames = self._excited_frames
+        elif self._is_moving and self._walk_frames:
+            frames = self._walk_frames
+        elif self._idle_frames:
+            frames = self._idle_frames
+        else:
+            frames = []
+
+        if frames:
             self._anim_timer += dt
             if self._anim_timer >= self._anim_speed:
                 self._anim_timer -= self._anim_speed
-                self._anim_frame = (self._anim_frame + 1) % len(self._idle_frames)
+                self._anim_frame = (self._anim_frame + 1) % len(frames)
 
     def render(self, surface: pygame.Surface, camera_offset: tuple[int, int]) -> None:
         """Draw Bep using real sprites or a green rectangle fallback.
@@ -142,10 +189,24 @@ class Companion(Entity):
         screen_x = self.rect.x - camera_offset[0]
         screen_y = self.rect.y - camera_offset[1] + bob_y
 
-        if self._idle_frames:
-            surface.blit(self._idle_frames[self._anim_frame], (screen_x, screen_y))
+        # Select the correct frame set for current state.
+        if self._anim_state == "scared" and self._scared_frames:
+            frames = self._scared_frames
+        elif self._anim_state == "excited" and self._excited_frames:
+            frames = self._excited_frames
+        elif self._is_moving and self._walk_frames:
+            frames = self._walk_frames
+        elif self._idle_frames:
+            frames = self._idle_frames
+        else:
+            frames = []
+
+        if frames:
+            idx = self._anim_frame % len(frames)
+            surface.blit(frames[idx], (screen_x, screen_y))
             return
 
+        # Fallback: green rectangle with "B" label.
         pygame.draw.rect(
             surface,
             COMPANION_COLOR,

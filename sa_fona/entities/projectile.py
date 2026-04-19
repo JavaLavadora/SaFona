@@ -2,9 +2,8 @@
 
 A projectile travels in a direction at a configurable speed and is
 destroyed when it collides with solid tiles or exceeds its maximum
-range.  The base class is designed for extension -- subclasses can
-override ``on_hit_tile`` and ``on_hit_entity`` for special ammo
-behaviours (explosive, piercing, freezing).
+range.  Uses real sprite PNGs from assets/sprites/projectiles/ when
+available.
 """
 
 from __future__ import annotations
@@ -15,6 +14,7 @@ import pygame
 
 from sa_fona.config.settings import PLAYER_GRAVITY
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
 
 _PROJECTILE_GRAVITY: float = PLAYER_GRAVITY * 0.5
 
@@ -87,10 +87,41 @@ class Projectile(Entity):
         self.velocity[1] = 0.0
         self.facing_right = direction > 0
 
-        # Build placeholder sprite.
+        # Try to load a real sprite based on charge tier.
+        self._sprite = self._load_projectile_sprite(
+            width, height, charge_tier, projectile_type,
+        )
+
+    @staticmethod
+    def _load_projectile_sprite(
+        width: int,
+        height: int,
+        charge_tier: int,
+        projectile_type: ProjectileType,
+    ) -> pygame.Surface:
+        """Load a projectile sprite or create a placeholder.
+
+        Args:
+            width: Sprite width.
+            height: Sprite height.
+            charge_tier: Charge tier (1-3) for stone projectiles.
+            projectile_type: Type of projectile.
+
+        Returns:
+            A pygame Surface.
+        """
+        if projectile_type == ProjectileType.BASIC_STONE:
+            tier = max(1, min(3, charge_tier))
+            path = f"assets/sprites/projectiles/stone_tier{tier}.png"
+            frames = load_sprite_sheet_from_file(path, width, height)
+            if frames:
+                return frames[0]
+
+        # Fallback: solid color rectangle.
         color = _PROJECTILE_COLORS.get(projectile_type, (180, 160, 140))
-        self._sprite = pygame.Surface((width, height))
-        self._sprite.fill(color)
+        surf = pygame.Surface((width, height))
+        surf.fill(color)
+        return surf
 
     # ── Update ─────────────────────────────────────────────────────
 

@@ -256,6 +256,7 @@ class ShopUI:
             surface.blit(empty, (x, y))
             return
 
+        selected_desc = ""
         for i, item in enumerate(items):
             row_y = y + i * _ITEM_ROW_HEIGHT
             is_selected = i == cursor_index
@@ -292,11 +293,13 @@ class ShopUI:
                         eq_surf, (x + width - eq_surf.get_width(), row_y),
                     )
 
-            # Description on selected item (below the row).
-            if is_selected and self._small_font:
-                desc = item.get("description", "")
-                if desc:
-                    desc_surf = self._small_font.render(
-                        desc, False, _ITEM_DESC_COLOR,
-                    )
-                    surface.blit(desc_surf, (x + 12, row_y + 11))
+            if is_selected:
+                selected_desc = item.get("description", "")
+
+        # Description for the selected item, rendered below the list.
+        if selected_desc and self._small_font:
+            desc_y = y + len(items) * _ITEM_ROW_HEIGHT + 6
+            desc_surf = self._small_font.render(
+                selected_desc, False, _ITEM_DESC_COLOR,
+            )
+            surface.blit(desc_surf, (x + 12, desc_y))

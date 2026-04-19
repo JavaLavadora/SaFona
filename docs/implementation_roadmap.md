@@ -1,7 +1,7 @@
 # Sa Fona -- Implementation Roadmap
 
-**Last updated**: 2026-04-18
-**Status**: Approved — In Progress
+**Last updated**: 2026-04-19
+**Status**: Phase 1 Complete
 **Maintained by**: Na Francina (Project Manager)
 
 ---
@@ -141,7 +141,22 @@ D1 (Core Engine Bootstrap)
 - Boss registry/factory pattern, data-driven from JSON
 - Post-playtest fixes: projectile gravity, enemy/boss physical mass, hitbox shrink, boss size reduction, health bar snap-to-zero
 
-### Upcoming
+**Deliverable 10: Mask System, Shop, Post-Boss Flow & W2 Stub** -- PRs #35, #36, #38, #40, #43, Issue #38
+- Merged 2026-04-19, user signed off
+- MaskSystem (Stone Slam: 3-tile shockwave, breakable_slam, enemy stun, 2s cooldown)
+- CutsceneScene (data-driven: dialogue, event, wait, transition, load_level, save_immediate steps)
+- SaveSystem (JSON save/load, level-entry snapshot, death rollback, consumable refund)
+- ShopScene (Llorenç's shop: Items tab with ensaimada + heart upgrade, Masks tab)
+- MainMenuScene (Start/Continue, save file validation)
+- Post-boss flow: boss defeat → Dimoni dialogue → mask grant → portal → W2
+- W2 stub "Sa Via Nova" (40x14, legionaries with ShieldBehavior, war dogs, breakable slam tiles, 4 dialogue triggers)
+- W2 enemies: legionary (shield behavior, 4 HP), war_dog (chase behavior, 2 HP)
+- End-to-end flow: Menu → W1-L1 through L4 → Boss → Cutscene → W2 with Stone Slam
+- Bug fixes: mask propagation through boss→W2 transition, Continue black screen (stale boss path in save), god mode propagation in normal flow
+
+---
+
+### All Phase 1 Deliverables Complete
 
 ---
 
@@ -507,3 +522,4 @@ N'Aina approved the plan after Round 2 with no remaining critical findings. The 
 
 - 2026-04-17: Initial roadmap created by Na Francina. Audited by N'Aina (2 rounds). Awaiting user approval.
 - 2026-04-18: D1-D9 all completed and signed off. Playtest fixes merged (projectile gravity, enemy mass, hitbox shrink, boss tuning). D10 is next.
+- 2026-04-19: D10 completed and signed off. Phase 1 vertical slice complete. All 10 deliverables merged.

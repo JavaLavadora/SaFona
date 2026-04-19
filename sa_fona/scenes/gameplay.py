@@ -878,6 +878,7 @@ class GameplayScene(BaseScene):
                 screen_width=self._screen_width,
                 screen_height=self._screen_height,
                 event_bus=self._event_bus,
+                on_load_level=self._make_load_level_cb(),
             )
             boss_scene.scene_manager = self._scene_manager
             self._scene_manager.replace(boss_scene)
@@ -901,6 +902,49 @@ class GameplayScene(BaseScene):
             new_scene.save_system = self._save_system
             new_scene.take_level_entry_snapshot()
         self._scene_manager.replace(new_scene)
+
+    def _make_load_level_cb(self) -> callable:
+        """Create a callback for the post-boss cutscene to load the next level.
+
+        Captures references to the scene manager, event bus, save system, and
+        screen dimensions.  When invoked (from BossScene.on_resume after the
+        cutscene pops), it creates a fresh GameplayScene for the target level
+        and replaces the current top-of-stack (the BossScene) with it.
+
+        Returns:
+            A callable accepting a ``level_path`` string (relative to
+            ``data/levels/``, e.g. ``"world2/level_2_1"``).
+        """
+        scene_mgr = self._scene_manager
+        event_bus = self._event_bus
+        save_sys = self._save_system
+        screen_w = self._screen_width
+        screen_h = self._screen_height
+
+        def _load(level_path: str) -> None:
+            full_path = str(DATA_DIR / "levels" / f"{level_path}.json")
+            if not Path(full_path).is_file():
+                return
+            new_scene = GameplayScene(
+                screen_w, screen_h,
+                event_bus=event_bus,
+                level_path=full_path,
+            )
+            new_scene.scene_manager = scene_mgr
+            if save_sys is not None:
+                new_scene.save_system = save_sys
+                # Propagate mask state from the save system.
+                ms = save_sys.state.get("masks_unlocked", [])
+                eq = save_sys.state.get("masks_equipped", [])
+                if ms:
+                    for m in ms:
+                        new_scene.mask_system.unlock_mask(m)
+                    if eq:
+                        new_scene.mask_system.equip_mask(eq[0])
+                new_scene.take_level_entry_snapshot()
+            scene_mgr.replace(new_scene)
+
+        return _load
 
     # ── Event callbacks ────────────────────────────────────────────
 

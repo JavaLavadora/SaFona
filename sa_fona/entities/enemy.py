@@ -38,6 +38,8 @@ _ENEMY_COLORS: dict[str, tuple[int, int, int]] = {
     "possessed_sheep": (240, 240, 240),      # white
     "rival_warrior": (139, 90, 43),           # brown
     "stone_guardian": (80, 80, 80),           # dark grey
+    "legionary": (160, 50, 50),              # red (Roman)
+    "war_dog": (120, 80, 40),                # dark brown
 }
 
 # Default color for unknown enemy types.
@@ -476,12 +478,18 @@ class EnemyFactory:
         self,
         definitions_path: str | None = None,
     ) -> None:
+        use_default = definitions_path is None
         if definitions_path is None:
             definitions_path = str(
                 DATA_DIR / "enemies" / "world1_enemies.json"
             )
         self._definitions: dict[str, dict] = {}
         self._load_definitions(definitions_path)
+        # When using the default path, also load all other enemy definition
+        # files from the same directory so that cross-world levels (e.g.
+        # W2 accessed from W1 boss) can spawn any enemy type.
+        if use_default:
+            self._load_all_definitions()
 
     def _load_definitions(self, path: str) -> None:
         """Load enemy definitions from a JSON file.
@@ -494,6 +502,26 @@ class EnemyFactory:
                 self._definitions = json.load(fh)
         except FileNotFoundError:
             self._definitions = {}
+
+    def _load_all_definitions(self) -> None:
+        """Load all enemy definition files from the enemies data directory.
+
+        Merges definitions from every ``*_enemies.json`` file found in the
+        ``data/enemies/`` directory.  Existing definitions take priority
+        (will not be overwritten).
+        """
+        enemies_dir = DATA_DIR / "enemies"
+        if not enemies_dir.is_dir():
+            return
+        for path in sorted(enemies_dir.glob("*_enemies.json")):
+            try:
+                with open(path, "r", encoding="utf-8") as fh:
+                    defs = json.load(fh)
+                for key, value in defs.items():
+                    if key not in self._definitions:
+                        self._definitions[key] = value
+            except (FileNotFoundError, json.JSONDecodeError):
+                pass
 
     @property
     def definitions(self) -> dict[str, dict]:

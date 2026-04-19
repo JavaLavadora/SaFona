@@ -1,0 +1,53 @@
+{
+  "legionary": {
+    "display_name": "Roman Legionary",
+    "health": 4,
+    "contact_damage": 1.0,
+    "behavior": "shield",
+    "behavior_params": {
+      "patrol_range": 4,
+      "speed": 25,
+      "attack_range": 2.0,
+      "attack_cooldown": 2.5,
+      "attack_tell_time": 0.8,
+      "shield_lower_time": 1.0,
+      "shield_raise_time": 0.5,
+      "vertical_detection": 3.0
+    },
+    "sprite": "enemy_legionary",
+    "hitbox": { "w": 16, "h": 24 },
+    "drops": {
+      "stones": { "min": 2, "max": 4 },
+      "heart_chance": 0.15
+    },
+    "vulnerabilities": {
+      "slam_stun_duration": 2.0,
+      "fire_dash_kills": false
+    }
+  },
+  "war_dog": {
+    "display_name": "Roman War Dog",
+    "health": 2,
+    "contact_damage": 1.0,
+    "behavior": "chase",
+    "behavior_params": {
+      "chase_range": 8,
+      "speed": 70,
+      "attack_range": 1.5,
+      "attack_cooldown": 0.8,
+      "block_chance": 0.0,
+      "block_duration": 0.0,
+      "vertical_detection": 3.0
+    },
+    "sprite": "enemy_war_dog",
+    "hitbox": { "w": 20, "h": 14 },
+    "drops": {
+      "stones": { "min": 1, "max": 2 },
+      "heart_chance": 0.1
+    },
+    "vulnerabilities": {
+      "slam_stun_duration": 1.5,
+      "fire_dash_kills": false
+    }
+  }
+}

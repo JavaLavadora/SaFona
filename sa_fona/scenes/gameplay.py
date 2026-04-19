@@ -159,6 +159,9 @@ class GameplayScene(BaseScene):
         # Scene manager reference (set externally by Game or tests).
         self._scene_manager = None
 
+        # Save system (set externally by MainMenuScene or Game).
+        self._save_system = None
+
     # ── Properties ─────────────────────────────────────────────────
 
     @property
@@ -239,6 +242,26 @@ class GameplayScene(BaseScene):
     @scene_manager.setter
     def scene_manager(self, value) -> None:
         self._scene_manager = value
+
+    @property
+    def save_system(self):
+        """The save system (set externally by MainMenuScene or Game)."""
+        return self._save_system
+
+    @save_system.setter
+    def save_system(self, value) -> None:
+        self._save_system = value
+
+    def take_level_entry_snapshot(self) -> None:
+        """Record the current state as the level-entry snapshot for death rollback."""
+        if self._save_system is None:
+            return
+        self._save_system.set_level(self._level_path)
+        self._save_system.snapshot_level_entry(
+            stone_count=self._economy.stone_count,
+            current_hearts=self._combat.player_hearts,
+            max_hearts=self._combat.player_max_hearts,
+        )
 
     # ── Scene lifecycle ────────────────────────────────────────────
 
@@ -728,11 +751,27 @@ class GameplayScene(BaseScene):
         directory (e.g. ``"world1/level_1_2"``).  Boss levels (paths
         containing ``"boss_"``) are loaded as BossScene instead.
 
+        Before transitioning, updates the save system with the current
+        player state and the next level path, then saves to disk.
+
         Args:
             next_level: Relative level identifier (without ``.json`` extension).
         """
         if self._scene_manager is None:
             return
+
+        # Save progress before transitioning.
+        level_path_for_save = str(
+            DATA_DIR / "levels" / f"{next_level}.json"
+        )
+        if self._save_system is not None:
+            self._save_system.set_level(level_path_for_save)
+            self._save_system.set_player_state(
+                stone_count=self._economy.stone_count,
+                current_hearts=self._combat.player_hearts,
+                max_hearts=self._combat.player_max_hearts,
+            )
+            self._save_system.save()
 
         # Boss levels use BossScene with a boss_id extracted from the path.
         level_name = next_level.rsplit("/", 1)[-1]
@@ -762,6 +801,9 @@ class GameplayScene(BaseScene):
             level_path=level_path,
         )
         new_scene.scene_manager = self._scene_manager
+        if self._save_system is not None:
+            new_scene.save_system = self._save_system
+            new_scene.take_level_entry_snapshot()
         self._scene_manager.replace(new_scene)
 
     # ── Event callbacks ────────────────────────────────────────────
@@ -853,7 +895,19 @@ class GameplayScene(BaseScene):
     # ── Player death / Game over ──────────────────────────────────
 
     def _on_player_died(self, **kwargs) -> None:
-        """Handle player_died event: defer game over to end of frame."""
+        """Handle player_died event: rollback economy and defer game over."""
+        if self._save_system is not None:
+            snap = self._save_system.rollback_to_snapshot()
+            if snap is not None:
+                self._economy.restore({"stone_count": snap["stone_count"]})
+                self._combat.set_player_health(
+                    snap["current_hearts"], snap["max_hearts"]
+                )
+                self._hud.set_state(
+                    max_hearts=snap["max_hearts"],
+                    current_hearts=snap["current_hearts"],
+                    stone_count=snap["stone_count"],
+                )
         self._pending_game_over = True
 
     def _push_game_over(self) -> None:
@@ -871,6 +925,7 @@ class GameplayScene(BaseScene):
             if self._scene_manager is not None:
                 self._scene_manager.pop()  # Remove GameOverScene.
                 self._reset_level()
+                self.take_level_entry_snapshot()
 
         scene = GameOverScene(on_restart=_on_restart)
         self._scene_manager.push(scene)

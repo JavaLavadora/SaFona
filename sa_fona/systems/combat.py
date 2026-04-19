@@ -161,8 +161,7 @@ class CombatSystem:
             for enemy in enemies:
                 if not enemy.is_alive or not enemy.is_attacking:
                     continue
-                # Attack hitbox: slightly larger than the enemy rect.
-                attack_rect = enemy.rect.inflate(8, 4)
+                attack_rect = enemy.attack_hitbox
                 if player.rect.colliderect(attack_rect):
                     self._handle_enemy_attack(enemy)
                     break  # Only take damage once per frame.
@@ -315,12 +314,13 @@ class CombatSystem:
     def _handle_enemy_attack(self, enemy: Enemy) -> None:
         """Handle an enemy's attack hitting the player.
 
+        Uses ``attack_damage`` which may differ from contact damage
+        (e.g. stone guardian's heavy hit deals more than a bump).
+
         Args:
             enemy: The attacking enemy.
         """
-        # Attacks deal the enemy's contact_damage (could be different
-        # in future; for now, same value).
-        self._deal_damage_to_player(enemy.contact_damage)
+        self._deal_damage_to_player(enemy.attack_damage)
 
     def _deal_damage_to_player(self, amount: float) -> None:
         """Apply damage to the player and enter invincibility.

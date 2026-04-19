@@ -456,6 +456,10 @@ class GameplayScene(BaseScene):
         # 8. Update enemies.
         self._update_enemies(dt)
 
+        # 8b. Update NPCs (idle animation).
+        for npc in self._npcs:
+            npc.update(dt)
+
         # 9. Combat system: resolve all damage interactions.
         #    Must run BEFORE projectile tile collision so projectiles
         #    can hit enemies they overlap this frame.

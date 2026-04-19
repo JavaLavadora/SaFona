@@ -89,6 +89,9 @@ class Enemy(Entity):
         self.health: float = float(definition.get("health", 1))
         self.max_health: float = self.health
         self.contact_damage: float = float(definition.get("contact_damage", 0.5))
+        self.attack_damage: float = float(
+            definition.get("attack_damage", self.contact_damage)
+        )
 
         # Drop table.
         drops = definition.get("drops", {})
@@ -246,6 +249,11 @@ class Enemy(Entity):
         return self._behavior_result.attack_state == AttackState.TELL
 
     @property
+    def is_recovering(self) -> bool:
+        """Whether the enemy is in post-attack recovery."""
+        return self._behavior_result.attack_state == AttackState.RECOVERY
+
+    @property
     def is_blocking(self) -> bool:
         """Whether the enemy is currently blocking."""
         return self._behavior_result.is_blocking
@@ -259,6 +267,26 @@ class Enemy(Entity):
     def is_stunned(self) -> bool:
         """Whether the enemy is currently stunned."""
         return self._stun_timer > 0
+
+    @property
+    def attack_hitbox(self) -> pygame.Rect:
+        """Return the active attack hitbox when the enemy is striking.
+
+        The hitbox extends in the direction the enemy is facing,
+        covering the area in front of the enemy.  Only meaningful
+        when ``is_attacking`` is True.
+
+        Returns:
+            A pygame.Rect representing the attack hitbox.
+        """
+        hitbox_w = 20
+        hitbox_h = self.rect.height + 4
+        if self.facing_right:
+            hx = self.rect.right
+        else:
+            hx = self.rect.left - hitbox_w
+        hy = self.rect.top - 2
+        return pygame.Rect(hx, hy, hitbox_w, hitbox_h)
 
     def stun(self, duration: float) -> None:
         """Apply a stun effect for the given duration.

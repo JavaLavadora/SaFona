@@ -80,8 +80,20 @@ class NPC(Entity):
 
         # Sprite frames for different states.
         self._sprite_states: dict[str, pygame.Surface] = {}
+        # Multi-frame idle animation frames (if the sprite strip has > 1).
+        self._idle_frames: list[pygame.Surface] = []
         self._current_state: str = "idle"
         self._has_sprites: bool = False
+
+        # Idle animation timer and frame index.
+        self._anim_timer: float = 0.0
+        self._anim_frame: int = 0
+        self._anim_speed: float = 0.25  # Seconds per frame for multi-frame.
+
+        # Bob animation for single-frame idle (subtle breathing motion).
+        self._bob_timer: float = 0.0
+        self._bob_period: float = 1.0  # Full cycle: 0.5s up, 0.5s down.
+        self._bob_offset: int = 0
 
         # Build sprite (tries real assets first).
         self._build_sprite()
@@ -111,11 +123,32 @@ class NPC(Entity):
     # ── Entity interface ──────────────────────────────────────────
 
     def update(self, dt: float) -> None:
-        """NPCs are static -- nothing to update per frame.
+        """Advance idle animation each frame.
+
+        For multi-frame idle sprites, cycles through frames.
+        For single-frame idle sprites, applies a subtle 1px bob
+        (up for half the period, down for the other half).
 
         Args:
-            dt: Delta time in seconds (unused).
+            dt: Delta time in seconds.
         """
+        if self._current_state != "idle":
+            return
+
+        if len(self._idle_frames) > 1:
+            # Multi-frame idle animation.
+            self._anim_timer += dt
+            if self._anim_timer >= self._anim_speed:
+                self._anim_timer -= self._anim_speed
+                self._anim_frame = (self._anim_frame + 1) % len(self._idle_frames)
+                self._sprite = self._idle_frames[self._anim_frame]
+        else:
+            # Single-frame bob animation.
+            self._bob_timer += dt
+            if self._bob_timer >= self._bob_period:
+                self._bob_timer -= self._bob_period
+            half = self._bob_period / 2.0
+            self._bob_offset = -1 if self._bob_timer < half else 0
 
     def set_sprite_state(self, state: str) -> None:
         """Change the NPC's visual state (e.g. idle, talk, shop).
@@ -137,7 +170,7 @@ class NPC(Entity):
             camera_offset: Camera world-pixel offset.
         """
         sx = self.rect.x - camera_offset[0]
-        sy = self.rect.y - camera_offset[1]
+        sy = self.rect.y - camera_offset[1] + self._bob_offset
 
         if self._has_sprites and self._sprite is not None:
             surface.blit(self._sprite, (sx, sy))
@@ -194,6 +227,9 @@ class NPC(Entity):
             if frames:
                 self._sprite_states[state_name] = frames[0]
                 self._has_sprites = True
+                # Store all idle frames for animation cycling.
+                if state_name == "idle" and len(frames) > 1:
+                    self._idle_frames = frames
 
         if self._has_sprites:
             # Set initial sprite to idle (or first available state).

@@ -29,6 +29,7 @@ class AttackState(Enum):
     IDLE = auto()
     TELL = auto()
     ATTACKING = auto()
+    RECOVERY = auto()
     COOLDOWN = auto()
 
 
@@ -754,12 +755,282 @@ class ShieldBehavior(PatrolBehavior):
         return result
 
 
+class GuardianBehavior(EnemyBehavior):
+    """Slow patrol with a heavy wind-up attack (stone guardian pattern).
+
+    The guardian patrols a short range.  When the player enters attack
+    range, it stops and begins a multi-phase attack:
+
+    1. **Wind-up (TELL)**: stops moving, shows attack tell animation.
+    2. **Strike (ATTACKING)**: attack hitbox is active, deals high damage.
+    3. **Recovery**: briefly vulnerable, cannot move or attack.
+    4. **Cooldown**: returns to patrol, won't attack until timer expires.
+
+    Params (from JSON):
+        patrol_range: Range in tiles to patrol from spawn.
+        speed: Walk speed in pixels per second.
+        attack_range: Detection range in pixels to start an attack.
+        attack_windup: Duration of the wind-up (tell) phase in seconds.
+        attack_strike: Duration of the active strike phase in seconds.
+        attack_recovery: Duration of the recovery phase in seconds.
+        attack_cooldown: Seconds before the guardian can attack again.
+        vertical_detection: Max vertical pixels for player detection.
+    """
+
+    _AGGRO_DURATION: float = 3.0
+    _AGGRO_SPEED_MULTIPLIER: float = 1.5
+    _AGGRO_MIN_SPEED: float = 30.0
+    _LEDGE_HESITATION: float = 0.6
+
+    def __init__(self, params: dict) -> None:
+        super().__init__(params)
+        self._patrol_range: float = params.get("patrol_range", 3) * 16
+        self._speed: float = params.get("speed", 20)
+        self._attack_range: float = float(params.get("attack_range", 40))
+        self._attack_windup: float = params.get("attack_windup", 0.8)
+        self._attack_strike: float = params.get("attack_strike", 0.3)
+        self._attack_recovery: float = params.get("attack_recovery", 0.6)
+        self._attack_cooldown: float = params.get("attack_cooldown", 2.0)
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
+
+        # State.
+        self._direction: float = 1.0
+        self._origin_x: float = 0.0
+        self._attack_state: AttackState = AttackState.IDLE
+        self._attack_timer: float = 0.0
+        self._cooldown_timer: float = 0.0
+
+        # Aggro state.
+        self._aggro_timer: float = 0.0
+
+        # Ledge retreat.
+        self._retreating: bool = False
+        self._hesitation_timer: float = 0.0
+
+    @property
+    def attack_state(self) -> AttackState:
+        """Current attack state (for testing)."""
+        return self._attack_state
+
+    @property
+    def aggro_timer(self) -> float:
+        """Remaining aggro time in seconds (for testing)."""
+        return self._aggro_timer
+
+    def reset(self, spawn_x: float) -> None:
+        """Reset guardian to initial state centered on spawn.
+
+        Args:
+            spawn_x: The enemy's spawn X position.
+        """
+        self._origin_x = spawn_x
+        self._direction = 1.0
+        self._attack_state = AttackState.IDLE
+        self._attack_timer = 0.0
+        self._cooldown_timer = 0.0
+        self._aggro_timer = 0.0
+        self._retreating = False
+        self._hesitation_timer = 0.0
+
+    def on_damaged(self, player_x: float, player_y: float) -> None:
+        """React to taking damage by entering aggro state.
+
+        Args:
+            player_x: The player's X position in world pixels.
+            player_y: The player's Y position in world pixels.
+        """
+        if self._retreating or self._hesitation_timer > 0:
+            return
+        self._aggro_timer = self._AGGRO_DURATION
+        # Only cancel if in IDLE or COOLDOWN (don't cancel mid-attack).
+        if self._attack_state in (AttackState.IDLE, AttackState.COOLDOWN):
+            self._attack_state = AttackState.IDLE
+            self._attack_timer = 0.0
+
+    def update(
+        self,
+        enemy_rect: pygame.Rect,
+        player_rect: pygame.Rect,
+        dt: float,
+        tilemap: TileMap | None = None,
+    ) -> BehaviorResult:
+        """Patrol slowly; perform wind-up + strike attack when player is close.
+
+        Args:
+            enemy_rect: The enemy's current bounding box.
+            player_rect: The player's current bounding box.
+            dt: Delta time in seconds.
+            tilemap: Optional tilemap for edge detection.
+
+        Returns:
+            BehaviorResult with movement and attack data.
+        """
+        result = BehaviorResult()
+
+        dx_to_player = player_rect.centerx - enemy_rect.centerx
+        dist_to_player = abs(dx_to_player)
+        dy_to_player = abs(player_rect.centery - enemy_rect.centery)
+        player_on_same_level = dy_to_player < self._vertical_detection
+
+        # Tick cooldown.
+        if self._cooldown_timer > 0:
+            self._cooldown_timer -= dt
+
+        # Tick aggro timer.
+        if self._aggro_timer > 0:
+            self._aggro_timer -= dt
+
+        # ── Ledge retreat ─────────────────────────────────────────
+        if self._hesitation_timer > 0:
+            self._hesitation_timer -= dt
+            result.move_x = 0.0
+            result.speed = 0.0
+            if self._hesitation_timer <= 0:
+                self._retreating = True
+            return result
+
+        if self._retreating:
+            dx_to_origin = self._origin_x - float(enemy_rect.x)
+            if abs(dx_to_origin) < 4.0:
+                self._retreating = False
+            else:
+                retreat_dir = 1.0 if dx_to_origin > 0 else -1.0
+                self._direction = retreat_dir
+                result.move_x = retreat_dir
+                result.speed = self._speed
+                return result
+
+        # ── Aggro chase ───────────────────────────────────────────
+        if (
+            self._aggro_timer > 0
+            and self._attack_state == AttackState.IDLE
+            and player_on_same_level
+        ):
+            chase_dir = 1.0 if dx_to_player > 0 else -1.0
+
+            # Within attack range: start attack instead of chasing.
+            if (
+                dist_to_player < self._attack_range
+                and self._cooldown_timer <= 0
+            ):
+                pass  # Fall through to attack state machine.
+            elif self.check_edge_ahead(enemy_rect, chase_dir, tilemap):
+                self._direction = chase_dir
+                self._hesitation_timer = self._LEDGE_HESITATION
+                self._aggro_timer = 0.0
+                result.move_x = 0.0
+                result.speed = 0.0
+                return result
+            else:
+                self._direction = chase_dir
+                result.move_x = chase_dir
+                result.speed = max(
+                    self._speed * self._AGGRO_SPEED_MULTIPLIER,
+                    self._AGGRO_MIN_SPEED,
+                )
+                return result
+
+        # ── Attack state machine ──────────────────────────────────
+        if self._attack_state == AttackState.IDLE:
+            if (
+                player_on_same_level
+                and dist_to_player < self._attack_range
+                and self._cooldown_timer <= 0
+            ):
+                # Enter wind-up (tell) phase.
+                self._attack_state = AttackState.TELL
+                self._attack_timer = self._attack_windup
+                # Face the player.
+                if dx_to_player > 0:
+                    self._direction = 1.0
+                elif dx_to_player < 0:
+                    self._direction = -1.0
+                result.move_x = 0.0
+                result.speed = 0.0
+                result.attack_state = AttackState.TELL
+                return result
+
+            # Normal patrol movement.
+            result.move_x = self._direction
+            result.speed = self._speed
+
+            current_x = float(enemy_rect.x)
+            if current_x > self._origin_x + self._patrol_range:
+                self._direction = -1.0
+                result.move_x = -1.0
+            elif current_x < self._origin_x - self._patrol_range:
+                self._direction = 1.0
+                result.move_x = 1.0
+
+            if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
+
+        elif self._attack_state == AttackState.TELL:
+            # Wind-up phase: enemy stops, shows attack animation slowly.
+            self._attack_timer -= dt
+            result.move_x = 0.0
+            result.speed = 0.0
+            result.attack_state = AttackState.TELL
+            if self._attack_timer <= 0:
+                # Transition to strike phase.
+                self._attack_state = AttackState.ATTACKING
+                self._attack_timer = self._attack_strike
+
+        elif self._attack_state == AttackState.ATTACKING:
+            # Strike phase: attack hitbox is active.
+            self._attack_timer -= dt
+            result.attack_state = AttackState.ATTACKING
+            result.wants_attack = True
+            result.move_x = 0.0
+            result.speed = 0.0
+            if self._attack_timer <= 0:
+                # Transition to recovery phase.
+                self._attack_state = AttackState.RECOVERY
+                self._attack_timer = self._attack_recovery
+
+        elif self._attack_state == AttackState.RECOVERY:
+            # Recovery phase: enemy is vulnerable, cannot move or attack.
+            self._attack_timer -= dt
+            result.attack_state = AttackState.RECOVERY
+            result.move_x = 0.0
+            result.speed = 0.0
+            if self._attack_timer <= 0:
+                # Transition to cooldown.
+                self._attack_state = AttackState.COOLDOWN
+                self._cooldown_timer = self._attack_cooldown
+
+        elif self._attack_state == AttackState.COOLDOWN:
+            # Resume patrol during cooldown.
+            result.move_x = self._direction
+            result.speed = self._speed
+            result.attack_state = AttackState.COOLDOWN
+
+            current_x = float(enemy_rect.x)
+            if current_x > self._origin_x + self._patrol_range:
+                self._direction = -1.0
+                result.move_x = -1.0
+            elif current_x < self._origin_x - self._patrol_range:
+                self._direction = 1.0
+                result.move_x = 1.0
+
+            if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
+
+            if self._cooldown_timer <= 0:
+                self._attack_state = AttackState.IDLE
+
+        return result
+
+
 # ── Factory function ──────────────────────────────────────────────
 
 _BEHAVIOR_REGISTRY: dict[str, type[EnemyBehavior]] = {
     "patrol": PatrolBehavior,
     "chase": ChaseBehavior,
     "shield": ShieldBehavior,
+    "guardian": GuardianBehavior,
 }
 
 

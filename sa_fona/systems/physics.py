@@ -105,7 +105,7 @@ class PhysicsSystem:
     def _resolve_x(
         self, rect: pygame.Rect, vx: float
     ) -> tuple[float, pygame.Rect]:
-        """Resolve horizontal collisions against solid tiles.
+        """Resolve horizontal collisions against solid and breakable_slam tiles.
 
         Args:
             rect: Current bounding box (mutated in-place).
@@ -114,14 +114,15 @@ class PhysicsSystem:
         Returns:
             Tuple of ``(clamped_vx, resolved_rect)``.
         """
-        for tile_rect in self._tilemap.get_collision_rects("solid"):
-            if not rect.colliderect(tile_rect):
-                continue
-            if vx > 0:
-                rect.right = tile_rect.left
-            elif vx < 0:
-                rect.left = tile_rect.right
-            vx = 0.0
+        for layer in ("solid", "breakable_slam"):
+            for tile_rect in self._tilemap.get_collision_rects(layer):
+                if not rect.colliderect(tile_rect):
+                    continue
+                if vx > 0:
+                    rect.right = tile_rect.left
+                elif vx < 0:
+                    rect.left = tile_rect.right
+                vx = 0.0
         return vx, rect
 
     def _resolve_y(
@@ -143,16 +144,17 @@ class PhysicsSystem:
         """
         on_ground = False
 
-        # Solid tiles — full resolution.
-        for tile_rect in self._tilemap.get_collision_rects("solid"):
-            if not rect.colliderect(tile_rect):
-                continue
-            if vy > 0:
-                rect.bottom = tile_rect.top
-                on_ground = True
-            elif vy < 0:
-                rect.top = tile_rect.bottom
-            vy = 0.0
+        # Solid and breakable_slam tiles — full resolution.
+        for layer in ("solid", "breakable_slam"):
+            for tile_rect in self._tilemap.get_collision_rects(layer):
+                if not rect.colliderect(tile_rect):
+                    continue
+                if vy > 0:
+                    rect.bottom = tile_rect.top
+                    on_ground = True
+                elif vy < 0:
+                    rect.top = tile_rect.bottom
+                vy = 0.0
 
         # One-way platforms — only resolve when falling and entity was
         # above the platform on the previous frame.

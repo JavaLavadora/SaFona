@@ -48,6 +48,9 @@ _TELL_COLOR: tuple[int, int, int, int] = (255, 50, 50, 120)
 # Block indicator color.
 _BLOCK_COLOR: tuple[int, int, int, int] = (100, 100, 255, 120)
 
+# Stun indicator color (yellow tint).
+_STUN_COLOR: tuple[int, int, int, int] = (255, 255, 50, 100)
+
 
 class Enemy(Entity):
     """An enemy entity with health, damage, behavior, and drops.
@@ -103,6 +106,9 @@ class Enemy(Entity):
         self._invincibility_timer: float = 0.0
         self._invincibility_duration: float = 0.3  # Brief flash on hit.
 
+        # Stun state: when stunned, the enemy can't move or attack.
+        self._stun_timer: float = 0.0
+
         # Sub-pixel position accumulator for smooth low-speed movement.
         self._sub_x: float = float(self.rect.x)
 
@@ -154,6 +160,23 @@ class Enemy(Entity):
     def behavior_result(self) -> BehaviorResult:
         """The current frame's behavior result."""
         return self._behavior_result
+
+    @property
+    def is_stunned(self) -> bool:
+        """Whether the enemy is currently stunned."""
+        return self._stun_timer > 0
+
+    def stun(self, duration: float) -> None:
+        """Apply a stun effect for the given duration.
+
+        While stunned, the enemy cannot move or attack. Extends the
+        stun if the new duration is longer than the remaining stun.
+
+        Args:
+            duration: Stun duration in seconds.
+        """
+        if duration > self._stun_timer:
+            self._stun_timer = duration
 
     @property
     def stones_min(self) -> int:
@@ -252,6 +275,9 @@ class Enemy(Entity):
     ) -> None:
         """Update behavior and apply movement.
 
+        While stunned, the enemy skips all behavior updates and remains
+        stationary.
+
         Args:
             player_rect: The player's bounding box.
             dt: Delta time in seconds.
@@ -260,6 +286,12 @@ class Enemy(Entity):
         # Tick invincibility.
         if self._invincibility_timer > 0:
             self._invincibility_timer -= dt
+
+        # Tick stun timer.
+        if self._stun_timer > 0:
+            self._stun_timer -= dt
+            self.velocity[0] = 0.0
+            return
 
         # Get behavior decision.
         self._behavior_result = self.behavior.update(
@@ -348,6 +380,16 @@ class Enemy(Entity):
             )
             block_surf.fill(_BLOCK_COLOR)
             surface.blit(block_surf, (vis_x, vis_y))
+
+        if self.is_stunned:
+            # Blink the stun overlay to indicate the effect.
+            blink_phase = int(self._stun_timer / 0.15)
+            if blink_phase % 2 == 0:
+                stun_surf = pygame.Surface(
+                    (self._sprite_w, self._sprite_h), pygame.SRCALPHA
+                )
+                stun_surf.fill(_STUN_COLOR)
+                surface.blit(stun_surf, (vis_x, vis_y))
 
         try:
             if self._font is None:

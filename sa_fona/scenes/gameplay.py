@@ -35,6 +35,7 @@ from sa_fona.level.trigger import TriggerSystem, TriggerType
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.combat import CombatSystem
 from sa_fona.systems.economy import EconomySystem
+from sa_fona.systems.mask_system import MaskSystem
 from sa_fona.systems.physics import PhysicsSystem
 from sa_fona.systems.sling_system import SlingSystem
 from sa_fona.ui.charge_indicator import ChargeIndicator
@@ -128,6 +129,9 @@ class GameplayScene(BaseScene):
         self._combat.set_player_health(starting_hearts, int(starting_hearts))
         self._event_bus.subscribe("player_died", self._on_player_died)
 
+        # Mask system.
+        self._mask_system = MaskSystem(self._event_bus)
+
         # Pickups and breakables (spawned from level entity definitions).
         self._pickups: list[Pickup] = []
         self._breakables: list[Breakable] = []
@@ -220,6 +224,11 @@ class GameplayScene(BaseScene):
         return self._combat
 
     @property
+    def mask_system(self) -> MaskSystem:
+        """The mask system (exposed for testing and save integration)."""
+        return self._mask_system
+
+    @property
     def enemy_factory(self) -> EnemyFactory:
         """The enemy factory (exposed for testing)."""
         return self._enemy_factory
@@ -281,6 +290,7 @@ class GameplayScene(BaseScene):
         self._hud.cleanup()
         self._economy.cleanup()
         self._combat.cleanup()
+        self._mask_system.cleanup()
 
     def handle_input(self, input_state: InputState) -> None:
         """Forward input to the player and handle scene-level actions.
@@ -368,7 +378,23 @@ class GameplayScene(BaseScene):
         # 12. Check breakable destruction (melee hitbox overlaps breakable).
         self._check_breakable_hits()
 
-        # 13. Check triggers.
+        # 13. Mask system: check power activation and tick cooldown.
+        if self._input_state.mask_power_pressed and self._mask_system.active_mask_id:
+            self._mask_system.activate_power(
+                self._player.rect,
+                self._tilemap,
+                self._enemies,
+                self._event_bus,
+            )
+        self._mask_system.update(dt)
+
+        # Update HUD mask display.
+        self._hud.set_mask_state(
+            equipped=self._mask_system.active_mask_id is not None,
+            cooldown_progress=self._mask_system.cooldown_progress,
+        )
+
+        # 14. Check triggers.
         self._trigger_system.update(self._player.rect)
 
         # Companion disabled — Bep is dialogue-only, not a visible follower.
@@ -429,6 +455,18 @@ class GameplayScene(BaseScene):
             )
             melee_surf.fill((255, 255, 255, 120))
             surface.blit(melee_surf, (sx, sy))
+
+        # Shockwave visual (mask system ground pound flash).
+        shock_rect = self._mask_system.shockwave_rect
+        if shock_rect is not None:
+            shock_alpha = self._mask_system.shockwave_alpha
+            sx = shock_rect.x - cam_offset[0]
+            sy = shock_rect.y - cam_offset[1]
+            shock_surf = pygame.Surface(
+                (shock_rect.width, shock_rect.height), pygame.SRCALPHA
+            )
+            shock_surf.fill((255, 220, 80, shock_alpha))
+            surface.blit(shock_surf, (sx, sy))
 
         # Projectiles.
         for proj in self._projectiles:
@@ -733,6 +771,9 @@ class GameplayScene(BaseScene):
         comp_y = self._level_data.companion_spawn[1] * TILE_SIZE
         self._companion = Companion(comp_x, comp_y)
 
+        # Reset mask cooldown (keep inventory).
+        self._mask_system.update(999.0)  # Clear any remaining cooldown.
+
         # Reset triggers.
         self._trigger_system.reset()
         self._trigger_system.load_from_list(
@@ -771,6 +812,12 @@ class GameplayScene(BaseScene):
                 current_hearts=self._combat.player_hearts,
                 max_hearts=self._combat.player_max_hearts,
             )
+            # Save mask state.
+            mask_state = self._mask_system.get_save_state()
+            self._save_system.state["masks_unlocked"] = mask_state["unlocked_masks"]
+            self._save_system.state["masks_equipped"] = (
+                [mask_state["equipped_mask"]] if mask_state["equipped_mask"] else []
+            )
             self._save_system.save()
 
         # Boss levels use BossScene with a boss_id extracted from the path.
@@ -801,6 +848,8 @@ class GameplayScene(BaseScene):
             level_path=level_path,
         )
         new_scene.scene_manager = self._scene_manager
+        # Propagate mask state to the new scene.
+        new_scene.mask_system.restore_save_state(self._mask_system.get_save_state())
         if self._save_system is not None:
             new_scene.save_system = self._save_system
             new_scene.take_level_entry_snapshot()

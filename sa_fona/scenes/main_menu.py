@@ -304,6 +304,15 @@ class MainMenuScene(BaseScene):
             stone_count=stone_count,
         )
 
+        # Restore mask state.
+        unlocked = save_data.get("masks_unlocked", [])
+        equipped_list = save_data.get("masks_equipped", [])
+        equipped = equipped_list[0] if equipped_list else ""
+        scene.mask_system.restore_save_state({
+            "unlocked_masks": unlocked,
+            "equipped_mask": equipped,
+        })
+
         scene.take_level_entry_snapshot()
 
         self._scene_manager.replace(scene)

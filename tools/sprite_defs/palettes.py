@@ -6,40 +6,46 @@ so a palette tweak regenerates every sprite that uses it.
 """
 
 # ── Ramon (Player) ────────────────────────────────────────────
-# Deeply tanned Balearic foner. Knee-length white robe, long dark
-# hair held by a sling-headband, second sling worn as belt. Both
-# slings have loose knotted ends that overflow for volume.
+# Deeply tanned Balearic foner. White headwrap, open white tunic,
+# bright red sash, dark brown pants, leather boots and arm bracers.
+# Sling held in hand with dangling cord.
 RAMON_PALETTE: dict[str, tuple[int, int, int, int]] = {
     ".": (0, 0, 0, 0),
-    # Hair (long, dark Mediterranean)
-    "h": (38, 25, 14, 255),
-    "H": (58, 40, 24, 255),
-    # Skin (deeply tanned)
-    "s": (170, 114, 66, 255),
-    "S": (145, 95, 55, 255),
-    "k": (125, 80, 45, 255),
-    # Eyes (simple: white + dark pupil)
+    # Headwrap (white/cream)
+    "w": (235, 228, 215, 255),
+    "W": (210, 202, 188, 255),
+    # Skin (deep orange-tan)
+    "s": (200, 135, 72, 255),
+    "S": (175, 112, 58, 255),
+    "k": (155, 98, 48, 255),
+    # Eyes
     "e": (240, 235, 225, 255),
     "E": (35, 25, 15, 255),
     # Mouth
-    "m": (140, 92, 52, 255),
-    # Robe (white-cream, knee length)
-    "r": (235, 228, 215, 255),
-    "R": (250, 245, 235, 255),
-    "c": (205, 198, 182, 255),
-    # Sling straps (cream leather — headband + belt, with dangling ends)
-    "L": (215, 205, 182, 255),
-    "l": (235, 225, 205, 255),
-    "p": (195, 185, 162, 255),
-    # Belt area (sling-as-belt wrap)
-    "b": (200, 190, 168, 255),
-    "B": (185, 175, 155, 255),
-    # Legs (tanned skin, visible below knee)
-    "g": (160, 106, 60, 255),
-    "G": (140, 90, 50, 255),
-    # Sandals
-    "d": (110, 75, 42, 255),
-    "D": (90, 60, 34, 255),
+    "m": (168, 108, 58, 255),
+    # Tunic (white)
+    "t": (238, 232, 218, 255),
+    "T": (252, 248, 238, 255),
+    "c": (215, 208, 195, 255),
+    "C": (195, 188, 175, 255),
+    # Red sash
+    "r": (195, 38, 32, 255),
+    "R": (225, 55, 45, 255),
+    "x": (155, 28, 22, 255),
+    # Arm bracers (leather)
+    "a": (175, 112, 58, 255),
+    "A": (145, 90, 45, 255),
+    # Pants (dark brown)
+    "p": (82, 58, 38, 255),
+    "P": (98, 70, 48, 255),
+    "q": (65, 45, 28, 255),
+    # Boots
+    "b": (142, 92, 48, 255),
+    "B": (118, 75, 38, 255),
+    "n": (168, 115, 62, 255),
+    # Sling cord
+    "l": (92, 68, 42, 255),
+    "L": (122, 88, 52, 255),
 }
 
 # ── Bep (Myotragus companion) ────────────────────────────────

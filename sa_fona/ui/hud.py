@@ -4,9 +4,8 @@ The HUD renders on top of everything in screen space (not affected by
 camera offset).  It subscribes to EventBus events to stay in sync with
 game state without directly referencing entity or system objects.
 
-Placeholder rendering uses simple geometric shapes:
-- Hearts: red filled/half/empty heart shapes (top-left)
-- Stone count: grey circle icon + number text (top-right)
+Uses real sprite assets when available (hud_heart.png, hud_stone.png,
+mask_stone_slam.png), falling back to simple geometric shapes.
 """
 
 from __future__ import annotations
@@ -15,6 +14,7 @@ import pygame
 
 from sa_fona.config.settings import BASE_WIDTH
 from sa_fona.core.event_bus import EventBus
+from sa_fona.rendering.asset_loader import load_image, load_ui_asset, load_ui_frame_strip
 
 
 # ── Layout constants ──────────────────────────────────────────────
@@ -78,6 +78,12 @@ class HUD:
         # Pre-render a small font for the stone count.
         self._font: pygame.font.Font | None = None
         self._init_font()
+
+        # Asset sprites (loaded lazily on first render).
+        self._heart_frames: list[pygame.Surface] | None = None
+        self._stone_icon: pygame.Surface | None = None
+        self._mask_icon: pygame.Surface | None = None
+        self._assets_loaded: bool = False
 
         # Subscribe to events.
         self._event_bus.subscribe("heart_collected", self._on_heart_collected)
@@ -158,18 +164,33 @@ class HUD:
 
     # ── Rendering ─────────────────────────────────────────────────
 
+    def _load_assets(self) -> None:
+        """Load HUD sprite assets from disk (called once on first render)."""
+        self._assets_loaded = True
+        self._heart_frames = load_ui_frame_strip("hud_heart")
+        self._stone_icon = load_ui_asset("hud_stone")
+        # Skip loading mask_stone_slam.png — the AI-processed icon looks
+        # worse than the placeholder golden square.
+        self._mask_icon = None
+
     def render(self, surface: pygame.Surface) -> None:
         """Draw the HUD onto the target surface (screen space).
 
         Args:
             surface: The pygame Surface to draw on (base resolution).
         """
+        if not self._assets_loaded:
+            self._load_assets()
         self._render_hearts(surface)
         self._render_stone_count(surface)
         self._render_mask_icon(surface)
 
     def _render_hearts(self, surface: pygame.Surface) -> None:
-        """Draw heart icons in the top-left corner."""
+        """Draw heart icons in the top-left corner.
+
+        Uses hud_heart.png frame strip (full/half/empty) when available,
+        falls back to drawn diamond shapes.
+        """
         x = _HEART_MARGIN_X
         y = _HEART_MARGIN_Y
 
@@ -179,16 +200,23 @@ class HUD:
             # Determine fill level for this heart.
             remaining = self._current_hearts - float(i)
             if remaining >= 1.0:
+                frame_idx = 0  # full
                 color = _HEART_FULL_COLOR
             elif remaining >= 0.5:
+                frame_idx = 1  # half
                 color = _HEART_HALF_COLOR
             else:
+                frame_idx = 2  # empty
                 color = _HEART_EMPTY_COLOR
 
-            # Draw a diamond shape for each heart.
+            # Use sprite frames if available.
+            if self._heart_frames and frame_idx < len(self._heart_frames):
+                surface.blit(self._heart_frames[frame_idx], (heart_x, y))
+                continue
+
+            # Fallback: draw a diamond shape.
             cx = heart_x + _HEART_SIZE // 2
             cy = y + _HEART_SIZE // 2
-            half = _HEART_SIZE // 2
             points = [
                 (cx, y),                    # top
                 (heart_x + _HEART_SIZE, cy),# right
@@ -196,36 +224,44 @@ class HUD:
                 (heart_x, cy),              # left
             ]
             pygame.draw.polygon(surface, color, points)
-
-            # Outline for visibility.
             outline_color = tuple(max(0, c - 60) for c in color)
             pygame.draw.polygon(surface, outline_color, points, 1)
 
     def _render_stone_count(self, surface: pygame.Surface) -> None:
-        """Draw stone icon and count in the top-right corner."""
+        """Draw stone icon and count in the top-right corner.
+
+        Uses hud_stone.png when available, falls back to a grey circle.
+        """
         screen_w = surface.get_width()
 
-        # Stone icon (grey circle).
+        # Stone icon position.
         icon_x = screen_w - _STONE_MARGIN_X - _STONE_ICON_RADIUS * 2 - 30
         icon_cy = _STONE_MARGIN_Y + _STONE_ICON_RADIUS
-        pygame.draw.circle(
-            surface,
-            _STONE_ICON_COLOR,
-            (icon_x + _STONE_ICON_RADIUS, icon_cy),
-            _STONE_ICON_RADIUS,
-        )
-        pygame.draw.circle(
-            surface,
-            (120, 120, 120),
-            (icon_x + _STONE_ICON_RADIUS, icon_cy),
-            _STONE_ICON_RADIUS,
-            1,
-        )
+
+        if self._stone_icon is not None:
+            # Center the sprite icon at the same position.
+            ix = icon_x
+            iy = _STONE_MARGIN_Y
+            surface.blit(self._stone_icon, (ix, iy))
+        else:
+            # Fallback: grey circle.
+            pygame.draw.circle(
+                surface,
+                _STONE_ICON_COLOR,
+                (icon_x + _STONE_ICON_RADIUS, icon_cy),
+                _STONE_ICON_RADIUS,
+            )
+            pygame.draw.circle(
+                surface,
+                (120, 120, 120),
+                (icon_x + _STONE_ICON_RADIUS, icon_cy),
+                _STONE_ICON_RADIUS,
+                1,
+            )
 
         # Stone count text.
         if self._font is not None:
             text_str = f"x{self._stone_count}"
-            # Shadow for readability.
             shadow = self._font.render(text_str, False, _STONE_TEXT_SHADOW)
             text = self._font.render(text_str, False, _STONE_TEXT_COLOR)
             text_x = icon_x + _STONE_TEXT_OFFSET_X
@@ -236,28 +272,37 @@ class HUD:
     def _render_mask_icon(self, surface: pygame.Surface) -> None:
         """Draw the mask icon with cooldown overlay in the top-right corner.
 
-        Positioned below the stone count display. Shows an empty/dimmed
-        square when no mask is equipped, or a colored square with a
-        cooldown bar when a mask is equipped.
+        Uses mask_stone_slam.png when available for the equipped state,
+        falling back to colored rectangles.
         """
         screen_w = surface.get_width()
         icon_x = screen_w - _MASK_MARGIN_X - _MASK_ICON_SIZE
         icon_y = _MASK_MARGIN_Y
 
         if self._mask_equipped:
-            # Active mask icon (golden square).
-            pygame.draw.rect(
-                surface, _MASK_ACTIVE_COLOR,
-                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE),
-            )
-            # Border.
-            pygame.draw.rect(
-                surface, (140, 110, 30),
-                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE), 1,
-            )
+            if self._mask_icon is not None:
+                # Use the real mask sprite (scaled to icon size if needed).
+                mask_w = self._mask_icon.get_width()
+                mask_h = self._mask_icon.get_height()
+                if mask_w != _MASK_ICON_SIZE or mask_h != _MASK_ICON_SIZE:
+                    scaled = pygame.transform.scale(
+                        self._mask_icon, (_MASK_ICON_SIZE, _MASK_ICON_SIZE),
+                    )
+                    surface.blit(scaled, (icon_x, icon_y))
+                else:
+                    surface.blit(self._mask_icon, (icon_x, icon_y))
+            else:
+                # Fallback: golden square.
+                pygame.draw.rect(
+                    surface, _MASK_ACTIVE_COLOR,
+                    (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE),
+                )
+                pygame.draw.rect(
+                    surface, (140, 110, 30),
+                    (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE), 1,
+                )
 
-            # Cooldown overlay: darkened portion shrinks from top as
-            # cooldown_progress goes from 0.0 to 1.0.
+            # Cooldown overlay: darkened portion shrinks from top.
             if self._mask_cooldown_progress < 1.0:
                 cooldown_h = int(
                     _MASK_ICON_SIZE * (1.0 - self._mask_cooldown_progress)

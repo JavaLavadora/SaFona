@@ -1,8 +1,9 @@
 """Game over scene: displayed when the player dies.
 
-Placeholder implementation: dark red screen with "GAME OVER" text
-and "Press any key to restart" prompt.  Pressing any key restarts
-the game from the beginning of the current level.
+Displays the game over image (assets/ui/game_over.png) or falls back
+to a dark red screen with "GAME OVER" text and "Press any key to
+restart" prompt.  Pressing any key restarts the game from the
+beginning of the current level.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.core.input_handler import InputState
+from sa_fona.rendering.asset_loader import load_ui_asset
 from sa_fona.scenes.base_scene import BaseScene
 
 
@@ -41,6 +43,10 @@ class GameOverScene(BaseScene):
 
         # Delay before accepting input (prevents accidental skip).
         self._input_delay: float = 0.5
+
+        # Game over image (loaded lazily).
+        self._game_over_image: pygame.Surface | None = None
+        self._game_over_image_loaded: bool = False
 
     def on_enter(self) -> None:
         """Reset state on scene entry."""
@@ -100,8 +106,16 @@ class GameOverScene(BaseScene):
             except Exception:
                 self._prompt_font = None
 
-        # "GAME OVER" title.
-        if self._title_font is not None:
+        # Game over image or text fallback.
+        if not self._game_over_image_loaded:
+            self._game_over_image = load_ui_asset("game_over")
+            self._game_over_image_loaded = True
+
+        if self._game_over_image is not None:
+            tx = (surface.get_width() - self._game_over_image.get_width()) // 2
+            ty = surface.get_height() // 3 - self._game_over_image.get_height() // 2
+            surface.blit(self._game_over_image, (tx, ty))
+        elif self._title_font is not None:
             title = self._title_font.render("GAME OVER", False, _TITLE_COLOR)
             tx = (surface.get_width() - title.get_width()) // 2
             ty = surface.get_height() // 3

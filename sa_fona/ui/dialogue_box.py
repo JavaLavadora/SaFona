@@ -1,9 +1,9 @@
 """Bottom-screen dialogue text box with character portrait and letter-by-letter reveal.
 
-Renders a dialogue box at the bottom of the screen, showing the speaker name,
-a portrait placeholder (colored square with initial), and text that reveals
-letter by letter. Pressing interact advances to the next line or finishes
-revealing the current line.
+Renders a dialogue box at the bottom of the screen using a frame image
+(dialogue_frame.png) when available. Shows the speaker name, a portrait
+image loaded from assets/portraits/, and text that reveals letter by
+letter. Falls back to colored rectangles when assets are missing.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import pygame
 
 from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
 from sa_fona.core.event_bus import EventBus
+from sa_fona.rendering.asset_loader import load_portrait, load_ui_asset
 
 # Layout constants (in base-resolution pixels).
 BOX_MARGIN = 6
@@ -33,6 +34,13 @@ SPEAKER_COLOR = (255, 220, 100)
 TEXT_COLOR = (255, 255, 255)
 PORTRAIT_BG_COLOR = (60, 50, 80)
 PORTRAIT_BORDER_COLOR = (200, 180, 130)
+
+# Fallback map for portrait keys used in dialogues but missing from the
+# asset manifest.  Maps the missing key to the closest available portrait.
+_PORTRAIT_FALLBACK: dict[str, str] = {
+    "ramon_annoyed": "ramon_angry",
+    "bep_neutral": "bep_happy",
+}
 
 # Speaker -> portrait color mapping.
 _SPEAKER_COLORS: dict[str, tuple[int, int, int]] = {
@@ -96,6 +104,11 @@ class DialogueBox:
         # Font (initialized lazily to avoid pygame.init requirement at import).
         self._font: pygame.font.Font | None = None
         self._small_font: pygame.font.Font | None = None
+
+        # Cached UI assets (loaded lazily).
+        self._frame_image: pygame.Surface | None = None
+        self._frame_loaded: bool = False
+        self._portrait_cache: dict[str, pygame.Surface | None] = {}
 
     # ── Properties ─────────────────────────────────────────────────
 
@@ -214,6 +227,36 @@ class DialogueBox:
             if self._auto_advance_timer >= self._auto_advance_duration:
                 self.advance()
 
+    def _load_frame_image(self) -> None:
+        """Mark frame as loaded; use drawn fallback instead of image asset."""
+        self._frame_loaded = True
+        # Intentionally skip loading dialogue_frame.png — the drawn
+        # fallback (semi-transparent box + border) looks better than the
+        # AI-processed frame asset.
+        self._frame_image = None
+
+    def _get_portrait_image(self, portrait_key: str) -> pygame.Surface | None:
+        """Load and cache a portrait image by key.
+
+        Falls back to ``_PORTRAIT_FALLBACK`` when the exact key is not
+        found in the asset manifest.
+
+        Args:
+            portrait_key: The portrait identifier (e.g. "ramon_neutral").
+
+        Returns:
+            A pygame Surface, or None if not found.
+        """
+        if portrait_key not in self._portrait_cache:
+            surface = load_portrait(portrait_key)
+            if surface is None:
+                # Try a fallback mapping for keys that don't exist yet.
+                fallback_key = _PORTRAIT_FALLBACK.get(portrait_key)
+                if fallback_key:
+                    surface = load_portrait(fallback_key)
+            self._portrait_cache[portrait_key] = surface
+        return self._portrait_cache[portrait_key]
+
     def render(self, surface: pygame.Surface) -> None:
         """Draw the dialogue box, portrait, and text.
 
@@ -225,23 +268,37 @@ class DialogueBox:
 
         self._ensure_fonts()
 
+        if not self._frame_loaded:
+            self._load_frame_image()
+
         # Box position.
         box_x = BOX_MARGIN
         box_y = BASE_HEIGHT - BOX_HEIGHT - BOX_MARGIN
         box_w = BASE_WIDTH - BOX_MARGIN * 2
 
-        # Draw box background with alpha.
-        box_surface = pygame.Surface((box_w, BOX_HEIGHT), pygame.SRCALPHA)
-        box_surface.fill(BOX_BG_COLOR)
-        surface.blit(box_surface, (box_x, box_y))
-
-        # Draw box border.
-        pygame.draw.rect(
-            surface,
-            BOX_BORDER_COLOR,
-            (box_x, box_y, box_w, BOX_HEIGHT),
-            1,
-        )
+        # Draw box background: use frame image or fallback.
+        if self._frame_image is not None:
+            # Scale frame image to match the box dimensions.
+            frame_w = self._frame_image.get_width()
+            frame_h = self._frame_image.get_height()
+            if frame_w != box_w or frame_h != BOX_HEIGHT:
+                scaled = pygame.transform.scale(
+                    self._frame_image, (box_w, BOX_HEIGHT),
+                )
+                surface.blit(scaled, (box_x, box_y))
+            else:
+                surface.blit(self._frame_image, (box_x, box_y))
+        else:
+            # Fallback: semi-transparent background + border.
+            box_surface = pygame.Surface((box_w, BOX_HEIGHT), pygame.SRCALPHA)
+            box_surface.fill(BOX_BG_COLOR)
+            surface.blit(box_surface, (box_x, box_y))
+            pygame.draw.rect(
+                surface,
+                BOX_BORDER_COLOR,
+                (box_x, box_y, box_w, BOX_HEIGHT),
+                1,
+            )
 
         if self._current_index >= len(self._sequence):
             return
@@ -249,30 +306,45 @@ class DialogueBox:
         line = self._sequence[self._current_index]
         speaker = line.get("speaker", "")
         text = line.get("text", "")
+        portrait_key = line.get("portrait", "")
 
-        # Portrait placeholder.
+        # Portrait area.
         portrait_x = box_x + BOX_PADDING
         portrait_y = box_y + (BOX_HEIGHT - PORTRAIT_SIZE) // 2
-        color = _portrait_color(speaker)
 
-        pygame.draw.rect(
-            surface,
-            color,
-            (portrait_x, portrait_y, PORTRAIT_SIZE, PORTRAIT_SIZE),
-        )
-        pygame.draw.rect(
-            surface,
-            PORTRAIT_BORDER_COLOR,
-            (portrait_x, portrait_y, PORTRAIT_SIZE, PORTRAIT_SIZE),
-            1,
-        )
+        # Try to load the portrait image.
+        portrait_surface = None
+        if portrait_key:
+            portrait_surface = self._get_portrait_image(portrait_key)
 
-        # Draw speaker initial on portrait.
-        initial = speaker[0].upper() if speaker else "?"
-        initial_surf = self._font.render(initial, False, (255, 255, 255))
-        ix = portrait_x + (PORTRAIT_SIZE - initial_surf.get_width()) // 2
-        iy = portrait_y + (PORTRAIT_SIZE - initial_surf.get_height()) // 2
-        surface.blit(initial_surf, (ix, iy))
+        if portrait_surface is not None:
+            surface.blit(portrait_surface, (portrait_x, portrait_y))
+            # Border around the portrait.
+            pygame.draw.rect(
+                surface,
+                PORTRAIT_BORDER_COLOR,
+                (portrait_x, portrait_y, PORTRAIT_SIZE, PORTRAIT_SIZE),
+                1,
+            )
+        else:
+            # Fallback: colored rectangle with initial letter.
+            color = _portrait_color(speaker)
+            pygame.draw.rect(
+                surface,
+                color,
+                (portrait_x, portrait_y, PORTRAIT_SIZE, PORTRAIT_SIZE),
+            )
+            pygame.draw.rect(
+                surface,
+                PORTRAIT_BORDER_COLOR,
+                (portrait_x, portrait_y, PORTRAIT_SIZE, PORTRAIT_SIZE),
+                1,
+            )
+            initial = speaker[0].upper() if speaker else "?"
+            initial_surf = self._font.render(initial, False, (255, 255, 255))
+            ix = portrait_x + (PORTRAIT_SIZE - initial_surf.get_width()) // 2
+            iy = portrait_y + (PORTRAIT_SIZE - initial_surf.get_height()) // 2
+            surface.blit(initial_surf, (ix, iy))
 
         # Speaker name.
         text_x = box_x + TEXT_LEFT_OFFSET

@@ -1,12 +1,13 @@
 """Charge indicator UI element displayed near the player during sling charge.
 
 Shows a small visual indicator near Ramon that changes color based on
-the current charge tier:
+the current charge tier. Uses charge_indicator.png frame strip when
+available (3 frames for tiers 1-3), falling back to colored rectangles.
 
 - Tier 0 (not charging): hidden
-- Tier 1 (faint glow): dim yellow
-- Tier 2 (bright): bright orange
-- Tier 3 (flash): pulsing white/red
+- Tier 1 (faint glow): dim yellow / frame 0
+- Tier 2 (bright): bright orange / frame 1
+- Tier 3 (flash): pulsing white/red / frame 2
 
 The indicator is rendered in world space (moves with the camera) above
 the player's head.
@@ -17,6 +18,8 @@ from __future__ import annotations
 import math
 
 import pygame
+
+from sa_fona.rendering.asset_loader import load_ui_frame_strip
 
 
 # Colors per charge tier.
@@ -49,6 +52,8 @@ class ChargeIndicator:
     def __init__(self) -> None:
         self._tier: int = 0
         self._flash_timer: float = 0.0
+        self._indicator_frames: list[pygame.Surface] | None = None
+        self._frames_loaded: bool = False
 
     def update(self, tier: int, dt: float) -> None:
         """Update the indicator state.
@@ -71,6 +76,9 @@ class ChargeIndicator:
     ) -> None:
         """Draw the charge indicator above the player.
 
+        Uses charge_indicator.png frame strip when available, falling
+        back to colored rectangles.
+
         Args:
             surface: Target surface to draw on.
             player_rect: Player's world-space bounding rect.
@@ -79,9 +87,36 @@ class ChargeIndicator:
         if self._tier == 0:
             return
 
-        # Determine color.
+        # Lazy load indicator frames.
+        if not self._frames_loaded:
+            self._frames_loaded = True
+            self._indicator_frames = load_ui_frame_strip("charge_indicator")
+
+        # Position above the player's head.
+        screen_x = (player_rect.centerx - camera_offset[0])
+        screen_y = (player_rect.top - camera_offset[1]) + _INDICATOR_OFFSET_Y
+
+        # Try sprite frames first (tier 1=frame 0, tier 2=frame 1, tier 3=frame 2).
+        frame_idx = self._tier - 1
+        if (
+            self._indicator_frames
+            and 0 <= frame_idx < len(self._indicator_frames)
+        ):
+            frame = self._indicator_frames[frame_idx]
+            fx = screen_x - frame.get_width() // 2
+            fy = screen_y
+
+            # Tier 3: flash by toggling visibility.
+            if self._tier == 3:
+                phase = math.sin(self._flash_timer * 8.0 * math.pi)
+                if phase < 0:
+                    return  # Flash off
+
+            surface.blit(frame, (fx, fy))
+            return
+
+        # Fallback: colored rectangle.
         if self._tier == 3:
-            # Flash between white and red at ~8 Hz.
             phase = math.sin(self._flash_timer * 8.0 * math.pi)
             if phase > 0:
                 color = _TIER_COLORS[3]
@@ -90,18 +125,12 @@ class ChargeIndicator:
         else:
             color = _TIER_COLORS.get(self._tier, _TIER_COLORS[1])
 
-        # Width scales with tier for visual feedback.
         width = _INDICATOR_WIDTH + (self._tier - 1) * 4
         height = _INDICATOR_HEIGHT
 
-        # Position above the player's head, centered.
-        screen_x = (player_rect.centerx - camera_offset[0]) - width // 2
-        screen_y = (player_rect.top - camera_offset[1]) + _INDICATOR_OFFSET_Y
-
-        # Draw a filled rect with a 1px darker border for visibility.
-        indicator_rect = pygame.Rect(screen_x, screen_y, width, height)
+        rect_x = screen_x - width // 2
+        indicator_rect = pygame.Rect(rect_x, screen_y, width, height)
         pygame.draw.rect(surface, color, indicator_rect)
 
-        # Border (slightly darker version of the color).
         border_color = tuple(max(0, c - 60) for c in color)
         pygame.draw.rect(surface, border_color, indicator_rect, 1)

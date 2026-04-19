@@ -19,6 +19,7 @@ import pygame
 from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH, DATA_DIR
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
+from sa_fona.rendering.effects import EffectRenderer
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.ui.dialogue_box import DialogueBox
 from sa_fona.ui.transition import Transition
@@ -69,6 +70,9 @@ class CutsceneScene(BaseScene):
         # Transition effect.
         self._transition = Transition()
         self._transition_pending_next: bool = False
+
+        # Visual effects renderer for cutscene effects (aura, portal).
+        self._effects = EffectRenderer()
 
         # Scene manager reference (set by the boss scene or caller).
         self._scene_manager = None
@@ -149,6 +153,9 @@ class CutsceneScene(BaseScene):
         if self._done:
             return
 
+        # Always tick effects (even during dialogue/transition).
+        self._effects.update(dt)
+
         # Update dialogue text reveal.
         if self._dialogue_active:
             self._dialogue_box.update(dt)
@@ -191,6 +198,9 @@ class CutsceneScene(BaseScene):
         overlay.fill((0, 0, 0, 140))
         surface.blit(overlay, (0, 0))
 
+        # Visual effects (aura, portal) -- rendered in screen space (0,0 offset).
+        self._effects.render(surface, (0, 0))
+
         # Dialogue box.
         if self._dialogue_active:
             self._dialogue_box.render(surface)
@@ -222,6 +232,10 @@ class CutsceneScene(BaseScene):
             self._start_load_level_step(step)
         elif step_type == "save_immediate":
             self._start_save_immediate_step(step)
+        elif step_type == "spawn_effect":
+            self._start_spawn_effect_step(step)
+        elif step_type == "remove_effect":
+            self._start_remove_effect_step(step)
         else:
             # Unknown step type, skip it.
             self._advance_step()
@@ -309,6 +323,34 @@ class CutsceneScene(BaseScene):
             step: The step dict (no extra fields needed).
         """
         self._event_bus.publish("save_requested")
+        self._advance_step()
+
+    def _start_spawn_effect_step(self, step: dict[str, Any]) -> None:
+        """Spawn a visual effect at a screen position.
+
+        Advances immediately. The effect plays in the background.
+
+        Args:
+            step: The step dict with "effect_type", "x", "y", and
+                optional "tag" fields.
+        """
+        effect_type = step.get("effect_type", "")
+        x = float(step.get("x", BASE_WIDTH // 2))
+        y = float(step.get("y", BASE_HEIGHT // 2))
+        tag = step.get("tag", "")
+        if effect_type:
+            self._effects.spawn(effect_type, x, y, tag=tag)
+        self._advance_step()
+
+    def _start_remove_effect_step(self, step: dict[str, Any]) -> None:
+        """Remove effects by tag.
+
+        Args:
+            step: The step dict with "tag" field.
+        """
+        tag = step.get("tag", "")
+        if tag:
+            self._effects.remove_by_tag(tag)
         self._advance_step()
 
     def _advance_step(self) -> None:

@@ -1,6 +1,13 @@
 {
   "steps": [
     {
+      "type": "spawn_effect",
+      "effect_type": "dimoni_aura",
+      "x": 192,
+      "y": 90,
+      "tag": "dimoni_aura"
+    },
+    {
       "type": "wait",
       "duration": 0.5
     },
@@ -46,6 +53,21 @@
     {
       "type": "wait",
       "duration": 0.5
+    },
+    {
+      "type": "remove_effect",
+      "tag": "dimoni_aura"
+    },
+    {
+      "type": "spawn_effect",
+      "effect_type": "portal",
+      "x": 192,
+      "y": 100,
+      "tag": "portal"
+    },
+    {
+      "type": "wait",
+      "duration": 1.0
     },
     {
       "type": "transition",

@@ -28,7 +28,7 @@ from sa_fona.entities.enemy_behaviors import (
     create_behavior,
 )
 from sa_fona.entities.pickup import Pickup, PickupType
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 if TYPE_CHECKING:
     from sa_fona.level.tilemap import TileMap
@@ -122,11 +122,21 @@ class Enemy(Entity):
 
         self._idle_frames: list[pygame.Surface] = []
         self._walk_frames: list[pygame.Surface] = []
+        self._charge_frames: list[pygame.Surface] = []
+        self._attack_frames: list[pygame.Surface] = []
+        self._block_frames: list[pygame.Surface] = []
+        self._hit_frames: list[pygame.Surface] = []
+        self._death_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.2
         self._walk_anim_speed: float = 0.12
         self._has_sprites: bool = False
+
+        # Death animation state.
+        self._playing_death: bool = False
+        self._death_timer: float = 0.0
+        self._death_frame: int = 0
 
         self._build_sprite()
 
@@ -134,31 +144,83 @@ class Enemy(Entity):
         self._font: pygame.font.Font | None = None
 
     def _build_sprite(self) -> None:
-        """Load real sprites or create a placeholder colored rectangle."""
-        idle = load_sprite_sheet_from_file(
-            f"assets/sprites/enemies/{self.enemy_type}_idle.png",
-            self._sprite_w, self._sprite_h,
-        )
-        if idle:
-            self._idle_frames = idle
-            self._has_sprites = True
+        """Load real sprites or create a placeholder colored rectangle.
 
-        walk = load_sprite_sheet_from_file(
-            f"assets/sprites/enemies/{self.enemy_type}_walk.png",
-            self._sprite_w, self._sprite_h,
-        )
-        if walk:
-            self._walk_frames = walk
-            self._has_sprites = True
+        If the loaded frames don't match ``_sprite_w x _sprite_h`` (e.g.
+        a rival_warrior drawn at 16x24 but intended to display at 24x32),
+        each frame is scaled up to the target visual size.
+        """
+        # Load all available animation states.
+        anim_map = {
+            "_idle_frames": "idle",
+            "_walk_frames": "walk",
+            "_charge_frames": "charge",
+            "_attack_frames": "attack",
+            "_block_frames": "block",
+            "_hit_frames": "hit",
+            "_death_frames": "death",
+        }
+        for attr, suffix in anim_map.items():
+            # First try loading at the target visual size.
+            frames = load_frame_strip(
+                f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
+                self._sprite_w, self._sprite_h,
+            )
+            if not frames:
+                # Try loading at the file's native frame dimensions and
+                # scale up to the target visual size afterwards.
+                frames = self._load_and_scale_frames(
+                    f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
+                )
+            if frames:
+                setattr(self, attr, frames)
+                self._has_sprites = True
 
         if self._has_sprites:
-            self._sprite = (self._idle_frames or self._walk_frames)[0]
+            self._sprite = (self._idle_frames or self._walk_frames or [None])[0]
+            if self._sprite is None:
+                # Use any available frames.
+                for attr in anim_map:
+                    frames_list = getattr(self, attr)
+                    if frames_list:
+                        self._sprite = frames_list[0]
+                        break
         else:
             surf = pygame.Surface((self._sprite_w, self._sprite_h))
             surf.fill(self._base_color)
             border_color = tuple(max(0, c - 40) for c in self._base_color)
             pygame.draw.rect(surf, border_color, (0, 0, self._sprite_w, self._sprite_h), 1)
             self._sprite = surf
+
+    def _load_and_scale_frames(
+        self, path: str,
+    ) -> list[pygame.Surface] | None:
+        """Try common frame sizes and scale results to visual size.
+
+        Iterates over typical frame dimensions that the sprite file may
+        have been authored at.  When a match is found the frames are
+        scaled to ``_sprite_w x _sprite_h``.
+
+        Args:
+            path: Relative path to the sprite strip.
+
+        Returns:
+            Scaled frame list, or None.
+        """
+        # Common original frame sizes to try (width, height).
+        candidates = [(16, 16), (16, 24), (24, 32), (24, 24)]
+        for fw, fh in candidates:
+            if fw == self._sprite_w and fh == self._sprite_h:
+                continue  # Already tried at target size.
+            frames = load_frame_strip(path, fw, fh)
+            if frames:
+                # Scale each frame to the target visual dimensions.
+                scaled = [
+                    pygame.transform.scale(f, (self._sprite_w, self._sprite_h))
+                    for f in frames
+                ]
+                return scaled
+        return None
 
     # ── Properties ─────────────────────────────────────────────────
 
@@ -371,13 +433,36 @@ class Enemy(Entity):
                     return
 
     def _update_sprite(self, dt: float) -> None:
-        """Select the correct sprite frame based on movement state."""
+        """Select the correct sprite frame based on combat/movement state."""
         if not self._has_sprites:
             return
 
-        is_moving = abs(self.velocity[0]) > 0.5
-        frames = self._walk_frames if is_moving and self._walk_frames else self._idle_frames
-        speed = self._walk_anim_speed if is_moving else self._anim_speed
+        # Determine which frame set to use based on state.
+        frames: list[pygame.Surface] | None = None
+        speed = self._anim_speed
+
+        if self._playing_death and self._death_frames:
+            frames = self._death_frames
+            speed = 0.15
+        elif self._invincibility_timer > 0 and self._hit_frames:
+            frames = self._hit_frames
+            speed = 0.15
+        elif self.is_blocking and self._block_frames:
+            frames = self._block_frames
+            speed = self._anim_speed
+        elif self.is_attacking and self._attack_frames:
+            frames = self._attack_frames
+            speed = 0.12
+        elif self.is_in_tell and self._charge_frames:
+            frames = self._charge_frames
+            speed = 0.12
+        else:
+            is_moving = abs(self.velocity[0]) > 0.5
+            if is_moving and self._walk_frames:
+                frames = self._walk_frames
+                speed = self._walk_anim_speed
+            else:
+                frames = self._idle_frames
 
         if not frames:
             return
@@ -418,38 +503,42 @@ class Enemy(Entity):
             if blink_phase % 2 == 1:
                 return
 
+        # Align the visual sprite so its bottom matches the hitbox bottom
+        # (feet on ground) and it is horizontally centered on the hitbox.
         shrink = self._HITBOX_SHRINK
         vis_x = self.rect.x - camera_offset[0] - shrink
-        vis_y = self.rect.y - camera_offset[1] - shrink
+        vis_y = self.rect.bottom - self._sprite_h - camera_offset[1]
 
         if self._sprite is not None:
             surface.blit(self._sprite, (vis_x, vis_y))
 
-        if self.is_in_tell:
-            tell_surf = pygame.Surface(
-                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
-            )
-            tell_surf.fill(_TELL_COLOR)
-            surface.blit(tell_surf, (vis_x, vis_y))
-
-        if self.is_blocking:
-            block_surf = pygame.Surface(
-                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
-            )
-            block_surf.fill(_BLOCK_COLOR)
-            surface.blit(block_surf, (vis_x, vis_y))
-
-        if self.is_stunned:
-            # Blink the stun overlay to indicate the effect.
-            blink_phase = int(self._stun_timer / 0.15)
-            if blink_phase % 2 == 0:
-                stun_surf = pygame.Surface(
+        # State overlays are only drawn for placeholder enemies (no real
+        # sprites).  When real sprites are loaded, the animation frames
+        # already communicate the state (charge, attack, block, hit).
+        if not self._has_sprites:
+            if self.is_in_tell:
+                tell_surf = pygame.Surface(
                     (self._sprite_w, self._sprite_h), pygame.SRCALPHA
                 )
-                stun_surf.fill(_STUN_COLOR)
-                surface.blit(stun_surf, (vis_x, vis_y))
+                tell_surf.fill(_TELL_COLOR)
+                surface.blit(tell_surf, (vis_x, vis_y))
 
-        if not self._has_sprites:
+            if self.is_blocking:
+                block_surf = pygame.Surface(
+                    (self._sprite_w, self._sprite_h), pygame.SRCALPHA
+                )
+                block_surf.fill(_BLOCK_COLOR)
+                surface.blit(block_surf, (vis_x, vis_y))
+
+            if self.is_stunned:
+                blink_phase = int(self._stun_timer / 0.15)
+                if blink_phase % 2 == 0:
+                    stun_surf = pygame.Surface(
+                        (self._sprite_w, self._sprite_h), pygame.SRCALPHA
+                    )
+                    stun_surf.fill(_STUN_COLOR)
+                    surface.blit(stun_surf, (vis_x, vis_y))
+
             try:
                 if self._font is None:
                     self._font = pygame.font.Font(None, 14)

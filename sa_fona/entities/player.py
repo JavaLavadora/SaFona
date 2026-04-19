@@ -28,7 +28,7 @@ from sa_fona.config.settings import (
 )
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 class PlayerState(Enum):
@@ -116,6 +116,8 @@ class Player(Entity):
         self._wall_slide_frames: list[pygame.Surface] = []
         self._wall_jump_frames: list[pygame.Surface] = []
         self._sling_frames: list[pygame.Surface] = []
+        self._hit_frames: list[pygame.Surface] = []
+        self._death_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
@@ -126,41 +128,29 @@ class Player(Entity):
         # Values: "none", "charging", "releasing".
         self._sling_anim_state: str = "none"
 
-        idle = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/idle.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if idle:
-            self._idle_frames = idle
+        # Hit/death animation state (set externally by gameplay/combat).
+        # Values: "none", "hit", "death".
+        self._damage_anim_state: str = "none"
+        self._damage_anim_timer: float = 0.0
 
-        walk = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/walk.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if walk:
-            self._walk_frames = walk
-
-        jump = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/jump.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if jump:
-            self._jump_frames = jump
-
-        wall_slide = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/wall_slide.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if wall_slide:
-            self._wall_slide_frames = wall_slide
-
-        wall_jump = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/wall_jump.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if wall_jump:
-            self._wall_jump_frames = wall_jump
-
-        sling = load_sprite_sheet_from_file(
-            "assets/sprites/ramon/sling.png", PLAYER_WIDTH, PLAYER_HEIGHT,
-        )
-        if sling:
-            self._sling_frames = sling
+        # Load all sprite sheets.
+        anim_paths = {
+            "_idle_frames": "idle",
+            "_walk_frames": "walk",
+            "_jump_frames": "jump",
+            "_wall_slide_frames": "wall_slide",
+            "_wall_jump_frames": "wall_jump",
+            "_sling_frames": "sling",
+            "_hit_frames": "hit",
+            "_death_frames": "death",
+        }
+        for attr, name in anim_paths.items():
+            frames = load_frame_strip(
+                f"assets/sprites/ramon/{name}.png",
+                PLAYER_WIDTH, PLAYER_HEIGHT,
+            )
+            if frames:
+                setattr(self, attr, frames)
 
         has_sprites = bool(
             self._idle_frames or self._walk_frames or self._jump_frames
@@ -334,14 +324,52 @@ class Player(Entity):
 
     # ── Private helpers ────────────────────────────────────────────
 
+    @property
+    def damage_anim_state(self) -> str:
+        """Current damage animation state: "none", "hit", or "death"."""
+        return self._damage_anim_state
+
+    @damage_anim_state.setter
+    def damage_anim_state(self, value: str) -> None:
+        if value not in ("none", "hit", "death"):
+            value = "none"
+        if value != self._damage_anim_state:
+            self._damage_anim_state = value
+            self._damage_anim_timer = 0.0
+            self._anim_frame = 0
+            self._anim_timer = 0.0
+
     def _update_sprite(self, dt: float) -> None:
         """Select the correct sprite frame, with animation and flipping.
 
-        Sling animation takes priority over movement state when active.
-        During ``"charging"`` the sprite cycles through frames 0 and 1
-        (wind-up and mid-rotation) for a spinning effect.  During
-        ``"releasing"`` it shows frame 2 (the release pose).
+        Priority: death > hit > sling > movement state.
         """
+        # Death animation overrides everything.
+        if self._damage_anim_state == "death" and self._death_frames:
+            self._damage_anim_timer += dt
+            base = self._death_frames[min(
+                int(self._damage_anim_timer / 0.15),
+                len(self._death_frames) - 1,
+            )]
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+
+        # Hit animation overrides sling/movement.
+        if self._damage_anim_state == "hit" and self._hit_frames:
+            self._damage_anim_timer += dt
+            if self._damage_anim_timer < 0.3:
+                base = self._hit_frames[0]
+                if not self.facing_right:
+                    self._sprite = pygame.transform.flip(base, True, False)
+                else:
+                    self._sprite = base
+                return
+            # Hit animation done, revert.
+            self._damage_anim_state = "none"
+
         # Sling animation overrides movement animation when active.
         if self._sling_anim_state != "none" and self._sling_frames:
             if self._sling_anim_state == "charging":

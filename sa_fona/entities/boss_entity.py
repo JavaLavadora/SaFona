@@ -22,6 +22,7 @@ import pygame
 from sa_fona.config.settings import DATA_DIR
 from sa_fona.core.event_bus import EventBus
 from sa_fona.entities.entity import Entity
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 class BossState(Enum):
@@ -115,12 +116,15 @@ class BossEntity(Entity):
                 if p.get("weak_point"):
                     self._weak_point = p["weak_point"]
 
-        # Placeholder rendering.
+        # Rendering dimensions and sprite cache.
         self._width = width
         self._height = height
+        self._boss_sprites: dict[str, list[pygame.Surface]] = {}
+        self._has_boss_sprites: bool = False
+        self._load_boss_sprites()
         self._build_sprite()
 
-        # Font for label.
+        # Font for label (fallback only).
         self._font: pygame.font.Font | None = None
 
     # ── Properties ─────────────────────────────────────────────────
@@ -488,19 +492,113 @@ class BossEntity(Entity):
             new_phase: The phase number being entered (1-indexed).
         """
 
+    # ── Sprite loading ─────────────────────────────────────────────
+
+    # Map boss_id -> short prefix used in asset filenames.
+    _BOSS_PREFIX_MAP: dict[str, str] = {
+        "bou_de_pedra": "bou",
+    }
+
+    def _load_boss_sprites(self) -> None:
+        """Load boss sprite sheets from assets/sprites/boss/.
+
+        Attempts to load sprites keyed by a short prefix derived from
+        the boss_id via ``_BOSS_PREFIX_MAP``.  Falls back to using the
+        full boss_id when no mapping exists.  Populates
+        ``_boss_sprites`` dict with state-name -> frame list mappings.
+        """
+        short_prefix = self._BOSS_PREFIX_MAP.get(self.boss_id, self.boss_id)
+        sprite_names = [
+            "idle_p1", "idle_p2", "idle_p3",
+            "rush", "headbutt", "stomp", "hurl",
+            "stunned", "transition", "death",
+        ]
+        for name in sprite_names:
+            path = f"assets/sprites/boss/{short_prefix}_{name}.png"
+            frames = load_frame_strip(
+                path, self._width, self._height,
+            )
+            if frames:
+                self._boss_sprites[name] = frames
+                self._has_boss_sprites = True
+
+    def _get_boss_sprite_for_state(self) -> pygame.Surface | None:
+        """Get the correct sprite surface for the current boss state.
+
+        Returns:
+            A pygame Surface or None if no sprite is available.
+        """
+        if not self._has_boss_sprites:
+            return None
+
+        # Map boss state to sprite key.
+        if self._state == BossState.DEFEATED:
+            frames = self._boss_sprites.get("death")
+            if frames:
+                return frames[0]
+
+        if self._state == BossState.PHASE_TRANSITION:
+            frames = self._boss_sprites.get("transition")
+            if frames:
+                return frames[0]
+
+        if self._state == BossState.PUNISH:
+            frames = self._boss_sprites.get("stunned")
+            if frames:
+                return frames[0]
+
+        # Check for attack-specific sprites.
+        if self._state in (BossState.TELL, BossState.ATTACKING):
+            if self._current_pattern:
+                pattern_id = self._current_pattern.get("id", "")
+                # Map pattern IDs to sprite names.
+                pattern_sprite_map = {
+                    "bull_rush": "rush",
+                    "frenzy_rush": "rush",
+                    "headbutt": "headbutt",
+                    "ground_stomp": "stomp",
+                    "rock_hurl": "hurl",
+                    "core_pulse": "idle_p3",
+                }
+                sprite_key = pattern_sprite_map.get(pattern_id)
+                if sprite_key:
+                    frames = self._boss_sprites.get(sprite_key)
+                    if frames:
+                        return frames[0]
+
+        # Phase-specific idle sprite.
+        phase_key = f"idle_p{self.current_phase}"
+        frames = self._boss_sprites.get(phase_key)
+        if frames:
+            return frames[0]
+
+        # Any available idle sprite.
+        for key in ("idle_p1", "idle_p2", "idle_p3"):
+            frames = self._boss_sprites.get(key)
+            if frames:
+                return frames[0]
+
+        return None
+
     # ── Rendering ──────────────────────────────────────────────────
 
     def _build_sprite(self) -> None:
-        """Create a placeholder colored rectangle sprite.
+        """Build the sprite for the current state.
 
-        Color changes per phase (grey -> orange -> red).
+        Uses real boss sprites when available, falling back to colored
+        rectangles per phase.
         """
+        boss_surf = self._get_boss_sprite_for_state()
+        if boss_surf is not None:
+            self._sprite = boss_surf
+            return
+
+        # Fallback: colored rectangle.
         phase_data = self.current_phase_data
         color = tuple(phase_data.get("color", [140, 140, 140]))
 
         surf = pygame.Surface((self._width, self._height))
         surf.fill(color)
-        # Border.
         border = tuple(max(0, c - 40) for c in color)
         pygame.draw.rect(surf, border, (0, 0, self._width, self._height), 2)
         self._sprite = surf
@@ -519,11 +617,16 @@ class BossEntity(Entity):
         if not self.active and self._state != BossState.DEFEATED:
             return
 
+        # Update sprite to match current state.
+        if self._has_boss_sprites:
+            boss_surf = self._get_boss_sprite_for_state()
+            if boss_surf is not None:
+                self._sprite = boss_surf
+
         # Hit flash: blink white briefly when damaged.
         if self._hit_flash_timer > 0:
             blink = int(self._hit_flash_timer / 0.05)
             if blink % 2 == 1:
-                # Draw white flash.
                 screen_x = self.rect.x - camera_offset[0]
                 screen_y = self.rect.y - camera_offset[1]
                 flash = pygame.Surface((self._width, self._height))
@@ -534,27 +637,44 @@ class BossEntity(Entity):
         screen_x = self.rect.x - camera_offset[0]
         screen_y = self.rect.y - camera_offset[1]
 
-        # Draw base sprite.
+        # Draw base sprite, mirrored when facing left.
         if self._sprite is not None:
-            surface.blit(self._sprite, (screen_x, screen_y))
+            if not self.facing_right:
+                flipped = pygame.transform.flip(self._sprite, True, False)
+                surface.blit(flipped, (screen_x, screen_y))
+            else:
+                surface.blit(self._sprite, (screen_x, screen_y))
 
-        # Tell overlay (pulsing yellow).
-        if self._state == BossState.TELL:
-            tell_surf = pygame.Surface(
-                (self._width, self._height), pygame.SRCALPHA
-            )
-            tell_surf.fill((255, 220, 50, 100))
-            surface.blit(tell_surf, (screen_x, screen_y))
+        # Overlays only when using placeholder sprites (no sprite assets).
+        if not self._has_boss_sprites:
+            # Tell overlay (pulsing yellow).
+            if self._state == BossState.TELL:
+                tell_surf = pygame.Surface(
+                    (self._width, self._height), pygame.SRCALPHA
+                )
+                tell_surf.fill((255, 220, 50, 100))
+                surface.blit(tell_surf, (screen_x, screen_y))
 
-        # Punish overlay (blue tint = stunned).
-        if self._state == BossState.PUNISH:
-            punish_surf = pygame.Surface(
-                (self._width, self._height), pygame.SRCALPHA
-            )
-            punish_surf.fill((50, 100, 255, 80))
-            surface.blit(punish_surf, (screen_x, screen_y))
+            # Punish overlay (blue tint = stunned).
+            if self._state == BossState.PUNISH:
+                punish_surf = pygame.Surface(
+                    (self._width, self._height), pygame.SRCALPHA
+                )
+                punish_surf.fill((50, 100, 255, 80))
+                surface.blit(punish_surf, (screen_x, screen_y))
 
-        # Phase transition overlay (bright flash).
+            # Label.
+            try:
+                if self._font is None:
+                    self._font = pygame.font.Font(None, 18)
+                label = self._font.render("B", False, (0, 0, 0))
+                lx = screen_x + (self._width - label.get_width()) // 2
+                ly = screen_y + (self._height - label.get_height()) // 2
+                surface.blit(label, (lx, ly))
+            except (pygame.error, IndexError):
+                pass
+
+        # Phase transition overlay (bright flash) -- shown even with sprites.
         if self._state == BossState.PHASE_TRANSITION:
             flash_surf = pygame.Surface(
                 (self._width, self._height), pygame.SRCALPHA
@@ -572,17 +692,6 @@ class BossEntity(Entity):
             core_x = screen_x + self._width // 2 - 6
             core_y = screen_y + self._height // 2 - 6
             surface.blit(core_surf, (core_x, core_y))
-
-        # Label.
-        try:
-            if self._font is None:
-                self._font = pygame.font.Font(None, 18)
-            label = self._font.render("B", False, (0, 0, 0))
-            lx = screen_x + (self._width - label.get_width()) // 2
-            ly = screen_y + (self._height - label.get_height()) // 2
-            surface.blit(label, (lx, ly))
-        except (pygame.error, IndexError):
-            pass
 
     # ── Static loader ──────────────────────────────────────────────
 

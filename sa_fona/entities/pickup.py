@@ -18,7 +18,7 @@ from enum import Enum, auto
 import pygame
 
 from sa_fona.entities.entity import Entity
-from sa_fona.rendering.sprite_renderer import load_sprite_sheet_from_file
+from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 class PickupType(Enum):
@@ -69,7 +69,7 @@ class Pickup(Entity):
         }
         path = sprite_map.get(self.pickup_type)
         if path:
-            frames = load_sprite_sheet_from_file(path, PICKUP_WIDTH, PICKUP_HEIGHT)
+            frames = load_frame_strip(path, PICKUP_WIDTH, PICKUP_HEIGHT)
             if frames:
                 self._sprite = frames[0]
                 return

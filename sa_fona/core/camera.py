@@ -28,6 +28,7 @@ class Camera:
         level_height: int,
         view_width: int = BASE_WIDTH,
         view_height: int = BASE_HEIGHT,
+        zoom: float = 1.0,
     ) -> None:
         """Initialise the camera.
 
@@ -36,11 +37,15 @@ class Camera:
             level_height: Total level height in pixels.
             view_width: Viewport width. Defaults to ``BASE_WIDTH`` (384).
             view_height: Viewport height. Defaults to ``BASE_HEIGHT`` (216).
+            zoom: Zoom factor.  Values above 1.0 zoom in (show a smaller
+                area of the world), keeping the camera closer to the action.
+                Defaults to ``1.0`` (no zoom).
         """
         self.view_width = view_width
         self.view_height = view_height
         self._level_width = level_width
         self._level_height = level_height
+        self._zoom = zoom
 
         # Camera position (top-left of the viewport in world coords).
         self._x: float = 0.0
@@ -58,6 +63,26 @@ class Camera:
 
     # ── Public API ─────────────────────────────────────────────────
 
+    @property
+    def zoom(self) -> float:
+        """Current zoom factor (read-only)."""
+        return self._zoom
+
+    def snap_to(self, target_rect: pygame.Rect) -> None:
+        """Instantly center the camera on a target (no lerp).
+
+        Useful after respawning or scene transitions to avoid the
+        visible "snap" that lerp produces on the first frame.
+
+        Args:
+            target_rect: The rectangle to center on (world coordinates).
+        """
+        eff_w = self.view_width / self._zoom
+        eff_h = self.view_height / self._zoom
+        self._x = target_rect.centerx - eff_w / 2
+        self._y = target_rect.centery - eff_h / 2
+        self._clamp()
+
     def follow(self, target_rect: pygame.Rect, dt: float) -> None:
         """Move the camera towards centering the target.
 
@@ -67,9 +92,13 @@ class Camera:
             target_rect: The rectangle to follow (world coordinates).
             dt: Delta time in seconds.
         """
+        # Effective viewport size accounts for zoom.
+        eff_w = self.view_width / self._zoom
+        eff_h = self.view_height / self._zoom
+
         # Desired camera position: center the target on screen.
-        target_x = target_rect.centerx - self.view_width / 2
-        target_y = target_rect.centery - self.view_height / 2
+        target_x = target_rect.centerx - eff_w / 2
+        target_y = target_rect.centery - eff_h / 2
 
         # Lerp towards the target.
         factor = min(1.0, self._smoothing * dt)
@@ -140,7 +169,9 @@ class Camera:
 
     def _clamp(self) -> None:
         """Clamp camera so the viewport stays within level bounds."""
-        max_x = max(0, self._level_width - self.view_width)
-        max_y = max(0, self._level_height - self.view_height)
-        self._x = max(0.0, min(self._x, float(max_x)))
-        self._y = max(0.0, min(self._y, float(max_y)))
+        eff_w = self.view_width / self._zoom
+        eff_h = self.view_height / self._zoom
+        max_x = max(0.0, self._level_width - eff_w)
+        max_y = max(0.0, self._level_height - eff_h)
+        self._x = max(0.0, min(self._x, max_x))
+        self._y = max(0.0, min(self._y, max_y))

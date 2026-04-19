@@ -2,13 +2,15 @@
 
 Takes a single AI image with character poses on a green (#00FF00)
 background and produces individual sprite sheets for each animation:
-idle (4 frames), walk (8 frames), jump (2), wall_slide (2),
+idle (4 frames), walk (6 frames), jump (2), wall_slide (2),
 wall_jump (2), sling (3).
 
-The AI image contains 9 actual poses (the jump descending and wall
-slide were not generated).  These are synthesized from existing poses:
-- Jump descending: derived from jump ascending with a 1px shift.
-- Wall slide: derived from the idle pose, horizontally flipped.
+Pose detection finds ~9 regions. After framing, a centre-of-mass
+classifier separates *walk* poses (y_center > 15.5, top >= 2) from
+*jump* poses (raised arms, higher centre of mass).  This avoids the
+old bug where a jump-ascending frame was mis-assigned as walk_d.
+
+Wall slide is still synthesized from the idle pose (flipped + shift).
 
 Usage:
     conda activate safona
@@ -35,6 +37,14 @@ TARGET_HEIGHT = 30  # Idle pose scaled to ~30px tall
 # Density threshold to distinguish real body pixels from thin sling
 # cord artifacts when splitting merged regions.
 _BODY_DENSITY_THRESHOLD = 20
+
+# Vertical centre-of-mass threshold to separate walk from jump poses.
+# Walk poses have their mass lower in the frame (y_center > this value);
+# jump poses have raised arms pulling the centre upward (y_center <=).
+_WALK_Y_CENTER_THRESHOLD = 15.5
+
+# Walk poses start at row 2+ in a 32-tall frame; jump poses start at row 0.
+_WALK_TOP_MIN = 2
 
 
 def remove_green_background(arr: np.ndarray) -> np.ndarray:
@@ -275,6 +285,48 @@ def place_in_frame(
     return frame
 
 
+def classify_body_poses(
+    framed: list[np.ndarray],
+    start: int,
+    end: int,
+    y_center_threshold: float = _WALK_Y_CENTER_THRESHOLD,
+    top_min: int = _WALK_TOP_MIN,
+) -> tuple[list[int], list[int]]:
+    """Classify framed poses as walk or jump based on centre of mass.
+
+    Walk poses have a lower centre of mass (character standing upright)
+    while jump poses have raised arms that pull the centre upward.
+
+    Args:
+        framed: List of all framed poses (24x32 RGBA each).
+        start: First index to classify (inclusive).
+        end: Last index to classify (exclusive).
+        y_center_threshold: Poses with y_center above this are walk.
+        top_min: Minimum top row for a pose to qualify as walk.
+
+    Returns:
+        Tuple of (walk_indices, jump_indices).
+    """
+    walk_indices: list[int] = []
+    jump_indices: list[int] = []
+
+    for i in range(start, end):
+        alpha = framed[i][:, :, 3]
+        y_coords = np.where(alpha > 0)[0]
+        if len(y_coords) == 0:
+            continue
+        y_center = float(np.mean(y_coords))
+        rows_with_content = np.where(np.any(alpha > 0, axis=1))[0]
+        top = int(rows_with_content[0])
+
+        if y_center > y_center_threshold and top >= top_min:
+            walk_indices.append(i)
+        else:
+            jump_indices.append(i)
+
+    return walk_indices, jump_indices
+
+
 def synthesize_jump_descending(jump_asc: np.ndarray) -> np.ndarray:
     """Synthesize a jump-descending frame from the ascending pose.
 
@@ -360,18 +412,26 @@ def build_idle_sheet(idle_frame: np.ndarray) -> np.ndarray:
 
 
 def build_walk_sheet(walk_frames: list[np.ndarray]) -> np.ndarray:
-    """Build 8-frame walk cycle from 4 base poses.
+    """Build a walk-cycle sheet from the available base poses.
 
-    Uses cycle: [0, 1, 2, 3, 2, 1, 0, 1] for smooth back-and-forth
-    leg motion.
+    With 4 base frames the cycle is [0, 1, 2, 3, 2, 1, 0, 1] (8 frames).
+    With 3 base frames the cycle is [0, 1, 2, 1, 0, 1] (6 frames).
+    With 2 base frames the cycle is [0, 1, 0, 1, 0, 1] (6 frames).
 
     Args:
-        walk_frames: List of 4 RGBA frames (24x32 each).
+        walk_frames: List of 2-4 RGBA frames (24x32 each).
 
     Returns:
-        RGBA array of size (32, 192, 4) with 8 frames.
+        RGBA array with the cycle frames laid out horizontally.
     """
-    cycle = [0, 1, 2, 3, 2, 1, 0, 1]
+    n = len(walk_frames)
+    if n >= 4:
+        cycle = [0, 1, 2, 3, 2, 1, 0, 1]
+    elif n == 3:
+        cycle = [0, 1, 2, 1, 0, 1]
+    else:
+        cycle = [0, 1, 0, 1, 0, 1]
+
     h, w = walk_frames[0].shape[:2]
     sheet = np.zeros((h, w * len(cycle), 4), dtype=np.uint8)
 
@@ -481,14 +541,19 @@ def save_sheet(sheet: np.ndarray, path: Path) -> None:
 def main() -> None:
     """Process the AI image and generate all sprite sheets.
 
-    Detects 7 top-level regions in the image, splits the wide merged
-    rightmost region by column density to extract sling sub-poses,
-    yielding 9 total poses:
+    Detects top-level regions in the image, splits wide merged regions
+    by column density to extract sling sub-poses, then classifies the
+    body poses (indices 1 to N-sling) by vertical centre of mass:
 
-        0: idle, 1-4: walk frames, 5: jump ascending,
-        6: sling wind-up, 7: sling mid-rotation, 8: sling release.
+    * Walk poses have lower centre of mass (standing upright).
+    * Jump poses have raised arms pulling the centre upward.
 
-    Jump descending and wall slide are synthesized from existing poses.
+    This prevents the old bug where a jump-ascending frame was
+    incorrectly assigned as walk_d.
+
+    Wall slide is synthesized from the idle pose (flipped + shift).
+    If only one jump pose is detected, the descending frame is
+    synthesized from the ascending pose.
     """
     input_path = (
         Path(sys.argv[1])
@@ -515,10 +580,12 @@ def main() -> None:
     # Regions with width > 200 likely contain multiple poses connected
     # by thin sling cords.
     all_poses: list[tuple[int, int, int, int]] = []
+    sling_start_index: int | None = None
     for bbox in raw_regions:
         x0, _, x1, _ = bbox
         width = x1 - x0
         if width > 200:
+            sling_start_index = len(all_poses)
             sub_poses = split_wide_region_by_density(rgba, bbox)
             print(f"  Split wide region (x={x0}..{x1}, w={width}) "
                   f"into {len(sub_poses)} sub-poses")
@@ -531,8 +598,9 @@ def main() -> None:
         print(f"  Pose {i}: x=[{x0}..{x1}] w={x1 - x0} "
               f"y=[{y0}..{y1}] h={y1 - y0}")
 
-    if len(all_poses) < 9:
-        print(f"ERROR: Expected at least 9 poses, found {len(all_poses)}.")
+    # We need at least: idle + 2 walks + 1 jump + 3 slings = 7.
+    if len(all_poses) < 7:
+        print(f"ERROR: Expected at least 7 poses, found {len(all_poses)}.")
         sys.exit(1)
 
     # Crop all poses tightly.
@@ -553,33 +621,82 @@ def main() -> None:
     framed = [place_in_frame(p) for p in scaled]
 
     for i, f in enumerate(framed):
-        print(f"  Framed pose {i}: {f.shape[1]}x{f.shape[0]}")
+        alpha = f[:, :, 3]
+        y_coords = np.where(alpha > 0)[0]
+        y_center = float(np.mean(y_coords)) if len(y_coords) > 0 else 0.0
+        rows = np.where(np.any(alpha > 0, axis=1))[0]
+        top = int(rows[0]) if len(rows) > 0 else 0
+        print(f"  Framed pose {i}: {f.shape[1]}x{f.shape[0]} "
+              f"top={top} y_center={y_center:.1f}")
 
-    # Assign poses to animation roles.
-    # Poses: 0=idle, 1-4=walk, 5=jump_asc, 6=sling_windup,
-    #         7=sling_mid, 8=sling_release
+    # ---- Assign poses by classification, not fixed indices ----
+
+    # Pose 0 is always idle.
     idle = framed[0]
-    walk_a, walk_b, walk_c, walk_d = framed[1], framed[2], framed[3], framed[4]
-    jump_asc = framed[5]
-    sling_windup = framed[6]
-    sling_mid = framed[7]
-    sling_release = framed[8]
 
-    # Synthesize missing poses.
-    jump_desc = synthesize_jump_descending(jump_asc)
+    # Sling poses come from the wide-region split (last 3 poses).
+    if sling_start_index is not None:
+        sling_frames_list = framed[sling_start_index:]
+        body_end = sling_start_index
+    else:
+        # Fallback: last 3 poses are sling.
+        sling_frames_list = framed[-3:]
+        body_end = len(framed) - 3
+
+    # Classify body poses (between idle and sling) into walk vs jump.
+    walk_indices, jump_indices = classify_body_poses(framed, 1, body_end)
+
+    print(f"\nClassification results:")
+    print(f"  Walk pose indices: {walk_indices} ({len(walk_indices)} frames)")
+    print(f"  Jump pose indices: {jump_indices} ({len(jump_indices)} frames)")
+    print(f"  Sling poses: indices {sling_start_index}..{len(framed) - 1} "
+          f"({len(sling_frames_list)} frames)")
+
+    if len(walk_indices) < 2:
+        print("ERROR: Need at least 2 walk poses.")
+        sys.exit(1)
+    if len(jump_indices) < 1:
+        print("ERROR: Need at least 1 jump pose.")
+        sys.exit(1)
+
+    walk_frames_list = [framed[i] for i in walk_indices]
+
+    # Sort jump poses by y_center ascending (highest first = ascending pose).
+    def _y_center(frame: np.ndarray) -> float:
+        y_coords = np.where(frame[:, :, 3] > 0)[0]
+        return float(np.mean(y_coords)) if len(y_coords) > 0 else 0.0
+
+    jump_sorted = sorted(jump_indices, key=lambda i: _y_center(framed[i]))
+    jump_asc = framed[jump_sorted[0]]
+
+    if len(jump_sorted) >= 2:
+        jump_desc = framed[jump_sorted[1]]
+        print("  Using real jump-descending pose from image.")
+    else:
+        jump_desc = synthesize_jump_descending(jump_asc)
+        print("  Synthesized jump-descending from ascending pose.")
+
+    # Wall slide is always synthesized from idle.
     wall_slide = synthesize_wall_slide(idle)
 
-    print("\nBuilding sprite sheets...")
+    # Ensure we have exactly 3 sling frames.
+    if len(sling_frames_list) < 3:
+        print(f"WARNING: Expected 3 sling frames, got {len(sling_frames_list)}.")
+    sling_windup = sling_frames_list[0]
+    sling_mid = sling_frames_list[1] if len(sling_frames_list) > 1 else sling_frames_list[0]
+    sling_release = sling_frames_list[2] if len(sling_frames_list) > 2 else sling_frames_list[-1]
+
+    print(f"\nBuilding sprite sheets...")
 
     # Idle: 4 frames with breathing bob.
     idle_sheet = build_idle_sheet(idle)
     save_sheet(idle_sheet, output_dir / "idle.png")
 
-    # Walk: 4 base frames -> 8-frame cycle.
-    walk_sheet = build_walk_sheet([walk_a, walk_b, walk_c, walk_d])
+    # Walk: variable base frames -> 6 or 8-frame cycle.
+    walk_sheet = build_walk_sheet(walk_frames_list)
     save_sheet(walk_sheet, output_dir / "walk.png")
 
-    # Jump: ascending + descending (synthesized).
+    # Jump: ascending + descending.
     jump_sheet = build_jump_sheet(jump_asc, jump_desc)
     save_sheet(jump_sheet, output_dir / "jump.png")
 

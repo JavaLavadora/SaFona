@@ -40,6 +40,8 @@ class PlayerState(Enum):
     FALLING = auto()
     WALL_SLIDING = auto()
     WALL_JUMPING = auto()
+    SLING_CHARGING = auto()
+    SLING_RELEASING = auto()
 
 
 # Map enum values to string keys used in settings color dict.
@@ -50,6 +52,8 @@ _STATE_KEY: dict[PlayerState, str] = {
     PlayerState.FALLING: "falling",
     PlayerState.WALL_SLIDING: "wall_sliding",
     PlayerState.WALL_JUMPING: "wall_jumping",
+    PlayerState.SLING_CHARGING: "idle",
+    PlayerState.SLING_RELEASING: "idle",
 }
 
 
@@ -109,16 +113,30 @@ class Player(Entity):
     # ── Surface generation ─────────────────────────────────────────
 
     def _build_surfaces(self) -> None:
-        """Load real sprites or fall back to colored rectangles."""
+        """Load real sprites or fall back to colored rectangles.
+
+        Walk animation fix: the 6-frame walk sheet was built from only
+        3 distinct poses (walk_a / idle / walk_b) cycled twice.  We
+        re-order to [0, 2, 1, 3, 5, 4] which gives a proper
+        walk_a -> walk_b -> idle -> walk_a -> walk_b -> idle cycle
+        with distinct leg positions on consecutive frames.
+
+        Sling sprites: loads sling.png (2 frames: wind-up and release)
+        and maps them to the SLING_CHARGING / SLING_RELEASING states.
+        """
         self._idle_frames: list[pygame.Surface] = []
         self._walk_frames: list[pygame.Surface] = []
         self._jump_frames: list[pygame.Surface] = []
         self._wall_slide_frames: list[pygame.Surface] = []
         self._wall_jump_frames: list[pygame.Surface] = []
+        self._sling_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
-        self._walk_anim_speed: float = 0.1
+        self._walk_anim_speed: float = 0.12
+
+        # Sling attack state (set externally by the scene each frame).
+        self._sling_state: str = "idle"
 
         idle = load_sprite_sheet_from_file(
             "assets/sprites/ramon/idle.png", PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -126,11 +144,20 @@ class Player(Entity):
         if idle:
             self._idle_frames = idle
 
-        walk = load_sprite_sheet_from_file(
+        walk_raw = load_sprite_sheet_from_file(
             "assets/sprites/ramon/walk.png", PLAYER_WIDTH, PLAYER_HEIGHT,
         )
-        if walk:
-            self._walk_frames = walk
+        if walk_raw:
+            # Re-order the 6 frames to reduce the sliding look.
+            # Original order: walk_a(0), idle(1), walk_b(2),
+            #                 walk_a(3), idle(4), walk_b(5)
+            # New order: walk_a, walk_b, idle, walk_a, walk_b, idle
+            # This ensures consecutive frames show distinct leg positions.
+            reorder = [0, 2, 1, 3, 5, 4]
+            if len(walk_raw) >= 6:
+                self._walk_frames = [walk_raw[i] for i in reorder]
+            else:
+                self._walk_frames = walk_raw
 
         jump = load_sprite_sheet_from_file(
             "assets/sprites/ramon/jump.png", PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -150,9 +177,16 @@ class Player(Entity):
         if wall_jump:
             self._wall_jump_frames = wall_jump
 
+        sling = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/sling.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if sling:
+            self._sling_frames = sling
+
         has_sprites = bool(
             self._idle_frames or self._walk_frames or self._jump_frames
             or self._wall_slide_frames or self._wall_jump_frames
+            or self._sling_frames
         )
 
         for state, key in _STATE_KEY.items():
@@ -168,6 +202,11 @@ class Player(Entity):
                 self._surfaces[state] = self._wall_slide_frames[0]
             elif self._wall_jump_frames and state == PlayerState.WALL_JUMPING:
                 self._surfaces[state] = self._wall_jump_frames[0]
+            elif self._sling_frames and state == PlayerState.SLING_CHARGING:
+                self._surfaces[state] = self._sling_frames[0]
+            elif self._sling_frames and state == PlayerState.SLING_RELEASING:
+                idx = min(1, len(self._sling_frames) - 1)
+                self._surfaces[state] = self._sling_frames[idx]
             elif has_sprites:
                 surf = pygame.Surface(
                     (PLAYER_WIDTH, PLAYER_HEIGHT), pygame.SRCALPHA,
@@ -219,6 +258,18 @@ class Player(Entity):
         if the player's Y >= this value (same height or lower).
         """
         return self._wall_jump_origin_y
+
+    def set_sling_state(self, sling_state: str) -> None:
+        """Set the current sling system state for animation selection.
+
+        Called each frame by the scene after updating the SlingSystem.
+        The player uses this to override its sprite with sling frames
+        when the sling is active (charging or releasing).
+
+        Args:
+            sling_state: One of "idle", "pressed", "charging", "cooldown".
+        """
+        self._sling_state = sling_state
 
     def handle_input(self, input_state: InputState) -> None:
         """Cache relevant input actions for the update step.
@@ -303,16 +354,46 @@ class Player(Entity):
     # ── Private helpers ────────────────────────────────────────────
 
     def _update_sprite(self, dt: float) -> None:
-        """Select the correct sprite frame, with animation and flipping."""
-        if self._state != self._prev_state:
+        """Select the correct sprite frame, with animation and flipping.
+
+        Sling override: when the sling system is charging or releasing,
+        the sling frames take priority over movement-based frames.  The
+        wind-up frame (index 0) is shown during charging/pressed, and
+        the release frame (index 1) is shown during cooldown (just after
+        release).
+        """
+        # Determine effective visual state, applying sling override.
+        effective_state = self._state
+        if self._sling_frames and self._sling_state in ("pressed", "charging"):
+            effective_state = PlayerState.SLING_CHARGING
+        elif self._sling_frames and self._sling_state == "cooldown":
+            effective_state = PlayerState.SLING_RELEASING
+
+        if effective_state != self._prev_state:
             self._anim_frame = 0
             self._anim_timer = 0.0
-            self._prev_state = self._state
+            self._prev_state = effective_state
 
         frames: list[pygame.Surface] | None = None
         speed = self._anim_speed
 
-        if self._state == PlayerState.IDLE and self._idle_frames:
+        # Sling states use static frames (no cycling).
+        if effective_state == PlayerState.SLING_CHARGING and self._sling_frames:
+            base = self._sling_frames[0]
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+        elif effective_state == PlayerState.SLING_RELEASING and self._sling_frames:
+            idx = min(1, len(self._sling_frames) - 1)
+            base = self._sling_frames[idx]
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+        elif self._state == PlayerState.IDLE and self._idle_frames:
             frames = self._idle_frames
         elif self._state == PlayerState.RUNNING and self._walk_frames:
             frames = self._walk_frames
@@ -349,7 +430,7 @@ class Player(Entity):
                 self._anim_frame = 0
             base = frames[self._anim_frame]
         else:
-            base = self._surfaces[self._state]
+            base = self._surfaces.get(effective_state, self._surfaces[self._state])
             self._anim_frame = 0
             self._anim_timer = 0.0
 

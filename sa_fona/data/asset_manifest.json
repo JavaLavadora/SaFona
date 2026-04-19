@@ -30,6 +30,12 @@
       "frame_height": 32,
       "frame_count": 2
     },
+    "ramon_sling": {
+      "path": "assets/sprites/ramon/sling.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
     "bep_idle": {
       "path": "assets/sprites/bep/idle.png",
       "frame_width": 16,

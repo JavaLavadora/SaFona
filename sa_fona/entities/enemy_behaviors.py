@@ -667,11 +667,99 @@ class ChaseBehavior(EnemyBehavior):
         return result
 
 
+class ShieldBehavior(PatrolBehavior):
+    """Patrol behavior with a frontal shield that blocks projectiles.
+
+    The legionary patrols like a standard patrol enemy but carries a
+    shield that blocks incoming projectile damage from the front.  The
+    shield is periodically lowered when the enemy attacks, creating a
+    punish window for the player.
+
+    Params (from JSON, in addition to PatrolBehavior params):
+        shield_lower_time: Seconds the shield stays lowered during attack.
+        shield_raise_time: Seconds to raise the shield after an attack.
+    """
+
+    def __init__(self, params: dict) -> None:
+        super().__init__(params)
+        self._shield_lower_time: float = params.get("shield_lower_time", 1.0)
+        self._shield_raise_time: float = params.get("shield_raise_time", 0.5)
+
+        self._shield_up: bool = True
+        self._shield_timer: float = 0.0
+
+    @property
+    def shield_up(self) -> bool:
+        """Whether the shield is currently raised (blocking)."""
+        return self._shield_up
+
+    def reset(self, spawn_x: float) -> None:
+        """Reset shield state along with patrol state.
+
+        Args:
+            spawn_x: The enemy's spawn X position.
+        """
+        super().reset(spawn_x)
+        self._shield_up = True
+        self._shield_timer = 0.0
+
+    def try_block(self) -> bool:
+        """Block if the shield is currently raised.
+
+        Returns:
+            True if the shield is up and blocks the attack.
+        """
+        return self._shield_up
+
+    def update(
+        self,
+        enemy_rect: pygame.Rect,
+        player_rect: pygame.Rect,
+        dt: float,
+        tilemap: TileMap | None = None,
+    ) -> BehaviorResult:
+        """Patrol with shield; lower shield during attack window.
+
+        The shield drops when transitioning to ATTACKING state and
+        stays down for ``shield_lower_time`` seconds.  After the attack,
+        the shield raises back up over ``shield_raise_time``.
+
+        Args:
+            enemy_rect: The enemy's current bounding box.
+            player_rect: The player's current bounding box.
+            dt: Delta time in seconds.
+            tilemap: Optional tilemap for edge detection.
+
+        Returns:
+            BehaviorResult with movement, attack, and blocking data.
+        """
+        result = super().update(enemy_rect, player_rect, dt, tilemap=tilemap)
+
+        # Manage shield state based on attack cycle.
+        if result.attack_state == AttackState.ATTACKING:
+            if self._shield_up:
+                self._shield_up = False
+                self._shield_timer = self._shield_lower_time
+        elif result.attack_state == AttackState.TELL:
+            # Shield still up during tell (wind-up).
+            pass
+        else:
+            # Tick shield raise timer when not attacking.
+            if not self._shield_up:
+                self._shield_timer -= dt
+                if self._shield_timer <= 0:
+                    self._shield_up = True
+
+        result.is_blocking = self._shield_up
+        return result
+
+
 # ── Factory function ──────────────────────────────────────────────
 
 _BEHAVIOR_REGISTRY: dict[str, type[EnemyBehavior]] = {
     "patrol": PatrolBehavior,
     "chase": ChaseBehavior,
+    "shield": ShieldBehavior,
 }
 
 

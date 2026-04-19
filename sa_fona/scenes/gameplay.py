@@ -8,6 +8,7 @@ Breakables, Enemies, and TileMap into a playable experience.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pygame
@@ -127,6 +128,8 @@ class GameplayScene(BaseScene):
 
         # Combat system.
         self._combat = CombatSystem(self._event_bus)
+        if "--god" in sys.argv:
+            self._combat._god_mode = True
         self._combat.set_player_health(starting_hearts, int(starting_hearts))
         self._event_bus.subscribe("player_died", self._on_player_died)
 
@@ -848,18 +851,25 @@ class GameplayScene(BaseScene):
         if self._scene_manager is None:
             return
 
-        # Save progress before transitioning.
-        level_path_for_save = str(
-            DATA_DIR / "levels" / f"{next_level}.json"
-        )
+        # Boss levels use BossScene with a boss_id extracted from the path.
+        # Save the *current* level (not the boss path) so Continue returns
+        # the player to the pre-boss level rather than a non-existent file.
+        level_name = next_level.rsplit("/", 1)[-1]
+        is_boss = level_name.startswith("boss_")
+
         if self._save_system is not None:
+            if is_boss:
+                level_path_for_save = self._level_path or ""
+            else:
+                level_path_for_save = str(
+                    DATA_DIR / "levels" / f"{next_level}.json"
+                )
             self._save_system.set_level(level_path_for_save)
             self._save_system.set_player_state(
                 stone_count=self._economy.stone_count,
                 current_hearts=self._combat.player_hearts,
                 max_hearts=self._combat.player_max_hearts,
             )
-            # Save mask state.
             mask_state = self._mask_system.get_save_state()
             self._save_system.state["masks_unlocked"] = mask_state["unlocked_masks"]
             self._save_system.state["masks_equipped"] = (
@@ -867,9 +877,7 @@ class GameplayScene(BaseScene):
             )
             self._save_system.save()
 
-        # Boss levels use BossScene with a boss_id extracted from the path.
-        level_name = next_level.rsplit("/", 1)[-1]
-        if level_name.startswith("boss_"):
+        if is_boss:
             from sa_fona.scenes.boss_scene import BossScene
 
             boss_id = level_name[len("boss_"):]
@@ -878,8 +886,12 @@ class GameplayScene(BaseScene):
                 screen_width=self._screen_width,
                 screen_height=self._screen_height,
                 event_bus=self._event_bus,
+                on_load_level=self._make_load_level_cb(),
             )
             boss_scene.scene_manager = self._scene_manager
+            if "--god" in sys.argv:
+                boss_scene.combat._god_mode = True
+                boss_scene.boss._health = 1
             self._scene_manager.replace(boss_scene)
             return
 
@@ -901,6 +913,59 @@ class GameplayScene(BaseScene):
             new_scene.save_system = self._save_system
             new_scene.take_level_entry_snapshot()
         self._scene_manager.replace(new_scene)
+
+    def _make_load_level_cb(self) -> callable:
+        """Create a callback for the post-boss cutscene to load the next level.
+
+        Subscribes to ``mask_acquired`` on the EventBus so masks granted
+        during the cutscene are captured and propagated to the new scene.
+
+        Returns:
+            A callable accepting a ``level_path`` string (relative to
+            ``data/levels/``, e.g. ``"world2/level_2_1"``).
+        """
+        scene_mgr = self._scene_manager
+        event_bus = self._event_bus
+        save_sys = self._save_system
+        screen_w = self._screen_width
+        screen_h = self._screen_height
+        acquired_masks: list[str] = []
+
+        def _on_mask(mask_id: str = "", **kwargs: object) -> None:
+            acquired_masks.append(mask_id)
+
+        event_bus.subscribe("mask_acquired", _on_mask)
+
+        def _load(level_path: str) -> None:
+            try:
+                event_bus.unsubscribe("mask_acquired", _on_mask)
+            except ValueError:
+                pass
+            full_path = str(DATA_DIR / "levels" / f"{level_path}.json")
+            if not Path(full_path).is_file():
+                return
+            new_scene = GameplayScene(
+                screen_w, screen_h,
+                event_bus=event_bus,
+                level_path=full_path,
+            )
+            new_scene.scene_manager = scene_mgr
+            for mask_id in acquired_masks:
+                new_scene.mask_system.unlock_mask(mask_id)
+                new_scene.mask_system.equip_mask(mask_id)
+            if save_sys is not None:
+                new_scene.save_system = save_sys
+                mask_state = new_scene.mask_system.get_save_state()
+                save_sys.state["masks_unlocked"] = mask_state["unlocked_masks"]
+                save_sys.state["masks_equipped"] = (
+                    [mask_state["equipped_mask"]]
+                    if mask_state["equipped_mask"] else []
+                )
+                save_sys.save()
+                new_scene.take_level_entry_snapshot()
+            scene_mgr.replace(new_scene)
+
+        return _load
 
     # ── Event callbacks ────────────────────────────────────────────
 

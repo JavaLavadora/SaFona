@@ -1,0 +1,89 @@
+{
+  "w2_l1_arrival": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "Ramon... where are we? The air smells of salt and... marble dust?",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_neutral",
+        "text": "Sa Via Nova. The Romans built this road centuries after my people. And yet here we are.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w2_l1_stone_slam_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Ramon, the mask is glowing! The ground here looks cracked...",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Try pressing K near the cracked floor! The Stone Slam should break it!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Using ancient talayotic power to smash Roman roads. My ancestors would approve.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w2_l1_shield_warning": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "That soldier has a big shield! Your stones bounce right off!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Wait for him to lower his shield to attack, then strike! Or try the Stone Slam to stun him!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w2_l1_llorencc_intro": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "llorencc",
+        "portrait": "llorencc_neutral",
+        "text": "Ah, un foner! I have goods from across the Mare Nostrum. Interested?",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "A merchant in the middle of a cursed road. Why not.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  }
+}

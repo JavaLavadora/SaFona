@@ -67,10 +67,10 @@ def main() -> None:
 
     # --level flag: bypass menu, go directly to that level.
     if level_path is not None:
-        game = Game(level_path=level_path, skip_menu=True)
+        game = Game(level_path=level_path, skip_menu=True, god_mode=god_mode)
     else:
         # Default: show main menu.
-        game = Game(level_path=None, skip_menu=False)
+        game = Game(level_path=None, skip_menu=False, god_mode=god_mode)
 
     try:
         game.run()

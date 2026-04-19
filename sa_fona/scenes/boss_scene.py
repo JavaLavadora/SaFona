@@ -180,6 +180,7 @@ class BossScene(BaseScene):
         # Cutscene configuration.
         self._cutscene_id: str | None = cutscene_id
         self._on_load_level = on_load_level
+        self._pending_level_load: str | None = None
         self._is_retry: bool = False  # Set to True after first death+restart.
 
         # Game over state.
@@ -235,9 +236,17 @@ class BossScene(BaseScene):
         """Scene entered."""
 
     def on_resume(self) -> None:
-        """Called when the cutscene pops off the stack."""
+        """Called when the cutscene pops off the stack.
+
+        If a level load was requested during the cutscene (via load_level
+        step), executes the transition now that the cutscene has cleanly
+        popped from the scene stack.
+        """
         if self._cutscene_pushed:
             self._cutscene_completed = True
+        if self._pending_level_load and self._on_load_level:
+            self._on_load_level(self._pending_level_load)
+            self._pending_level_load = None
 
     def on_exit(self) -> None:
         """Clean up subscriptions."""
@@ -601,17 +610,26 @@ class BossScene(BaseScene):
         Loads the cutscene definition and creates a CutsceneScene overlay.
         On retry (after the player died and restarted), enables fast-forward
         mode to skip dialogue.
+
+        The cutscene's load_level callback is intercepted: instead of firing
+        the external callback directly (which would modify the scene stack
+        while the cutscene is still on top), the level path is stored as
+        pending.  After the cutscene auto-pops, ``on_resume`` executes the
+        actual transition.
         """
         if self._scene_manager is None:
             return
 
         from sa_fona.scenes.cutscene import CutsceneScene
 
+        def _deferred_load_level(level_path: str) -> None:
+            self._pending_level_load = level_path
+
         cutscene_data = CutsceneScene.load_cutscene_data(self._cutscene_id)
         scene = CutsceneScene(
             cutscene_data=cutscene_data,
             event_bus=self._event_bus,
-            on_load_level=self._on_load_level,
+            on_load_level=_deferred_load_level,
             fast_forward=self._is_retry,
         )
         scene.scene_manager = self._scene_manager
@@ -760,6 +778,7 @@ class BossScene(BaseScene):
         self._cutscene_completed = False
         self._is_retry = True  # Fast-forward cutscene on retry.
         self._pending_game_over = False
+        self._pending_level_load = None
         self._input_state = InputState()
 
     # ── Event handlers ─────────────────────────────────────────────

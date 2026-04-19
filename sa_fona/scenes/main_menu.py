@@ -7,6 +7,8 @@ The Continue option is grayed out when no save file exists.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pygame
 
 from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
@@ -276,7 +278,10 @@ class MainMenuScene(BaseScene):
             return
 
         level_path = save_data.get("current_level", "")
-        if not level_path:
+
+        # Fall back to the starting level when the saved path is missing
+        # or the file no longer exists on disk.
+        if not level_path or not Path(level_path).is_file():
             level_path = self._resolve_starting_level()
 
         from sa_fona.scenes.gameplay import GameplayScene

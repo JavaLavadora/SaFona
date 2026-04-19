@@ -1,7 +1,8 @@
 """Main menu scene: title screen with Start and Continue options.
 
-Placeholder implementation with simple colored rectangles and text.
-Displays "Sa Fona" title, two menu options, and an arrow cursor.
+Displays the title image (assets/ui/title.png) centered on screen,
+two menu options, and an arrow cursor.  Falls back to text rendering
+when the title image is missing.
 The Continue option is grayed out when no save file exists.
 """
 
@@ -14,6 +15,7 @@ import pygame
 from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
+from sa_fona.rendering.asset_loader import load_ui_asset
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.save_system import SaveSystem
 
@@ -78,6 +80,10 @@ class MainMenuScene(BaseScene):
 
         # Quit flag.
         self.quit_requested: bool = False
+
+        # Title image (loaded lazily).
+        self._title_image: pygame.Surface | None = None
+        self._title_image_loaded: bool = False
 
     # ── Properties ────────────────────────────────────────────────
 
@@ -196,14 +202,22 @@ class MainMenuScene(BaseScene):
             except Exception:
                 self._subtitle_font = None
 
-        # Title: "Sa Fona".
-        if self._title_font is not None:
+        # Title image or text fallback.
+        if not self._title_image_loaded:
+            self._title_image = load_ui_asset("title")
+            self._title_image_loaded = True
+
+        if self._title_image is not None:
+            tx = (self._screen_width - self._title_image.get_width()) // 2
+            ty = self._screen_height // 4 - self._title_image.get_height() // 2
+            surface.blit(self._title_image, (tx, ty))
+        elif self._title_font is not None:
             title = self._title_font.render("Sa Fona", False, _TITLE_COLOR)
             tx = (self._screen_width - title.get_width()) // 2
             ty = self._screen_height // 4
             surface.blit(title, (tx, ty))
 
-        # Subtitle.
+        # Subtitle (shown below the title image or text).
         if self._subtitle_font is not None:
             sub = self._subtitle_font.render(
                 "A Balearic Adventure", False, _SUBTITLE_COLOR

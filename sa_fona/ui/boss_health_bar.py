@@ -1,8 +1,8 @@
 """Boss health bar rendered at the bottom of the screen.
 
 Displays the boss name, a health bar with phase markers, and the
-current phase name.  The bar smoothly transitions when the boss takes
-damage and flashes during phase transitions.
+current phase name. Uses boss_health_bar.png as the bar background
+when available, falling back to drawn rectangles.
 
 This is a separate UI component from the main HUD, only active during
 boss encounters.
@@ -13,6 +13,7 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.config.settings import BASE_WIDTH
+from sa_fona.rendering.asset_loader import load_ui_asset
 
 
 # ── Layout constants ──────────────────────────────────────────────
@@ -72,6 +73,10 @@ class BossHealthBar:
         self._name_font: pygame.font.Font | None = None
         self._phase_font: pygame.font.Font | None = None
         self._init_fonts()
+
+        # Boss health bar background sprite (loaded lazily).
+        self._bar_bg_image: pygame.Surface | None = None
+        self._bar_bg_loaded: bool = False
 
     def _init_fonts(self) -> None:
         """Initialize fonts for the boss name and phase label."""
@@ -181,10 +186,21 @@ class BossHealthBar:
             surface.blit(shadow_surf, (nx + 1, name_y + 1))
             surface.blit(name_surf, (nx, name_y))
 
+        # Lazy load bar background image.
+        if not self._bar_bg_loaded:
+            self._bar_bg_loaded = True
+            self._bar_bg_image = load_ui_asset("boss_health_bar")
+
         # Bar background.
         bar_rect = pygame.Rect(_BAR_MARGIN_X, bar_y, bar_width, _BAR_HEIGHT)
-        pygame.draw.rect(surface, _BAR_BG_COLOR, bar_rect)
-        pygame.draw.rect(surface, _BAR_BORDER_COLOR, bar_rect, _BAR_BORDER)
+        if self._bar_bg_image is not None:
+            scaled = pygame.transform.scale(
+                self._bar_bg_image, (bar_width, _BAR_HEIGHT),
+            )
+            surface.blit(scaled, (_BAR_MARGIN_X, bar_y))
+        else:
+            pygame.draw.rect(surface, _BAR_BG_COLOR, bar_rect)
+            pygame.draw.rect(surface, _BAR_BORDER_COLOR, bar_rect, _BAR_BORDER)
 
         # Damage trail (yellow, catches up to actual health).
         if self._display_health > self._current_health:

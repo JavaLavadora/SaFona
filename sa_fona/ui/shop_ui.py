@@ -1,11 +1,10 @@
 """Shop overlay UI rendering.
 
 Draws the shop interface as a semi-transparent overlay on top of
-gameplay. Handles two tabs (Items and Masks), item lists with prices,
-cursor navigation, and purchase feedback text.
-
-Rendering uses simple text and coloured rectangles consistent with
-the project's placeholder aesthetic.
+gameplay. Uses shop_frame.png as the panel background when available,
+falling back to coloured rectangles. Handles two tabs (Items and
+Masks), item lists with prices, cursor navigation, and purchase
+feedback text.
 """
 
 from __future__ import annotations
@@ -15,6 +14,7 @@ from typing import Any
 import pygame
 
 from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
+from sa_fona.rendering.asset_loader import load_ui_asset
 
 
 # ── Layout constants ──────────────────────────────────────────────
@@ -76,6 +76,10 @@ class ShopUI:
         self._feedback_color: tuple[int, int, int] = _FEEDBACK_SUCCESS_COLOR
         self._feedback_timer: float = 0.0
 
+        # Shop frame image (loaded lazily).
+        self._shop_frame: pygame.Surface | None = None
+        self._shop_frame_loaded: bool = False
+
     def _init_fonts(self) -> None:
         """Initialise pygame fonts for text rendering."""
         try:
@@ -135,6 +139,11 @@ class ShopUI:
             equipped_mask_id: ID of the currently equipped mask (for
                 the Masks tab display).
         """
+        # Lazy load shop frame image.
+        if not self._shop_frame_loaded:
+            self._shop_frame = load_ui_asset("shop_frame")
+            self._shop_frame_loaded = True
+
         # Semi-transparent dark overlay.
         overlay = pygame.Surface(
             (self._screen_w, self._screen_h), pygame.SRCALPHA,
@@ -148,10 +157,21 @@ class ShopUI:
         pw = self._screen_w - _PANEL_MARGIN_X * 2
         ph = self._screen_h - _PANEL_MARGIN_Y * 2
 
-        panel = pygame.Surface((pw, ph), pygame.SRCALPHA)
-        panel.fill(_PANEL_BG)
-        surface.blit(panel, (px, py))
-        pygame.draw.rect(surface, _PANEL_BORDER, (px, py, pw, ph), 1)
+        if self._shop_frame is not None:
+            # Use shop frame image, scaled to panel size.
+            frame_w = self._shop_frame.get_width()
+            frame_h = self._shop_frame.get_height()
+            if frame_w != pw or frame_h != ph:
+                scaled = pygame.transform.scale(self._shop_frame, (pw, ph))
+                surface.blit(scaled, (px, py))
+            else:
+                surface.blit(self._shop_frame, (px, py))
+        else:
+            # Fallback: colored panel with border.
+            panel = pygame.Surface((pw, ph), pygame.SRCALPHA)
+            panel.fill(_PANEL_BG)
+            surface.blit(panel, (px, py))
+            pygame.draw.rect(surface, _PANEL_BORDER, (px, py, pw, ph), 1)
 
         if self._font is None:
             return

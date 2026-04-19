@@ -32,6 +32,7 @@ from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
+from sa_fona.rendering.effects import EffectRenderer
 from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.level.trigger import TriggerSystem, TriggerType
 from sa_fona.scenes.base_scene import BaseScene
@@ -101,6 +102,9 @@ class GameplayScene(BaseScene):
         self._input_state: InputState = InputState()
         self.quit_requested: bool = False
 
+        # Track previous on_ground for landing dust effects.
+        self._prev_on_ground: bool = True
+
         # EventBus.
         self._event_bus = event_bus or EventBus()
         self._event_bus.subscribe("screen_shake", self._on_screen_shake)
@@ -149,6 +153,9 @@ class GameplayScene(BaseScene):
         self._pickups: list[Pickup] = []
         self._breakables: list[Breakable] = []
         self._spawn_entities()
+
+        # Visual effects renderer (dust, impact, etc.).
+        self._effects = EffectRenderer()
 
         # Companion (Bep).
         comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
@@ -262,6 +269,11 @@ class GameplayScene(BaseScene):
         return self._companion
 
     @property
+    def effects(self) -> EffectRenderer:
+        """The visual effects renderer (exposed for testing)."""
+        return self._effects
+
+    @property
     def scene_manager(self):
         """Scene manager reference for pushing overlay scenes."""
         return self._scene_manager
@@ -364,6 +376,15 @@ class GameplayScene(BaseScene):
         # 4. Feed physics results back to the player.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
+        # 4a. Spawn landing dust when the player lands.
+        if on_ground and not self._prev_on_ground:
+            self._effects.spawn(
+                "dust",
+                x=float(self._player.rect.centerx),
+                y=float(self._player.rect.bottom),
+            )
+        self._prev_on_ground = on_ground
+
         # 4b. Push player out of enemy bodies (enemies have mass).
         self._resolve_enemy_push(self._player)
 
@@ -435,6 +456,9 @@ class GameplayScene(BaseScene):
             equipped=self._mask_system.active_mask_id is not None,
             cooldown_progress=self._mask_system.cooldown_progress,
         )
+
+        # 13b. Update visual effects (dust, impact).
+        self._effects.update(dt)
 
         # 14. Check triggers.
         self._trigger_system.update(self._player.rect)
@@ -530,6 +554,9 @@ class GameplayScene(BaseScene):
 
         # Charge indicator (UI, world-space near player).
         self._charge_indicator.render(surface, self._player.rect, cam_offset)
+
+        # Visual effects (dust, impact, etc.).
+        self._effects.render(surface, cam_offset)
 
         # Foreground on top.
         self._tilemap.render_layer(surface, "foreground", cam_offset)
@@ -830,6 +857,12 @@ class GameplayScene(BaseScene):
                 continue
             hits = self._physics.check_collision(proj.rect, "solid")
             if hits:
+                # Spawn impact effect at the projectile's position.
+                self._effects.spawn(
+                    "impact",
+                    x=float(proj.rect.centerx),
+                    y=float(proj.rect.centery),
+                )
                 proj.on_hit_tile()
         self._projectiles = [p for p in self._projectiles if p.active]
 
@@ -874,11 +907,13 @@ class GameplayScene(BaseScene):
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
 
-        # Reset pickups, breakables, enemies, and NPCs from level data.
+        # Reset pickups, breakables, enemies, NPCs, and effects.
         self._pickups.clear()
         self._breakables.clear()
         self._enemies.clear()
         self._npcs.clear()
+        self._effects.clear()
+        self._prev_on_ground = True
         self._spawn_entities()
 
         # Restore player state from the death-rollback snapshot if one

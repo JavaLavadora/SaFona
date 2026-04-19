@@ -355,7 +355,12 @@ All prompts share these requirements:
   > 2) Talking/excited -- same character, hands animated (one gesturing, one holding artifact), mouth open, enthusiastic expression
   > 3) Showing wares -- arms spread, displaying items, shopkeeper pose
   >
-  > Character design: Llorencc is a talayotic warrior from Menorca who doubles as a scholar/collector. Slightly taller and leaner than Ramon. Wears a leather tunic (lighter brown than rival warriors), leather satchel/bag always visible, often holding a scroll or artifact. Friendly enthusiastic expression (contrast to Ramon's grumpiness). Clean pixel art, no anti-aliasing. Approximately 20 wide x 36 tall pixels when scaled.
+  > Character design: Llorencc is a talayotic warrior from Menorca who doubles as a scholar/collector. Slightly taller and leaner than Ramon. Wears a leather tunic (lighter brown than rival warriors), leather satchel/bag always visible, often holding a scroll or artifact. Friendly enthusiastic expression (contrast to Ramon's grumpiness). Clean pixel art, no anti-aliasing. Approximately 20 wide x 36 tall pixels when scaled. Number each pose clearly (1, 2, 3) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → idle standing
+  - 2 → talking/excited
+  - 3 → showing wares (shop)
 
   *Will generate*:
   - `npc_llorencc_idle.png` -- 1 frame (20x36)
@@ -376,7 +381,13 @@ All prompts share these requirements:
   > 3) Granting mask -- arms extended forward, offering a glowing stone mask, solemn/grudging expression
   > 4) Angry/furious -- body tense, horns seeming to glow, fire flaring, face contorted in rage
   >
-  > Design: based on the traditional Mallorcan dimoni de Sant Joan figure from the Correfoc festivals. Red skin, ram-like curved horns, sharp angular features, tattered dark red and black robes or loincloth, carries a traditional trident. Fiery aura. NOT a cute demon -- imposing, theatrical, dramatic. But with a hint of personality (this is the original offended dimoni who cursed Bep). Approximately 24 wide x 40 tall pixels when scaled. Clean pixel art, no anti-aliasing.
+  > Design: based on the traditional Mallorcan dimoni de Sant Joan figure from the Correfoc festivals. Red skin, ram-like curved horns, sharp angular features, tattered dark red and black robes or loincloth, carries a traditional trident. Fiery aura. NOT a cute demon -- imposing, theatrical, dramatic. But with a hint of personality (this is the original offended dimoni who cursed Bep). Approximately 24 wide x 40 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3, 4) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → imposing stance (idle)
+  - 2 → laughing/mocking
+  - 3 → granting mask
+  - 4 → angry/furious
 
   *Will generate*:
   - `dimoni_idle.png` -- 1 frame (24x40)
@@ -399,7 +410,11 @@ All prompts share these requirements:
   > 1) Heart normal -- a classic heart shape, bright red with a lighter red highlight at top-left, slight inner glow, clean edges
   > 2) Heart shimmer -- same heart but with a small white sparkle/glint on the highlight area
   >
-  > Approximately 12x12 pixels when scaled. Clean pixel art, no anti-aliasing. Classic video game heart pickup feel.
+  > Approximately 12x12 pixels when scaled. Clean pixel art, no anti-aliasing. Classic video game heart pickup feel. Number each frame clearly (1, 2) placed above or below each sprite. Arrange both frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → heart normal
+  - 2 → heart shimmer
 
   *Will generate*:
   - `heart.png` -- 2 frames (12x12) for idle shimmer animation
@@ -416,7 +431,11 @@ All prompts share these requirements:
   > 1) Stone normal -- a small rough round stone, warm grey limestone color with subtle texture variation, slight shadow underneath
   > 2) Stone shimmer -- same stone with a small white glint
   >
-  > Approximately 12x12 pixels when scaled. Clean pixel art. Should look like a natural Mediterranean beach pebble -- smooth but not perfectly round.
+  > Approximately 12x12 pixels when scaled. Clean pixel art. Should look like a natural Mediterranean beach pebble -- smooth but not perfectly round. Number each frame clearly (1, 2) placed above or below each sprite. Arrange both frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → stone normal
+  - 2 → stone shimmer
 
   *Will generate*:
   - `stone.png` -- 2 frames (12x12) for idle shimmer animation
@@ -433,7 +452,11 @@ All prompts share these requirements:
   > 1) Orb normal -- a glowing translucent blue sphere with a shield icon inside, magical sparkles around it
   > 2) Orb pulse -- same orb but slightly brighter, sparkles in different positions
   >
-  > Approximately 12x12 pixels when scaled. Clean pixel art. Should look clearly distinct from heart and stone pickups.
+  > Approximately 12x12 pixels when scaled. Clean pixel art. Should look clearly distinct from heart and stone pickups. Number each frame clearly (1, 2) placed above or below each sprite. Arrange both frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → orb normal
+  - 2 → orb pulse
 
   *Will generate*:
   - `shield.png` -- 2 frames (12x12)
@@ -453,7 +476,11 @@ All prompts share these requirements:
   > 1) Intact pot -- a round-bodied Mediterranean ceramic pot/amphora, terracotta orange-brown color with a darker rim, simple geometric pattern painted near the top, sitting on ground
   > 2) Broken pot -- same pot but shattered into 4-5 ceramic shards scattered on the ground with dust particles
   >
-  > Approximately 16x16 pixels when scaled. Clean pixel art. Should look like a talayotic-era handmade clay pot.
+  > Approximately 16x16 pixels when scaled. Clean pixel art. Should look like a talayotic-era handmade clay pot. Number each state clearly (1, 2) placed above or below each sprite. Arrange both states in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → intact pot
+  - 2 → broken pot
 
   *Will generate*:
   - `pot.png` -- 1 frame (16x16) intact state
@@ -471,7 +498,11 @@ All prompts share these requirements:
   > 1) Intact crate -- a rough wooden box/crate, dark brown weathered wood planks with visible grain, held together with darker wooden crossbars in an X pattern, metal/leather strap corners
   > 2) Broken crate -- same crate but smashed open, wooden planks scattered, splinters flying
   >
-  > Approximately 16x16 pixels when scaled. Clean pixel art. Should look like an ancient storage container.
+  > Approximately 16x16 pixels when scaled. Clean pixel art. Should look like an ancient storage container. Number each state clearly (1, 2) placed above or below each sprite. Arrange both states in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → intact crate
+  - 2 → broken crate
 
   *Will generate*:
   - `crate.png` -- 1 frame (16x16) intact state
@@ -492,7 +523,12 @@ All prompts share these requirements:
   > 2) Tier 2 stone -- same stone but glowing faintly orange, brighter motion trail, slightly more polished look
   > 3) Tier 3 stone -- same stone but blazing with white-red energy, dramatic energy trail, the stone itself seems to glow from within
   >
-  > Clean pixel art, no anti-aliasing. Each tier should be visually distinct so the player can see their charge level's effect.
+  > Clean pixel art, no anti-aliasing. Each tier should be visually distinct so the player can see their charge level's effect. Number each tier clearly (1, 2, 3) placed above or below each sprite. Arrange all tiers in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → tier 1 stone (basic)
+  - 2 → tier 2 stone (orange glow)
+  - 3 → tier 3 stone (blazing white-red)
 
   *Will generate*:
   - `stone_tier1.png` -- 1 frame (8x8)
@@ -506,7 +542,7 @@ All prompts share these requirements:
 
 ### 10. Player Ground Shadow
 
-- [ ] **Player Ground Shadow** -- `assets/ai_sources/vfx_ground_shadow/image.png`
+- [ ] **Player Ground Shadow** -- `assets/ai_sources/effects_shadow/image.png`
 
   > Pixel art of an elliptical ground shadow for a 2D platformer character, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 3 sizes in a horizontal row:
   >
@@ -531,7 +567,7 @@ All prompts share these requirements:
 
 ### 11. Tilesets
 
-#### 10a. World 1 Outdoor Tileset (Sa Talaia)
+#### 11a. World 1 Outdoor Tileset (Sa Talaia)
 
 - [ ] **W1 Outdoor Tileset** -- `assets/ai_sources/tileset_world1/image.png`
 
@@ -542,7 +578,13 @@ All prompts share these requirements:
   > 3) Underground/deep tile -- darker grey stone, more worn and cracked, minimal detail, the deepest layer
   > 4) Wall edge tile -- grey stone with slight weathering on one side, transitional tile between exposed surface and inner stone
   >
-  > Style: Balearic island Mediterranean terrain. Warm neutral grey stone (NOT blue-grey), subtle ochre undertones. Clean pixel art, no anti-aliasing, no smoothing. Each tile should be clearly separated with green space between them. Consistent lighting from top-left. Stone should look like ancient talayotic construction -- rough-hewn limestone blocks.
+  > Style: Balearic island Mediterranean terrain. Warm neutral grey stone (NOT blue-grey), subtle ochre undertones. Clean pixel art, no anti-aliasing, no smoothing. Each tile should be clearly separated with green space between them. Consistent lighting from top-left. Stone should look like ancient talayotic construction -- rough-hewn limestone blocks. Number each tile clearly (1, 2, 3, 4) placed above or below each tile. Arrange all tiles in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → top surface tile (grass/moss edge)
+  - 2 → inner stone tile (solid block)
+  - 3 → underground/deep tile (darkest)
+  - 4 → wall edge tile (transitional)
 
   *Will generate*:
   - `tileset.png` -- 256x16 (16 auto-tile variants from 4 base tiles)
@@ -550,7 +592,7 @@ All prompts share these requirements:
   *Tile size*: 16x16 pixels per tile
   *Notes*: An existing tileset exists at `assets/tilesets/world1/tileset.png`. This prompt is the documented reference for regeneration. Processing script: `tools/process_ai_tiles.py`.
 
-#### 10b. World 1 Cave Tileset (Sa Cova des Foner)
+#### 11b. World 1 Cave Tileset (Sa Cova des Foner)
 
 - [ ] **W1 Cave Tileset** -- `assets/ai_sources/tileset_world1_cave/image.png`
 
@@ -561,7 +603,13 @@ All prompts share these requirements:
   > 3) Deep cave tile -- very dark stone, almost black with subtle dark purple undertones, barely visible texture, the deepest cavern
   > 4) Cave transition tile -- medium grey stone transitioning between cave interior and the outdoor tileset, some moss growing on the cave side
   >
-  > Style: underground Mediterranean cave system. Darker and cooler than the outdoor tileset but still warm-toned (NOT blue). Subtle dampness and mineral deposits. Should feel ancient and mysterious. Clean pixel art, no anti-aliasing. Each tile clearly separated.
+  > Style: underground Mediterranean cave system. Darker and cooler than the outdoor tileset but still warm-toned (NOT blue). Subtle dampness and mineral deposits. Should feel ancient and mysterious. Clean pixel art, no anti-aliasing. Each tile clearly separated. Number each tile clearly (1, 2, 3, 4) placed above or below each tile. Arrange all tiles in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → cave ceiling/floor tile
+  - 2 → cave wall tile
+  - 3 → deep cave tile
+  - 4 → cave transition tile
 
   *Will generate*:
   - `tileset.png` -- 256x16 (16 auto-tile variants)
@@ -569,7 +617,7 @@ All prompts share these requirements:
   *Tile size*: 16x16 pixels
   *Notes*: Used in Level 1-2 (Sa Cova des Foner -- the Slinger's Cave). Currently uses the default world1 tileset as a placeholder. Needs distinct cave atmosphere.
 
-#### 10c. World 1 Talayot Interior Tileset (Es Talayot Sagrat)
+#### 11c. World 1 Talayot Interior Tileset (Es Talayot Sagrat)
 
 - [ ] **W1 Talayot Tileset** -- `assets/ai_sources/tileset_world1_talayot/image.png`
 
@@ -580,7 +628,13 @@ All prompts share these requirements:
   > 3) Talayot deep/foundation tile -- the oldest darkest stone at the base of the tower, rough-hewn megalithic blocks, ancient and weathered, dark grey-brown
   > 4) Talayot edge/platform tile -- a carved stone ledge or step, more ornate than raw stone, suitable for wall-jump surfaces and platforms
   >
-  > Style: interior of a sacred talayotic tower (talayot). More refined than natural cave or outdoor terrain. Large precisely-cut stone blocks showing advanced Bronze Age masonry. Faint carved decorative elements. Warm torchlit amber undertones. Should feel ancient, sacred, and impressive. Clean pixel art, no anti-aliasing. Each tile clearly separated.
+  > Style: interior of a sacred talayotic tower (talayot). More refined than natural cave or outdoor terrain. Large precisely-cut stone blocks showing advanced Bronze Age masonry. Faint carved decorative elements. Warm torchlit amber undertones. Should feel ancient, sacred, and impressive. Clean pixel art, no anti-aliasing. Each tile clearly separated. Number each tile clearly (1, 2, 3, 4) placed above or below each tile. Arrange all tiles in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → talayot wall surface tile (symbols, moss)
+  - 2 → talayot inner wall tile (masonry, amber tint)
+  - 3 → talayot deep/foundation tile (oldest stone)
+  - 4 → talayot edge/platform tile (carved ledge)
 
   *Will generate*:
   - `tileset.png` -- 256x16 (16 auto-tile variants)
@@ -640,7 +694,13 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 3) ramon_surprised -- eyebrows raised, mouth slightly open, caught off guard
   > 4) ramon_determined -- narrowed eyes, set jaw, ready for battle
   >
-  > Character: medium-length dark hair swept back with cloth headband, deeply tanned olive skin, strong jaw, perpetually unimpressed expression as default. Close-up face and upper shoulders only. Each portrait approximately 44x44 pixels. Clean pixel art, no anti-aliasing. Consistent face proportions across all expressions.
+  > Character: medium-length dark hair swept back with cloth headband, deeply tanned olive skin, strong jaw, perpetually unimpressed expression as default. Close-up face and upper shoulders only. Each portrait approximately 44x44 pixels. Clean pixel art, no anti-aliasing. Consistent face proportions across all expressions. Number each portrait clearly (1, 2, 3, 4) placed above or below each portrait. Arrange all portraits in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → ramon_neutral
+  - 2 → ramon_annoyed
+  - 3 → ramon_surprised
+  - 4 → ramon_determined
 
   *Will generate*:
   - `ramon_neutral.png` -- 44x44
@@ -661,7 +721,13 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 3) bep_scared -- eyes huge with fear, ears flattened back, mouth in a worried "O" shape, trembling
   > 4) bep_sleepy -- half-closed droopy eyes, content sleepy smile
   >
-  > Character: round face of a small sheep-goat creature, large expressive dark eyes (the dominant feature), two small forward-curving horns on top, woolly brown-grey fur around the face, small ears. The face should be extremely expressive -- Bep's emotions are always dialed up to 11. Each portrait approximately 44x44 pixels. Clean pixel art.
+  > Character: round face of a small sheep-goat creature, large expressive dark eyes (the dominant feature), two small forward-curving horns on top, woolly brown-grey fur around the face, small ears. The face should be extremely expressive -- Bep's emotions are always dialed up to 11. Each portrait approximately 44x44 pixels. Clean pixel art. Number each portrait clearly (1, 2, 3, 4) placed above or below each portrait. Arrange all portraits in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → bep_neutral
+  - 2 → bep_excited
+  - 3 → bep_scared
+  - 4 → bep_sleepy
 
   *Will generate*:
   - `bep_neutral.png` -- 44x44
@@ -681,7 +747,12 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 2) dimoni_laughing -- same face but mouth wide open in mocking laughter, eyes narrowed with cruel amusement
   > 3) dimoni_grudging -- same face but slight grimace, begrudging respect, one eyebrow raised
   >
-  > Each portrait approximately 44x44 pixels. Clean pixel art. The dimoni should look theatrical and imposing -- based on Mallorcan Correfoc festival demon figures.
+  > Each portrait approximately 44x44 pixels. Clean pixel art. The dimoni should look theatrical and imposing -- based on Mallorcan Correfoc festival demon figures. Number each portrait clearly (1, 2, 3) placed above or below each portrait. Arrange all portraits in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → dimoni_imposing
+  - 2 → dimoni_laughing
+  - 3 → dimoni_grudging
 
   *Will generate*:
   - `dimoni_imposing.png` -- 44x44
@@ -699,7 +770,11 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 1) llorencc_friendly -- warm friendly face, slight smile, scholarly look, dark hair, tanned skin, visible satchel strap over shoulder, facing slightly left
   > 2) llorencc_excited -- same face but eyes lit up with enthusiasm, mouth open explaining something, gesturing with one hand visible
   >
-  > Each portrait approximately 44x44 pixels. Clean pixel art.
+  > Each portrait approximately 44x44 pixels. Clean pixel art. Number each portrait clearly (1, 2) placed above or below each portrait. Arrange both portraits in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → llorencc_friendly
+  - 2 → llorencc_excited
 
   *Will generate*:
   - `llorencc_friendly.png` -- 44x44
@@ -721,7 +796,12 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 2) Half heart -- left half filled red, right half dark/empty with just an outline
   > 3) Empty heart -- just the heart outline in dark red/maroon, interior is dark/transparent
   >
-  > Each heart approximately 12x12 pixels. Clean pixel art. These sit in the top-left corner of the screen. Must be readable at small size.
+  > Each heart approximately 12x12 pixels. Clean pixel art. These sit in the top-left corner of the screen. Must be readable at small size. Number each state clearly (1, 2, 3) placed above or below each heart. Arrange all hearts in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → full heart
+  - 2 → half heart
+  - 3 → empty heart
 
   *Will generate*:
   - `heart_full.png` -- 12x12
@@ -738,7 +818,10 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   >
   > 1) A tiny sling stone icon, warm grey, round, with a subtle "x" format indicator space next to it
   >
-  > Approximately 10x10 pixels. Clean pixel art. Must be readable at tiny size -- sits next to the stone count number.
+  > Approximately 10x10 pixels. Clean pixel art. Must be readable at tiny size -- sits next to the stone count number. Number the item clearly (1) placed above or below the sprite.
+
+  *Pose mapping:*
+  - 1 → stone counter icon
 
   *Will generate*:
   - `stone_icon.png` -- 10x10
@@ -754,7 +837,11 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 1) Active mask -- a small ancient stone mask with amber glowing eyes, carved from limestone, primitive angular design with horn-like protrusions at top, warm golden glow around it
   > 2) Cooldown mask -- same mask but dimmed, grey-toned, amber eyes dark, semi-transparent overlay effect
   >
-  > Each approximately 14x14 pixels. Clean pixel art. This represents the Stone Slam mask power in the HUD top-right corner.
+  > Each approximately 14x14 pixels. Clean pixel art. This represents the Stone Slam mask power in the HUD top-right corner. Number each state clearly (1, 2) placed above or below each sprite. Arrange both states in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → active mask
+  - 2 → cooldown mask
 
   *Will generate*:
   - `mask_stone_slam_active.png` -- 14x14
@@ -770,7 +857,10 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   >
   > A rectangular frame with: dark blue-black semi-transparent interior, warm golden/bronze ornate border (2-3 pixels wide), slightly rounded corners with small decorative knots or Mediterranean geometric patterns at corners. The frame should be provided as a 9-slice grid: top-left corner, top edge (tileable), top-right corner, left edge (tileable), center (tileable fill), right edge (tileable), bottom-left corner, bottom edge, bottom-right corner.
   >
-  > Overall sample frame approximately 64x32 pixels showing all 9 sections. Clean pixel art. The style should evoke ancient Mediterranean craftsmanship.
+  > Overall sample frame approximately 64x32 pixels showing all 9 sections. Clean pixel art. The style should evoke ancient Mediterranean craftsmanship. Number each of the 9 sections clearly.
+
+  *Pose mapping:*
+  - 9-slice grid: TL corner, T edge, TR corner, L edge, center, R edge, BL corner, B edge, BR corner
 
   *Will generate*:
   - 9-slice dialogue frame pieces for the dialogue box UI
@@ -802,7 +892,12 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 2) Health fill segment -- a tileable red/green/orange fill texture for inside the bar, 1 pixel wide by 8 pixels tall, with slight texture
   > 3) Phase marker -- a small vertical divider line with a tiny diamond or arrow shape
   >
-  > Clean pixel art. The health bar sits at the bottom of the screen during boss fights.
+  > Clean pixel art. The health bar sits at the bottom of the screen during boss fights. Number each element clearly (1, 2, 3) placed above or below each sprite. Arrange all elements in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → health bar frame
+  - 2 → health fill segment
+  - 3 → phase marker
 
   *Will generate*:
   - Boss health bar frame and fill elements
@@ -819,7 +914,12 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 2) Tier 2 glow -- a brighter orange energy bar, slightly wider (16x4 pixels), more intense
   > 3) Tier 3 glow -- a blazing white-red energy bar, widest (20x4 pixels), with small spark particles, dramatic
   >
-  > Clean pixel art. These float above Ramon's head while charging the sling.
+  > Clean pixel art. These float above Ramon's head while charging the sling. Number each tier clearly (1, 2, 3) placed above or below each sprite. Arrange all tiers in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → tier 1 glow (yellow, dim)
+  - 2 → tier 2 glow (orange, medium)
+  - 3 → tier 3 glow (white-red, blazing)
 
   *Will generate*:
   - `charge_tier1.png` -- 12x4
@@ -862,25 +962,46 @@ These are lower priority visual polish items. Generate these after all essential
 
 - [ ] **Dust Particles** -- `assets/ai_sources/fx_dust/image.png`
 
-  > Pixel art of small dust/debris particle sprites, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4-6 tiny dust puff frames in a row, each approximately 4x4 to 8x8 pixels, showing a small dust cloud expanding and fading. Warm grey/brown tones.
+  > Pixel art of small dust/debris particle sprites, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4-6 tiny dust puff frames in a row, each approximately 4x4 to 8x8 pixels, showing a small dust cloud expanding and fading. Warm grey/brown tones. Number each frame clearly (1, 2, 3...) placed above or below each sprite. Arrange all frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1-4 (or 1-6) → dust puff animation (expanding, then fading)
 
   *Will generate*: Dust particle frames for landing, wall-slide, and breakable destruction effects.
 
 - [ ] **Stone Impact Sparks** -- `assets/ai_sources/fx_impact/image.png`
 
-  > Pixel art of impact spark sprites, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 3-4 frames of stone-on-stone impact sparks: initial bright flash (white-yellow), expanding spark lines, fading ember particles. Each frame approximately 12x12 pixels.
+  > Pixel art of impact spark sprites, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 3-4 frames of stone-on-stone impact sparks: initial bright flash (white-yellow), expanding spark lines, fading ember particles. Each frame approximately 12x12 pixels. Number each frame clearly (1, 2, 3...) placed above or below each sprite. Arrange all frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → initial bright flash
+  - 2 → expanding spark lines
+  - 3 → fading ember particles
+  - 4 → (optional) final dissipation
 
   *Will generate*: Impact spark frames for sling hits on enemies and environment.
 
 - [ ] **Dimoni Energy Aura** -- `assets/ai_sources/fx_dimoni_aura/image.png`
 
-  > Pixel art of a pulsing dimoni energy aura effect, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4 frames of a reddish-purple magical aura: faint glow, medium glow, bright pulse, fading. Each frame approximately 24x24 pixels. Semi-transparent feel (use color to suggest transparency).
+  > Pixel art of a pulsing dimoni energy aura effect, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4 frames of a reddish-purple magical aura: faint glow, medium glow, bright pulse, fading. Each frame approximately 24x24 pixels. Semi-transparent feel (use color to suggest transparency). Number each frame clearly (1, 2, 3, 4) placed above or below each sprite. Arrange all frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → faint glow
+  - 2 → medium glow
+  - 3 → bright pulse
+  - 4 → fading
 
   *Will generate*: Aura overlay frames for possessed enemies, boss energy effects, and the Bep curse glow.
 
 - [ ] **Time Portal Effect** -- `assets/ai_sources/fx_portal/image.png`
 
-  > Pixel art of a swirling time portal, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4 frames of a circular portal: forming (small swirl), growing (medium with energy tendrils), fully open (large with visible distortion inside showing another era), closing. Each frame approximately 48x48 pixels. Blue-purple energy with white light at center.
+  > Pixel art of a swirling time portal, 16-bit SNES style, on a solid bright green (#00FF00) background. Show 4 frames of a circular portal: forming (small swirl), growing (medium with energy tendrils), fully open (large with visible distortion inside showing another era), closing. Each frame approximately 48x48 pixels. Blue-purple energy with white light at center. Number each frame clearly (1, 2, 3, 4) placed above or below each sprite. Arrange all frames in a single horizontal row, evenly spaced.
+
+  *Pose mapping:*
+  - 1 → forming (small swirl)
+  - 2 → growing (medium, energy tendrils)
+  - 3 → fully open (distortion visible)
+  - 4 → closing
 
   *Will generate*: Portal animation frames for the post-W1 boss time-travel cutscene.
 
@@ -906,6 +1027,7 @@ These are lower priority visual polish items. Generate these after all essential
 | 8a | Breakable Pot (2 states) | `assets/ai_sources/breakable_pot/` | MEDIUM | Existing basic sprite |
 | 8b | Breakable Crate (2 states) | `assets/ai_sources/breakable_crate/` | MEDIUM | Existing basic sprite |
 | 9 | Sling Projectiles (3 tiers) | `assets/ai_sources/projectile_stone/` | MEDIUM | None |
+| 10 | Player Ground Shadow (3 sizes) | `assets/ai_sources/effects_shadow/` | LOW | None |
 | 10a | W1 Outdoor Tileset | `assets/ai_sources/tileset_world1/` | HIGH | Existing tileset |
 | 10b | W1 Cave Tileset | `assets/ai_sources/tileset_world1_cave/` | HIGH | None (using outdoor as fallback) |
 | 10c | W1 Talayot Tileset | `assets/ai_sources/tileset_world1_talayot/` | HIGH | None (using outdoor as fallback) |

@@ -593,29 +593,45 @@ class GameplayScene(BaseScene):
         """Draw the level background with parallax scrolling, then dim it.
 
         If a background image was loaded from the level data, it is
-        tiled horizontally and shifted by the camera position to create
-        a parallax depth effect.  A semi-transparent dark overlay is
-        drawn on top to increase contrast with the gameplay tiles.
+        scaled to cover the full parallax scroll range and shifted by
+        the camera position.  This avoids tiling artefacts with
+        non-tileable landscape art.
 
         If no background image is loaded, a procedural Mediterranean
         sky gradient is drawn as a fallback (also dimmed).
         """
         bg = self._level_data.background
         if bg is not None:
-            w, h = surface.get_size()
-            # Scale background to viewport size for seamless tiling.
-            if not hasattr(self, "_bg_cache") or self._bg_cache.get_size() != (w, h):
-                self._bg_cache = pygame.transform.scale(bg, (w, h))
-
-            img_w = self._bg_cache.get_width()
+            vp_w, vp_h = surface.get_size()
             parallax_factor = self._get_parallax_factor()
-            cam_x = self._camera.offset[0]
-            shift = -(cam_x * parallax_factor) % img_w
 
-            # Draw the background image twice side-by-side to cover
-            # the seam that appears when scrolling.
+            # The background must be wide enough so that at maximum
+            # camera scroll the parallax-shifted image still covers
+            # the viewport.  Required width:
+            #   viewport_w + (level_pixel_w - viewport_w) * factor
+            level_px_w = self._tilemap.width_pixels
+            required_w = int(
+                vp_w + (level_px_w - vp_w) * parallax_factor
+            )
+            # Ensure at least viewport width (short levels).
+            required_w = max(required_w, vp_w)
+
+            if (
+                not hasattr(self, "_bg_cache")
+                or self._bg_cache.get_size() != (required_w, vp_h)
+            ):
+                self._bg_cache = pygame.transform.scale(
+                    bg, (required_w, vp_h)
+                )
+
+            cam_x = self._camera.offset[0]
+            shift = -(cam_x * parallax_factor)
+
+            # Clamp so the background edges never go past the viewport.
+            shift = min(shift, 0)
+            shift = max(shift, -(required_w - vp_w))
+
             surface.blit(self._bg_cache, (int(shift), 0))
-            surface.blit(self._bg_cache, (int(shift) - img_w, 0))
         else:
             w, h = surface.get_size()
             if not hasattr(self, "_sky_cache") or self._sky_cache.get_size() != (w, h):

@@ -8,6 +8,7 @@ Breakables, Enemies, and TileMap into a playable experience.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pygame
@@ -127,6 +128,8 @@ class GameplayScene(BaseScene):
 
         # Combat system.
         self._combat = CombatSystem(self._event_bus)
+        if "--god" in sys.argv:
+            self._combat._god_mode = True
         self._combat.set_player_health(starting_hearts, int(starting_hearts))
         self._event_bus.subscribe("player_died", self._on_player_died)
 
@@ -848,18 +851,25 @@ class GameplayScene(BaseScene):
         if self._scene_manager is None:
             return
 
-        # Save progress before transitioning.
-        level_path_for_save = str(
-            DATA_DIR / "levels" / f"{next_level}.json"
-        )
+        # Boss levels use BossScene with a boss_id extracted from the path.
+        # Save the *current* level (not the boss path) so Continue returns
+        # the player to the pre-boss level rather than a non-existent file.
+        level_name = next_level.rsplit("/", 1)[-1]
+        is_boss = level_name.startswith("boss_")
+
         if self._save_system is not None:
+            if is_boss:
+                level_path_for_save = self._level_path or ""
+            else:
+                level_path_for_save = str(
+                    DATA_DIR / "levels" / f"{next_level}.json"
+                )
             self._save_system.set_level(level_path_for_save)
             self._save_system.set_player_state(
                 stone_count=self._economy.stone_count,
                 current_hearts=self._combat.player_hearts,
                 max_hearts=self._combat.player_max_hearts,
             )
-            # Save mask state.
             mask_state = self._mask_system.get_save_state()
             self._save_system.state["masks_unlocked"] = mask_state["unlocked_masks"]
             self._save_system.state["masks_equipped"] = (
@@ -867,9 +877,7 @@ class GameplayScene(BaseScene):
             )
             self._save_system.save()
 
-        # Boss levels use BossScene with a boss_id extracted from the path.
-        level_name = next_level.rsplit("/", 1)[-1]
-        if level_name.startswith("boss_"):
+        if is_boss:
             from sa_fona.scenes.boss_scene import BossScene
 
             boss_id = level_name[len("boss_"):]
@@ -881,6 +889,9 @@ class GameplayScene(BaseScene):
                 on_load_level=self._make_load_level_cb(),
             )
             boss_scene.scene_manager = self._scene_manager
+            if "--god" in sys.argv:
+                boss_scene.combat._god_mode = True
+                boss_scene.boss._health = 1
             self._scene_manager.replace(boss_scene)
             return
 

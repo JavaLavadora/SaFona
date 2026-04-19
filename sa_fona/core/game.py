@@ -53,6 +53,7 @@ class Game:
         self,
         level_path: str | None = None,
         skip_menu: bool = False,
+        god_mode: bool = False,
     ) -> None:
         """Initialise Pygame and create the game window.
 
@@ -91,6 +92,8 @@ class Game:
         with open(manifest_path, "r", encoding="utf-8") as fh:
             full_manifest = json.load(fh)
         self.sprite_renderer = SpriteRenderer(full_manifest.get("sprites", {}))
+
+        self.god_mode = god_mode
 
         if skip_menu:
             # Bypass menu: load gameplay directly (for --level / --boss).

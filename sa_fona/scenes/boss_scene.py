@@ -4,6 +4,9 @@ The BossScene sets up the boss arena, spawns the boss entity, manages
 phase transitions, boss health bar UI, boss-vs-player combat, and the
 intro/outro sequences.
 
+After the boss is defeated, pushes a CutsceneScene that handles the
+Dimoni dialogue, mask acquisition, and transition to the next world.
+
 It reuses GameplayScene's player, physics, camera, and combat systems
 while adding boss-specific orchestration.
 """
@@ -44,7 +47,8 @@ class BossScene(BaseScene):
 
     Manages the arena layout, boss entity, phase transitions, boss
     health bar, and integrates with the existing combat and physics
-    systems.
+    systems. After defeat, pushes a CutsceneScene for the post-boss
+    sequence.
 
     Args:
         boss_id: The boss identifier (e.g. "bou_de_pedra").
@@ -53,6 +57,10 @@ class BossScene(BaseScene):
         event_bus: Shared event bus.
         level_path: Optional path to a level JSON for the arena.
             If None, a procedural arena is generated.
+        cutscene_id: Cutscene definition ID to play after boss defeat.
+            If None, the default "VICTORY!" overlay is shown instead.
+        on_load_level: Callback for level loading from the cutscene.
+            Receives the level_path string as argument.
     """
 
     def __init__(
@@ -62,6 +70,8 @@ class BossScene(BaseScene):
         screen_height: int = BASE_HEIGHT,
         event_bus: EventBus | None = None,
         level_path: str | None = None,
+        cutscene_id: str | None = "post_boss_w1",
+        on_load_level: callable | None = None,
     ) -> None:
         self._screen_width = screen_width
         self._screen_height = screen_height
@@ -164,6 +174,12 @@ class BossScene(BaseScene):
         self._boss_defeated: bool = False
         self._defeat_timer: float = 0.0
         self._defeat_duration: float = 3.0
+        self._cutscene_pushed: bool = False
+
+        # Cutscene configuration.
+        self._cutscene_id: str | None = cutscene_id
+        self._on_load_level = on_load_level
+        self._is_retry: bool = False  # Set to True after first death+restart.
 
         # Game over state.
         self._pending_game_over: bool = False
@@ -273,6 +289,13 @@ class BossScene(BaseScene):
         if self._boss_defeated:
             self._defeat_timer += dt
             self._camera.update(dt)
+            # After a brief defeat flash, push the cutscene.
+            if (
+                not self._cutscene_pushed
+                and self._defeat_timer >= 1.5
+                and self._cutscene_id is not None
+            ):
+                self._push_cutscene()
             return
 
         # 1. Player intent.
@@ -563,6 +586,31 @@ class BossScene(BaseScene):
 
         return TileMap(tilemap_data)
 
+    # ── Cutscene push ─────────────────────────────────────────────
+
+    def _push_cutscene(self) -> None:
+        """Push the post-boss CutsceneScene onto the scene stack.
+
+        Loads the cutscene definition and creates a CutsceneScene overlay.
+        On retry (after the player died and restarted), enables fast-forward
+        mode to skip dialogue.
+        """
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.cutscene import CutsceneScene
+
+        cutscene_data = CutsceneScene.load_cutscene_data(self._cutscene_id)
+        scene = CutsceneScene(
+            cutscene_data=cutscene_data,
+            event_bus=self._event_bus,
+            on_load_level=self._on_load_level,
+            fast_forward=self._is_retry,
+        )
+        scene.scene_manager = self._scene_manager
+        self._scene_manager.push(scene)
+        self._cutscene_pushed = True
+
     # ── Intro / Defeat sequences ───────────────────────────────────
 
     def _end_intro(self) -> None:
@@ -600,6 +648,10 @@ class BossScene(BaseScene):
     def _render_defeat(self, surface: pygame.Surface) -> None:
         """Render the defeat overlay.
 
+        Shows a white flash effect. When a cutscene is configured, only
+        renders the flash (the cutscene overlay handles text). When no
+        cutscene is configured, shows the legacy "VICTORY!" text.
+
         Args:
             surface: Target surface.
         """
@@ -610,7 +662,8 @@ class BossScene(BaseScene):
         overlay.fill((255, 255, 255, alpha))
         surface.blit(overlay, (0, 0))
 
-        if self._defeat_timer > 1.0:
+        # Only show VICTORY text if no cutscene is configured.
+        if self._cutscene_id is None and self._defeat_timer > 1.0:
             try:
                 font = pygame.font.Font(None, 20)
                 text = font.render("VICTORY!", False, (255, 220, 50))
@@ -677,6 +730,8 @@ class BossScene(BaseScene):
         self._fight_started = False
         self._boss_defeated = False
         self._defeat_timer = 0.0
+        self._cutscene_pushed = False
+        self._is_retry = True  # Fast-forward cutscene on retry.
         self._pending_game_over = False
         self._input_state = InputState()
 

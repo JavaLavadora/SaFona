@@ -1,0 +1,60 @@
+{
+  "steps": [
+    {
+      "type": "wait",
+      "duration": 0.5
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "You have proven your worth, foner. The Bou de Pedra was merely the first guardian."
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "Take this ancient power. The Talayotic mask shall bend stone to your will."
+    },
+    {
+      "type": "transition",
+      "effect": "fade_white",
+      "duration": 1.0
+    },
+    {
+      "type": "event",
+      "event_name": "mask_acquired",
+      "event_data": {
+        "mask_id": "stone_slam"
+      }
+    },
+    {
+      "type": "save_immediate"
+    },
+    {
+      "type": "wait",
+      "duration": 0.5
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "Ramon, look! A mask! The legends about the Dimoni's trials were true..."
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "I can feel its power. The stones themselves tremble!"
+    },
+    {
+      "type": "wait",
+      "duration": 0.5
+    },
+    {
+      "type": "transition",
+      "effect": "fade_black",
+      "duration": 1.5
+    },
+    {
+      "type": "load_level",
+      "level_path": "world2/level_2_1"
+    }
+  ]
+}

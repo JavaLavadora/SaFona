@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "id": "ensaimada",
+      "name": "Ensaimada",
+      "description": "A tasty pastry. Heals 1 heart.",
+      "price": 10,
+      "effect_type": "heal",
+      "effect_value": 1.0,
+      "unlock_world": 1,
+      "max_purchases": -1
+    },
+    {
+      "id": "heart_upgrade_1",
+      "name": "Heart Container",
+      "description": "Increases max hearts by 1.",
+      "price": 40,
+      "effect_type": "heart_upgrade",
+      "effect_value": 1,
+      "unlock_world": 1,
+      "max_purchases": 1
+    }
+  ]
+}

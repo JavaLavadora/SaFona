@@ -26,6 +26,7 @@ from sa_fona.core.input_handler import InputState
 from sa_fona.entities.breakable import Breakable
 from sa_fona.entities.companion import Companion
 from sa_fona.entities.enemy import Enemy, EnemyFactory
+from sa_fona.entities.npc import NPC
 from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.entities.player import Player
 from sa_fona.entities.projectile import Projectile
@@ -132,6 +133,12 @@ class GameplayScene(BaseScene):
         # Mask system.
         self._mask_system = MaskSystem(self._event_bus)
 
+        # NPCs (spawned when save_point triggers have shop_available).
+        self._npcs: list[NPC] = []
+
+        # Pending shop push (deferred like dialogue to avoid stack issues).
+        self._pending_shop: bool = False
+
         # Pickups and breakables (spawned from level entity definitions).
         self._pickups: list[Pickup] = []
         self._breakables: list[Breakable] = []
@@ -234,6 +241,11 @@ class GameplayScene(BaseScene):
         return self._enemy_factory
 
     @property
+    def npcs(self) -> list[NPC]:
+        """Active NPC entities (exposed for testing)."""
+        return self._npcs
+
+    @property
     def trigger_system(self) -> TriggerSystem:
         """The trigger system (exposed for testing)."""
         return self._trigger_system
@@ -306,6 +318,14 @@ class GameplayScene(BaseScene):
 
         if input_state.reset_pressed:
             self._reset_level()
+
+        # NPC interaction: check if the player is near an NPC and presses interact.
+        if input_state.interact_pressed:
+            for npc in self._npcs:
+                if npc.can_interact(self._player.rect):
+                    if npc.npc_type == "shop":
+                        self._pending_shop = True
+                    break
 
     def update(self, dt: float) -> None:
         """Advance simulation by one frame.
@@ -407,7 +427,12 @@ class GameplayScene(BaseScene):
             self._push_dialogue(self._pending_dialogue_id)
             self._pending_dialogue_id = None
 
-        # 15. Push game over scene if player died (deferred).
+        # 15b. Push shop scene if NPC interaction triggered it.
+        if self._pending_shop:
+            self._pending_shop = False
+            self._push_shop()
+
+        # 15c. Push game over scene if player died (deferred).
         if self._pending_game_over:
             self._pending_game_over = False
             self._push_game_over()
@@ -442,6 +467,10 @@ class GameplayScene(BaseScene):
         # Enemies.
         for enemy in self._enemies:
             enemy.render(surface, cam_offset)
+
+        # NPCs.
+        for npc in self._npcs:
+            npc.render(surface, cam_offset)
 
         # Level-end gate visual cue.
         self._render_level_end_cues(surface, cam_offset)
@@ -749,10 +778,11 @@ class GameplayScene(BaseScene):
         self._projectiles.clear()
         self._charge_indicator = ChargeIndicator()
 
-        # Reset pickups, breakables, and enemies from level data.
+        # Reset pickups, breakables, enemies, and NPCs from level data.
         self._pickups.clear()
         self._breakables.clear()
         self._enemies.clear()
+        self._npcs.clear()
         self._spawn_entities()
 
         # Reset HUD to starting values (keep economy state).
@@ -782,6 +812,7 @@ class GameplayScene(BaseScene):
         self._pending_dialogue_id = None
         self._pending_game_over = False
         self._pending_next_level = None
+        self._pending_shop = False
 
     # ── Level progression ─────────────────────────────────────────
 
@@ -902,8 +933,9 @@ class GameplayScene(BaseScene):
     def _on_trigger_save_point(self, trigger=None) -> None:
         """Handle save_point trigger events.
 
-        For now, publishes a save_point_reached event. Full save/shop
-        integration will be implemented in a later deliverable.
+        Publishes a save_point_reached event.  If the trigger has
+        ``shop_available: true``, spawns Llorencc NPC near the save
+        point (offset slightly to the right).
 
         Args:
             trigger: The Trigger instance that fired.
@@ -911,6 +943,24 @@ class GameplayScene(BaseScene):
         shop_available = False
         if trigger is not None:
             shop_available = trigger.properties.get("shop_available", False)
+
+            # Spawn Llorencc NPC near the save point if shop is available.
+            if shop_available:
+                npc_x = trigger.rect.right + 8
+                npc_y = trigger.rect.bottom - 36  # Align feet with ground.
+                # Avoid duplicate spawns.
+                already_spawned = any(
+                    n.npc_id == "llorencc" for n in self._npcs
+                )
+                if not already_spawned:
+                    npc = NPC(
+                        npc_x, npc_y,
+                        npc_id="llorencc",
+                        npc_type="shop",
+                        label="L",
+                    )
+                    self._npcs.append(npc)
+
         self._event_bus.publish(
             "save_point_reached", shop_available=shop_available
         )
@@ -938,6 +988,33 @@ class GameplayScene(BaseScene):
             dialogue_id=dialogue_id,
             event_bus=self._event_bus,
             on_complete=_on_dialogue_complete,
+        )
+        self._scene_manager.push(scene)
+
+    # ── Shop push ─────────────────────────────────────────────────
+
+    def _push_shop(self) -> None:
+        """Push a ShopScene overlay onto the scene stack.
+
+        Requires that ``scene_manager`` has been set on this scene.
+        """
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.shop import ShopScene
+
+        def _on_shop_close() -> None:
+            if self._scene_manager is not None:
+                self._scene_manager.pop()
+
+        scene = ShopScene(
+            event_bus=self._event_bus,
+            economy=self._economy,
+            mask_system=self._mask_system,
+            combat_system=self._combat,
+            hud=self._hud,
+            current_world=1,
+            on_close=_on_shop_close,
         )
         self._scene_manager.push(scene)
 

@@ -229,20 +229,20 @@ class CutsceneScene(BaseScene):
     def _start_dialogue_step(self, step: dict[str, Any]) -> None:
         """Begin a dialogue step.
 
-        In fast-forward mode, dialogue steps are skipped entirely.
+        In fast-forward mode, dialogue is started normally but text is
+        instantly revealed. The existing auto-advance logic in update()
+        handles progressing past the line on the next frame.
 
         Args:
             step: The step dict with "speaker" and "text" fields.
         """
-        if self._fast_forward:
-            self._advance_step()
-            return
-
         speaker = step.get("speaker", "")
         text = step.get("text", "")
         line = {"speaker": speaker, "text": text}
         self._dialogue_box.start([line], skippable=False)
         self._dialogue_active = True
+        if self._fast_forward:
+            self._dialogue_box.advance()
 
     def _start_event_step(self, step: dict[str, Any]) -> None:
         """Execute an event step by publishing to the EventBus.

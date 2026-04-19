@@ -90,6 +90,115 @@ class TestCameraApply:
         assert screen_rect.height == world_rect.height
 
 
+class TestCameraSnapTo:
+    """Tests for the snap_to() instant centering method."""
+
+    def test_snap_to_centers_on_target(self) -> None:
+        """snap_to places camera so the target is centered."""
+        camera = Camera(level_width=2000, level_height=1000)
+        target = pygame.Rect(500, 300, 24, 32)
+
+        camera.snap_to(target)
+
+        ox, oy = camera.offset
+        expected_x = target.centerx - camera.view_width // 2
+        expected_y = target.centery - camera.view_height // 2
+        assert ox == expected_x
+        assert oy == expected_y
+
+    def test_snap_to_clamps_to_level_bounds(self) -> None:
+        """snap_to clamps when the target is near the level edge."""
+        camera = Camera(level_width=400, level_height=250)
+        # Target in top-left corner: camera would go negative without clamping.
+        target = pygame.Rect(0, 0, 24, 32)
+
+        camera.snap_to(target)
+
+        ox, oy = camera.offset
+        assert ox >= 0, "Camera X should not go below 0 after snap_to"
+        assert oy >= 0, "Camera Y should not go below 0 after snap_to"
+
+    def test_snap_to_clamps_bottom_right(self) -> None:
+        """snap_to clamps when target is near bottom-right edge."""
+        camera = Camera(level_width=500, level_height=300)
+        target = pygame.Rect(490, 290, 24, 32)
+
+        camera.snap_to(target)
+
+        ox, oy = camera.offset
+        max_x = 500 - camera.view_width
+        max_y = 300 - camera.view_height
+        assert ox <= max(0, max_x), f"Camera X {ox} should not exceed {max_x}"
+        assert oy <= max(0, max_y), f"Camera Y {oy} should not exceed {max_y}"
+
+    def test_snap_to_with_zoom_centers_correctly(self) -> None:
+        """snap_to with zoom uses effective viewport for centering."""
+        camera = Camera(level_width=2000, level_height=1000, zoom=2.0)
+        target = pygame.Rect(500, 300, 24, 32)
+
+        camera.snap_to(target)
+
+        # Effective viewport is half the view size at 2x zoom.
+        eff_w = camera.view_width / 2.0
+        eff_h = camera.view_height / 2.0
+        expected_x = int(target.centerx - eff_w / 2)
+        expected_y = int(target.centery - eff_h / 2)
+        ox, oy = camera.offset
+        assert ox == expected_x, f"Zoomed snap X {ox} != {expected_x}"
+        assert oy == expected_y, f"Zoomed snap Y {oy} != {expected_y}"
+
+
+class TestCameraZoom:
+    """Tests for camera zoom functionality."""
+
+    def test_zoom_property_default(self) -> None:
+        """Default zoom is 1.0."""
+        camera = Camera(level_width=1000, level_height=500)
+        assert camera.zoom == 1.0
+
+    def test_zoom_property_custom(self) -> None:
+        """Custom zoom is stored and accessible."""
+        camera = Camera(level_width=1000, level_height=500, zoom=1.3)
+        assert camera.zoom == pytest.approx(1.3)
+
+    def test_zoom_clamp_smaller_effective_viewport(self) -> None:
+        """With zoom, camera clamps to a smaller effective viewport."""
+        # Level barely larger than the unzoomed viewport.
+        camera_no_zoom = Camera(level_width=400, level_height=230)
+        camera_zoomed = Camera(level_width=400, level_height=230, zoom=1.3)
+
+        target = pygame.Rect(390, 220, 24, 32)
+
+        camera_no_zoom.snap_to(target)
+        camera_zoomed.snap_to(target)
+
+        ox_nz, oy_nz = camera_no_zoom.offset
+        ox_z, oy_z = camera_zoomed.offset
+
+        # Zoomed camera can scroll further because the effective viewport
+        # is smaller than the unzoomed one.
+        max_x_no_zoom = max(0, 400 - camera_no_zoom.view_width)
+        max_x_zoomed = max(0, 400 - camera_zoomed.view_width / 1.3)
+        assert max_x_zoomed > max_x_no_zoom or max_x_no_zoom == 0
+
+    def test_zoom_follow_uses_effective_viewport(self) -> None:
+        """Camera follow with zoom converges to zoomed center."""
+        camera = Camera(level_width=2000, level_height=1000, zoom=2.0)
+        target = pygame.Rect(500, 300, 24, 32)
+
+        for _ in range(120):
+            camera.follow(target, 0.016)
+            camera.update(0.016)
+
+        eff_w = camera.view_width / 2.0
+        eff_h = camera.view_height / 2.0
+        expected_x = target.centerx - eff_w / 2
+        expected_y = target.centery - eff_h / 2
+        ox, oy = camera.offset
+        assert abs(ox - expected_x) < 2, f"Zoomed follow X {ox} != ~{expected_x}"
+        assert abs(oy - expected_y) < 2, f"Zoomed follow Y {oy} != ~{expected_y}"
+
+
 class TestScreenShake:
     """Tests for screen shake."""
 

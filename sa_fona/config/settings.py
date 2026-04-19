@@ -13,6 +13,7 @@ BASE_WIDTH: int = 384
 BASE_HEIGHT: int = 216
 WINDOW_SCALE: int = 3
 FPS: int = 60
+CAMERA_ZOOM: float = 1.3  # Camera zoom factor (1.0 = no zoom, >1 = closer)
 
 # ── Color Palette ───────────────────────────────────────────────
 COLORS: dict[str, tuple[int, int, int]] = {

@@ -16,6 +16,7 @@ import pygame
 from sa_fona.config.settings import (
     BASE_HEIGHT,
     BASE_WIDTH,
+    CAMERA_ZOOM,
     DATA_DIR,
     GAMEPLAY_BG_COLOR,
     PLAYER_GRAVITY,
@@ -105,12 +106,27 @@ class GameplayScene(BaseScene):
             self._tilemap.height_pixels,
             screen_width,
             screen_height,
+            zoom=CAMERA_ZOOM,
         )
 
         # Player spawn (tile coords -> pixel coords).
         spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
         spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
+
+        # Snap camera to player immediately (avoid lerp snap on first frame).
+        self._camera.snap_to(self._player.rect)
+
+        # Zoom surface for camera zoom rendering pipeline.
+        zoom = self._camera.zoom
+        if zoom != 1.0:
+            zoom_w = int(self._screen_width / zoom)
+            zoom_h = int(self._screen_height / zoom)
+            self._zoom_surface: pygame.Surface | None = pygame.Surface(
+                (zoom_w, zoom_h)
+            )
+        else:
+            self._zoom_surface = None
 
         # Input state cache.
         self._input_state: InputState = InputState()
@@ -514,35 +530,45 @@ class GameplayScene(BaseScene):
     def render(self, surface: pygame.Surface) -> None:
         """Draw tilemap layers, player, enemies, projectiles, pickups, and UI.
 
+        When camera zoom is active, the world is rendered to a smaller
+        intermediate surface and then scaled up to fill the native surface.
+        The HUD is drawn after scaling so it stays at native resolution.
+
         Args:
             surface: The pygame Surface to draw on.
         """
-        self._render_sky(surface)
+        # Determine render target: zoom surface (smaller) or native surface.
+        if self._zoom_surface is not None:
+            target = self._zoom_surface
+        else:
+            target = surface
+
+        self._render_sky(target)
         cam_offset = self._camera.offset
 
         # Back-to-front layer rendering.
-        self._tilemap.render_layer(surface, "background", cam_offset)
-        self._tilemap.render_layer(surface, "midground", cam_offset)
+        self._tilemap.render_layer(target, "background", cam_offset)
+        self._tilemap.render_layer(target, "midground", cam_offset)
 
         # Breakable objects.
         for breakable in self._breakables:
-            breakable.render(surface, cam_offset)
+            breakable.render(target, cam_offset)
 
         # Pickups.
         for pickup in self._pickups:
-            pickup.render(surface, cam_offset)
+            pickup.render(target, cam_offset)
 
         # Enemies.
         for enemy in self._enemies:
-            enemy.render(surface, cam_offset)
+            enemy.render(target, cam_offset)
 
         # NPCs.
         for npc in self._npcs:
-            npc.render(surface, cam_offset)
+            npc.render(target, cam_offset)
 
         # Save point and level-end visual cues.
-        self._render_save_point_cues(surface, cam_offset)
-        self._render_level_end_cues(surface, cam_offset)
+        self._render_save_point_cues(target, cam_offset)
+        self._render_level_end_cues(target, cam_offset)
 
         # Shockwave visual (mask system ground pound flash).
         shock_rect = self._mask_system.shockwave_rect
@@ -554,26 +580,34 @@ class GameplayScene(BaseScene):
                 (shock_rect.width, shock_rect.height), pygame.SRCALPHA
             )
             shock_surf.fill((255, 220, 80, shock_alpha))
-            surface.blit(shock_surf, (sx, sy))
+            target.blit(shock_surf, (sx, sy))
 
         # Projectiles.
         for proj in self._projectiles:
-            proj.render(surface, cam_offset)
+            proj.render(target, cam_offset)
 
         # Player (respects invincibility blink from combat system).
         if self._combat.player_visible:
-            self._player.render(surface, cam_offset)
+            self._player.render(target, cam_offset)
 
         # Charge indicator (UI, world-space near player).
-        self._charge_indicator.render(surface, self._player.rect, cam_offset)
+        self._charge_indicator.render(target, self._player.rect, cam_offset)
 
         # Visual effects (dust, impact, etc.).
         self._effects.render(surface, cam_offset)
 
         # Foreground on top.
-        self._tilemap.render_layer(surface, "foreground", cam_offset)
+        self._tilemap.render_layer(target, "foreground", cam_offset)
 
-        # HUD renders on top of everything (screen space, not camera-relative).
+        # Scale zoomed surface up to the native surface.
+        if self._zoom_surface is not None:
+            pygame.transform.scale(
+                self._zoom_surface,
+                (self._screen_width, self._screen_height),
+                surface,
+            )
+
+        # HUD renders on top of everything at native resolution.
         self._hud.render(surface)
 
     def _is_interior_level(self) -> bool:
@@ -952,6 +986,7 @@ class GameplayScene(BaseScene):
             self._tilemap.height_pixels,
             self._screen_width,
             self._screen_height,
+            zoom=CAMERA_ZOOM,
         )
 
         if self._checkpoint_pos is not None:
@@ -961,6 +996,19 @@ class GameplayScene(BaseScene):
             spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
             spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
+
+        # Snap camera to player immediately (avoid lerp snap on respawn).
+        self._camera.snap_to(self._player.rect)
+
+        # Recreate zoom surface for the new camera.
+        zoom = self._camera.zoom
+        if zoom != 1.0:
+            zoom_w = int(self._screen_width / zoom)
+            zoom_h = int(self._screen_height / zoom)
+            self._zoom_surface = pygame.Surface((zoom_w, zoom_h))
+        else:
+            self._zoom_surface = None
+
         self._input_state = InputState()
 
         # Reset combat state (reuse EconomySystem config).

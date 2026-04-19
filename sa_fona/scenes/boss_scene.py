@@ -18,6 +18,7 @@ import pygame
 from sa_fona.config.settings import (
     BASE_HEIGHT,
     BASE_WIDTH,
+    CAMERA_ZOOM,
     DATA_DIR,
     GAMEPLAY_BG_COLOR,
     PLAYER_GRAVITY,
@@ -101,6 +102,7 @@ class BossScene(BaseScene):
             self._tilemap.height_pixels,
             screen_width,
             screen_height,
+            zoom=CAMERA_ZOOM,
         )
 
         # Player spawn.
@@ -110,6 +112,20 @@ class BossScene(BaseScene):
         self._player = Player(spawn_x, spawn_y)
         # Snap player feet to the floor (top of floor row = (arena_h - 2) * TILE_SIZE).
         self._player.rect.bottom = (arena_h - 2) * TILE_SIZE
+
+        # Snap camera to player immediately (avoid lerp snap on first frame).
+        self._camera.snap_to(self._player.rect)
+
+        # Zoom surface for camera zoom rendering pipeline.
+        zoom = self._camera.zoom
+        if zoom != 1.0:
+            zoom_w = int(self._screen_width / zoom)
+            zoom_h = int(self._screen_height / zoom)
+            self._zoom_surface: pygame.Surface | None = pygame.Surface(
+                (zoom_w, zoom_h)
+            )
+        else:
+            self._zoom_surface = None
 
         # Input state.
         self._input_state = InputState()
@@ -398,34 +414,52 @@ class BossScene(BaseScene):
     def render(self, surface: pygame.Surface) -> None:
         """Draw the boss scene.
 
+        When camera zoom is active, the world is rendered to a smaller
+        intermediate surface and then scaled up.  HUD elements render
+        at native resolution on top.
+
         Args:
             surface: Target surface.
         """
-        surface.fill(GAMEPLAY_BG_COLOR)
+        # Determine render target: zoom surface (smaller) or native surface.
+        if self._zoom_surface is not None:
+            target = self._zoom_surface
+        else:
+            target = surface
+
+        target.fill(GAMEPLAY_BG_COLOR)
         cam_offset = self._camera.offset
 
         # Tilemap layers.
-        self._tilemap.render_layer(surface, "background", cam_offset)
-        self._tilemap.render_layer(surface, "midground", cam_offset)
+        self._tilemap.render_layer(target, "background", cam_offset)
+        self._tilemap.render_layer(target, "midground", cam_offset)
 
         # Boss (includes pillars, projectiles, markers).
-        self._boss.render(surface, cam_offset)
+        self._boss.render(target, cam_offset)
 
         # Player projectiles.
         for proj in self._projectiles:
-            proj.render(surface, cam_offset)
+            proj.render(target, cam_offset)
 
         # Player.
         if self._combat.player_visible:
-            self._player.render(surface, cam_offset)
+            self._player.render(target, cam_offset)
 
         # Charge indicator.
-        self._charge_indicator.render(surface, self._player.rect, cam_offset)
+        self._charge_indicator.render(target, self._player.rect, cam_offset)
 
         # Foreground.
-        self._tilemap.render_layer(surface, "foreground", cam_offset)
+        self._tilemap.render_layer(target, "foreground", cam_offset)
 
-        # HUD.
+        # Scale zoomed surface up to the native surface.
+        if self._zoom_surface is not None:
+            pygame.transform.scale(
+                self._zoom_surface,
+                (self._screen_width, self._screen_height),
+                surface,
+            )
+
+        # HUD renders at native resolution.
         self._hud.render(surface)
 
         # Boss health bar (on top of HUD).
@@ -738,6 +772,9 @@ class BossScene(BaseScene):
         self._player = Player(spawn_x, spawn_y)
         arena_h = arena_data.get("height", 14)
         self._player.rect.bottom = (arena_h - 2) * TILE_SIZE
+
+        # Snap camera to player immediately (avoid lerp snap on respawn).
+        self._camera.snap_to(self._player.rect)
 
         # Reset boss.
         boss_spawn = arena_data.get("boss_spawn", {"x": 20, "y": 9})

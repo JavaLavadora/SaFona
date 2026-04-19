@@ -10,7 +10,7 @@
       "path": "assets/sprites/ramon/walk.png",
       "frame_width": 24,
       "frame_height": 32,
-      "frame_count": 6
+      "frame_count": 8
     },
     "ramon_jump": {
       "path": "assets/sprites/ramon/jump.png",
@@ -29,6 +29,12 @@
       "frame_width": 24,
       "frame_height": 32,
       "frame_count": 2
+    },
+    "ramon_sling": {
+      "path": "assets/sprites/ramon/sling.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 3
     },
     "bep_idle": {
       "path": "assets/sprites/bep/idle.png",

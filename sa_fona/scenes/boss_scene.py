@@ -342,6 +342,20 @@ class BossScene(BaseScene):
         )
         self._projectiles.extend(new_projectiles)
 
+        # 5b. Sync sling animation state to the player sprite.
+        # Map all four SlingSystem states to player animation states:
+        #   idle     -> "none"      (no sling activity)
+        #   pressed  -> "charging"  (player starting to wind up)
+        #   charging -> "charging"  (actively charging the sling)
+        #   cooldown -> "releasing" (release pose, unconditional)
+        sling_st = self._sling_system.state
+        if sling_st == "idle":
+            self._player.sling_anim_state = "none"
+        elif sling_st in ("pressed", "charging"):
+            self._player.sling_anim_state = "charging"
+        elif sling_st == "cooldown":
+            self._player.sling_anim_state = "releasing"
+
         # 6. Update projectiles.
         for proj in self._projectiles:
             proj.update(dt)

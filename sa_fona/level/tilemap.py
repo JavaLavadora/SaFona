@@ -3,6 +3,10 @@
 Manages multiple layers (background, midground, foreground) where each
 layer is a 2D grid of integer tile IDs.  Tile ID 0 means empty.
 Collision categories are data-driven from the level JSON.
+
+When a tileset surface is provided, tiles are rendered via 4-bit
+auto-tiling: each solid tile's appearance is selected based on its
+cardinal neighbors (UP=1, DOWN=2, LEFT=4, RIGHT=8).
 """
 
 from __future__ import annotations
@@ -11,6 +15,12 @@ import pygame
 
 # All tiles are 16x16 pixels.
 TILE_SIZE: int = 16
+
+# Auto-tile bitmask flags.
+_AT_UP = 1
+_AT_DOWN = 2
+_AT_LEFT = 4
+_AT_RIGHT = 8
 
 # Placeholder colors for different collision categories.
 _TILE_COLORS: dict[str, tuple[int, int, int]] = {
@@ -59,12 +69,25 @@ class TileMap:
         }
 
         self._tileset_surface = tileset_surface
+        self._tileset_tiles: list[pygame.Surface] = []
+        if tileset_surface is not None:
+            self._slice_tileset(tileset_surface)
 
         # Build a lookup: tile_id -> collision category (for coloring).
         self._tile_id_to_category: dict[int, str] = {}
         for category, ids in self._collision_types.items():
             for tid in ids:
                 self._tile_id_to_category[tid] = category
+
+        # All non-zero tile IDs treated as "solid neighbors" for auto-tiling.
+        self._solid_ids: set[int] = set()
+        for ids in self._collision_types.values():
+            self._solid_ids.update(ids)
+
+        self._autotile_layers: dict[str, list[list[int]]] = {}
+        if self._tileset_tiles:
+            for layer_name, grid in self._layers.items():
+                self._autotile_layers[layer_name] = self._compute_autotile(grid)
 
     # ── Collision queries ──────────────────────────────────────────
 
@@ -135,6 +158,44 @@ class TileMap:
             raise IndexError(f"Tile position ({x}, {y}) out of bounds")
         grid[y][x] = tile_id
 
+    # ── Tileset helpers ───────────────────────────────────────────
+
+    def _slice_tileset(self, surface: pygame.Surface) -> None:
+        """Slice a horizontal tileset strip into individual tile surfaces."""
+        num = surface.get_width() // TILE_SIZE
+        for i in range(num):
+            rect = pygame.Rect(i * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE)
+            self._tileset_tiles.append(surface.subsurface(rect).copy())
+
+    def _compute_autotile(self, grid: list[list[int]]) -> list[list[int]]:
+        """Pre-compute auto-tile variant index for every cell in a grid."""
+        h = len(grid)
+        w = len(grid[0]) if h else 0
+        result: list[list[int]] = []
+        for row_idx in range(h):
+            row_result: list[int] = []
+            for col_idx in range(w):
+                tid = grid[row_idx][col_idx]
+                if tid == 0:
+                    row_result.append(0)
+                    continue
+                mask = 0
+                # Up neighbor (out-of-bounds = solid)
+                if row_idx == 0 or grid[row_idx - 1][col_idx] in self._solid_ids:
+                    mask |= _AT_UP
+                # Down
+                if row_idx == h - 1 or grid[row_idx + 1][col_idx] in self._solid_ids:
+                    mask |= _AT_DOWN
+                # Left
+                if col_idx == 0 or grid[row_idx][col_idx - 1] in self._solid_ids:
+                    mask |= _AT_LEFT
+                # Right
+                if col_idx == w - 1 or grid[row_idx][col_idx + 1] in self._solid_ids:
+                    mask |= _AT_RIGHT
+                row_result.append(mask)
+            result.append(row_result)
+        return result
+
     # ── Rendering ──────────────────────────────────────────────────
 
     def render_layer(
@@ -175,11 +236,20 @@ class TileMap:
                 screen_x = col_idx * TILE_SIZE - cam_x
                 screen_y = row_idx * TILE_SIZE - cam_y
 
-                color = self._color_for_tile(tid)
-                pygame.draw.rect(
-                    surface, color,
-                    (screen_x, screen_y, TILE_SIZE, TILE_SIZE),
-                )
+                if self._tileset_tiles:
+                    at_grid = self._autotile_layers.get(layer)
+                    if at_grid is not None:
+                        mask = at_grid[row_idx][col_idx]
+                    else:
+                        mask = 0
+                    idx = mask % len(self._tileset_tiles)
+                    surface.blit(self._tileset_tiles[idx], (screen_x, screen_y))
+                else:
+                    color = self._color_for_tile(tid)
+                    pygame.draw.rect(
+                        surface, color,
+                        (screen_x, screen_y, TILE_SIZE, TILE_SIZE),
+                    )
 
     def _color_for_tile(self, tile_id: int) -> tuple[int, int, int]:
         """Determine the placeholder color for a tile ID.

@@ -449,7 +449,7 @@ class GameplayScene(BaseScene):
         Args:
             surface: The pygame Surface to draw on.
         """
-        surface.fill(GAMEPLAY_BG_COLOR)
+        self._render_sky(surface)
         cam_offset = self._camera.offset
 
         # Back-to-front layer rendering.
@@ -513,6 +513,22 @@ class GameplayScene(BaseScene):
 
         # HUD renders on top of everything (screen space, not camera-relative).
         self._hud.render(surface)
+
+    def _render_sky(self, surface: pygame.Surface) -> None:
+        """Draw a Mediterranean sky gradient as the background."""
+        w, h = surface.get_size()
+        if not hasattr(self, "_sky_cache") or self._sky_cache.get_size() != (w, h):
+            sky = pygame.Surface((w, h))
+            top = (110, 170, 220)
+            bottom = (200, 190, 160)
+            for y in range(h):
+                t = y / max(h - 1, 1)
+                r = int(top[0] + (bottom[0] - top[0]) * t)
+                g = int(top[1] + (bottom[1] - top[1]) * t)
+                b = int(top[2] + (bottom[2] - top[2]) * t)
+                pygame.draw.line(sky, (r, g, b), (0, y), (w, y))
+            self._sky_cache = sky
+        surface.blit(self._sky_cache, (0, 0))
 
     def _render_level_end_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],

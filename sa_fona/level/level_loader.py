@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
+import pygame
+
+from sa_fona.config.settings import ASSETS_DIR
 from sa_fona.level.tilemap import TileMap
 
 
@@ -56,7 +60,8 @@ class LevelLoader:
         with open(level_path, "r", encoding="utf-8") as fh:
             data: dict = json.load(fh)
 
-        tilemap = TileMap(tile_data=data, tileset_surface=None)
+        tileset_surface = self._load_tileset(data)
+        tilemap = TileMap(tile_data=data, tileset_surface=tileset_surface)
 
         player_spawn_raw = data.get("player_spawn", {"x": 0, "y": 0})
         companion_spawn_raw = data.get("companion_spawn", {"x": 0, "y": 0})
@@ -70,3 +75,22 @@ class LevelLoader:
             player_spawn=(player_spawn_raw["x"], player_spawn_raw["y"]),
             companion_spawn=(companion_spawn_raw["x"], companion_spawn_raw["y"]),
         )
+
+    @staticmethod
+    def _load_tileset(data: dict) -> pygame.Surface | None:
+        """Try to load the tileset PNG for the level's world.
+
+        Returns None if the tileset file doesn't exist, allowing
+        graceful fallback to placeholder colored rectangles.
+        """
+        metadata = data.get("metadata", {})
+        tileset_id = metadata.get("tileset", "")
+        if not tileset_id:
+            return None
+        tileset_path = ASSETS_DIR / "tilesets" / tileset_id / "tileset.png"
+        if not tileset_path.is_file():
+            return None
+        try:
+            return pygame.image.load(str(tileset_path)).convert_alpha()
+        except pygame.error:
+            return None

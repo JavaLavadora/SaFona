@@ -36,6 +36,14 @@ _STONE_ICON_COLOR: tuple[int, int, int] = (160, 160, 160)
 _STONE_TEXT_COLOR: tuple[int, int, int] = (220, 220, 220)
 _STONE_TEXT_SHADOW: tuple[int, int, int] = (40, 40, 40)
 
+# Mask icon area (below stone count).
+_MASK_MARGIN_X: int = 4
+_MASK_MARGIN_Y: int = 22
+_MASK_ICON_SIZE: int = 14
+_MASK_ACTIVE_COLOR: tuple[int, int, int] = (180, 150, 50)
+_MASK_EMPTY_COLOR: tuple[int, int, int] = (60, 60, 60)
+_MASK_COOLDOWN_COLOR: tuple[int, int, int, int] = (40, 40, 40, 140)
+
 
 class HUD:
     """In-game heads-up display.
@@ -62,6 +70,10 @@ class HUD:
         self._max_hearts = max_hearts
         self._current_hearts = current_hearts
         self._stone_count = stone_count
+
+        # Mask display state (updated externally each frame).
+        self._mask_equipped: bool = False
+        self._mask_cooldown_progress: float = 1.0  # 1.0 = ready
 
         # Pre-render a small font for the stone count.
         self._font: pygame.font.Font | None = None
@@ -130,6 +142,20 @@ class HUD:
         if stone_count is not None:
             self._stone_count = max(0, stone_count)
 
+    def set_mask_state(
+        self,
+        equipped: bool,
+        cooldown_progress: float = 1.0,
+    ) -> None:
+        """Update the mask display state each frame.
+
+        Args:
+            equipped: Whether any mask is currently equipped.
+            cooldown_progress: 0.0 (just used) to 1.0 (ready).
+        """
+        self._mask_equipped = equipped
+        self._mask_cooldown_progress = cooldown_progress
+
     # ── Rendering ─────────────────────────────────────────────────
 
     def render(self, surface: pygame.Surface) -> None:
@@ -140,6 +166,7 @@ class HUD:
         """
         self._render_hearts(surface)
         self._render_stone_count(surface)
+        self._render_mask_icon(surface)
 
     def _render_hearts(self, surface: pygame.Surface) -> None:
         """Draw heart icons in the top-left corner."""
@@ -205,6 +232,52 @@ class HUD:
             text_y = _STONE_MARGIN_Y - 1
             surface.blit(shadow, (text_x + 1, text_y + 1))
             surface.blit(text, (text_x, text_y))
+
+    def _render_mask_icon(self, surface: pygame.Surface) -> None:
+        """Draw the mask icon with cooldown overlay in the top-right corner.
+
+        Positioned below the stone count display. Shows an empty/dimmed
+        square when no mask is equipped, or a colored square with a
+        cooldown bar when a mask is equipped.
+        """
+        screen_w = surface.get_width()
+        icon_x = screen_w - _MASK_MARGIN_X - _MASK_ICON_SIZE
+        icon_y = _MASK_MARGIN_Y
+
+        if self._mask_equipped:
+            # Active mask icon (golden square).
+            pygame.draw.rect(
+                surface, _MASK_ACTIVE_COLOR,
+                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE),
+            )
+            # Border.
+            pygame.draw.rect(
+                surface, (140, 110, 30),
+                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE), 1,
+            )
+
+            # Cooldown overlay: darkened portion shrinks from top as
+            # cooldown_progress goes from 0.0 to 1.0.
+            if self._mask_cooldown_progress < 1.0:
+                cooldown_h = int(
+                    _MASK_ICON_SIZE * (1.0 - self._mask_cooldown_progress)
+                )
+                if cooldown_h > 0:
+                    cd_surf = pygame.Surface(
+                        (_MASK_ICON_SIZE, cooldown_h), pygame.SRCALPHA,
+                    )
+                    cd_surf.fill(_MASK_COOLDOWN_COLOR)
+                    surface.blit(cd_surf, (icon_x, icon_y))
+        else:
+            # Empty placeholder (dimmed square).
+            pygame.draw.rect(
+                surface, _MASK_EMPTY_COLOR,
+                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE),
+            )
+            pygame.draw.rect(
+                surface, (40, 40, 40),
+                (icon_x, icon_y, _MASK_ICON_SIZE, _MASK_ICON_SIZE), 1,
+            )
 
     # ── Event handlers ────────────────────────────────────────────
 

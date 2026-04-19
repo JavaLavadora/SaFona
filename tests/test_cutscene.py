@@ -268,9 +268,43 @@ class TestCutsceneEventPublish:
 
 
 class TestCutsceneFastForward:
-    """Tests for fast-forward mode (skip dialogue on retry)."""
+    """Tests for fast-forward mode (dialogue shown but auto-advanced)."""
 
-    def test_fast_forward_skips_dialogue(self):
+    def test_fast_forward_starts_dialogue_not_skip(self):
+        """In fast-forward mode, dialogue steps are NOT skipped.
+
+        The dialogue box is started and _dialogue_active is set to True.
+        """
+        bus = EventBus()
+        scene = CutsceneScene(
+            {
+                "steps": [
+                    {"type": "dialogue", "speaker": "Dimoni", "text": "Hello."},
+                ]
+            },
+            bus,
+            fast_forward=True,
+        )
+        # Dialogue is active (not skipped).
+        assert scene._dialogue_active is True
+        assert scene.dialogue_box.is_active is True
+
+    def test_fast_forward_instantly_reveals_text(self):
+        """In fast-forward mode, text is fully revealed immediately."""
+        bus = EventBus()
+        scene = CutsceneScene(
+            {
+                "steps": [
+                    {"type": "dialogue", "speaker": "Dimoni", "text": "Long speech..."},
+                ]
+            },
+            bus,
+            fast_forward=True,
+        )
+        assert scene.dialogue_box.is_fully_revealed is True
+
+    def test_fast_forward_dialogue_auto_advances_on_update(self):
+        """In fast-forward mode, one update() call auto-advances past dialogue."""
         bus = EventBus()
         events = []
         bus.subscribe("test_done", lambda **kw: events.append(True))
@@ -287,8 +321,20 @@ class TestCutsceneFastForward:
             fast_forward=True,
         )
 
-        # In fast-forward mode, dialogues are skipped so the event fires
-        # immediately during construction.
+        # After construction, first dialogue is active with text revealed.
+        assert scene.step_index == 0
+        assert scene._dialogue_active is True
+        assert scene.done is False
+
+        # First update auto-advances past the first dialogue.
+        scene.update(0.016)
+        # Now second dialogue is active (step_index == 1).
+        assert scene.step_index == 1
+        assert scene._dialogue_active is True
+
+        # Second update auto-advances past the second dialogue.
+        scene.update(0.016)
+        # Event step fires immediately, cutscene is done.
         assert scene.done is True
         assert len(events) == 1
 
@@ -319,6 +365,26 @@ class TestCutsceneFastForward:
         assert scene.done is False
         scene.update(0.06)
         assert scene.done is True
+
+    def test_normal_mode_dialogue_reveals_gradually(self):
+        """In normal mode, dialogue text reveals letter by letter."""
+        bus = EventBus()
+        scene = CutsceneScene(
+            {
+                "steps": [
+                    {"type": "dialogue", "speaker": "Dimoni", "text": "Hello world."},
+                ]
+            },
+            bus,
+            fast_forward=False,
+        )
+        assert scene._dialogue_active is True
+        assert scene.dialogue_box.is_fully_revealed is False
+
+        # Partial update reveals some characters, not all.
+        scene.update(0.05)
+        assert scene.dialogue_box.is_fully_revealed is False
+        assert scene.done is False
 
 
 class TestCutsceneCompletion:

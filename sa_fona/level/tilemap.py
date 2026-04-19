@@ -31,6 +31,11 @@ _TILE_COLORS: dict[str, tuple[int, int, int]] = {
 }
 _DEFAULT_TILE_COLOR: tuple[int, int, int] = (120, 120, 120)
 
+# Top-edge highlight colors for exposed terrain tiles.
+# Warm tone for outdoor and talayot levels; cool tone for cave levels.
+HIGHLIGHT_COLOR_OUTDOOR: tuple[int, int, int] = (235, 220, 180)
+HIGHLIGHT_COLOR_CAVE: tuple[int, int, int] = (180, 190, 200)
+
 
 class TileMap:
     """Tile-based level geometry: rendering and collision data.
@@ -88,6 +93,13 @@ class TileMap:
         if self._tileset_tiles:
             for layer_name, grid in self._layers.items():
                 self._autotile_layers[layer_name] = self._compute_autotile(grid)
+
+        # Choose top-edge highlight color based on tileset ID.
+        tileset_id = tile_data.get("metadata", {}).get("tileset", "")
+        if "cave" in tileset_id:
+            self._highlight_color: tuple[int, int, int] = HIGHLIGHT_COLOR_CAVE
+        else:
+            self._highlight_color = HIGHLIGHT_COLOR_OUTDOOR
 
     # ── Collision queries ──────────────────────────────────────────
 
@@ -207,11 +219,14 @@ class TileMap:
         """Render visible tiles of a layer onto the surface.
 
         Only tiles within the camera viewport are drawn (culling).
+        For the midground layer, a 1px bright highlight line is drawn
+        on the top edge of tiles that have no solid tile directly above
+        (exposed terrain), giving depth and definition to platforms.
 
         Args:
             surface: Target pygame Surface.
             layer: Layer name to render.
-            camera_offset: ``(offset_x, offset_y)`` — the camera's top-left
+            camera_offset: ``(offset_x, offset_y)`` -- the camera's top-left
                 position in world coordinates.
         """
         grid = self._layers.get(layer)
@@ -226,6 +241,10 @@ class TileMap:
         start_row = max(0, cam_y // TILE_SIZE)
         end_col = min(self._width_tiles, (cam_x + surf_w) // TILE_SIZE + 1)
         end_row = min(self._height_tiles, (cam_y + surf_h) // TILE_SIZE + 1)
+
+        # Pre-fetch midground grid for top-edge highlight check.
+        midground_grid = self._layers.get("midground")
+        draw_highlights = layer == "midground" and midground_grid is not None
 
         for row_idx in range(start_row, end_row):
             for col_idx in range(start_col, end_col):
@@ -250,6 +269,20 @@ class TileMap:
                         surface, color,
                         (screen_x, screen_y, TILE_SIZE, TILE_SIZE),
                     )
+
+                # Top-edge highlight: draw a 1px line at the top of midground
+                # tiles whose tile directly above is empty (air).
+                if draw_highlights:
+                    tile_above = 0
+                    if row_idx > 0:
+                        tile_above = midground_grid[row_idx - 1][col_idx]
+                    if tile_above == 0:
+                        pygame.draw.line(
+                            surface,
+                            self._highlight_color,
+                            (screen_x, screen_y),
+                            (screen_x + TILE_SIZE - 1, screen_y),
+                        )
 
     def _color_for_tile(self, tile_id: int) -> tuple[int, int, int]:
         """Determine the placeholder color for a tile ID.

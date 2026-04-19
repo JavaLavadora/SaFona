@@ -7,7 +7,12 @@ from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.player import PlayerState
-from sa_fona.scenes.gameplay import GameplayScene
+from sa_fona.scenes.gameplay import (
+    BG_DIM_ALPHA,
+    PARALLAX_FACTOR_INTERIOR,
+    PARALLAX_FACTOR_OUTDOOR,
+    GameplayScene,
+)
 
 
 @pytest.fixture
@@ -187,3 +192,48 @@ class TestSlingAnimationStateSync:
         scene.handle_input(InputState())
         scene.update(1.0 / 60.0)
         assert scene.player.sling_anim_state == "releasing"
+
+
+class TestParallaxAndDimming:
+    """Tests for parallax scrolling and background dimming."""
+
+    def test_parallax_constants_are_sensible(self) -> None:
+        """Parallax factors should be between 0 and 1."""
+        assert 0.0 < PARALLAX_FACTOR_OUTDOOR < 1.0
+        assert 0.0 < PARALLAX_FACTOR_INTERIOR < 1.0
+        assert PARALLAX_FACTOR_OUTDOOR > PARALLAX_FACTOR_INTERIOR
+
+    def test_dim_alpha_is_sensible(self) -> None:
+        """Dim alpha should be between 0 (transparent) and 255 (opaque)."""
+        assert 0 < BG_DIM_ALPHA < 255
+
+    def test_interior_level_detection(self) -> None:
+        """Test level is not interior (test level has no cave/talayot tileset)."""
+        scene = GameplayScene(BASE_WIDTH, BASE_HEIGHT, event_bus=EventBus())
+        # Test level has no tileset metadata, so it should not be interior.
+        assert scene._is_interior_level() is False
+
+    def test_parallax_factor_for_test_level(self) -> None:
+        """Test level (outdoor) should use the outdoor parallax factor."""
+        scene = GameplayScene(BASE_WIDTH, BASE_HEIGHT, event_bus=EventBus())
+        assert scene._get_parallax_factor() == PARALLAX_FACTOR_OUTDOOR
+
+    def test_render_sky_with_no_background_does_not_crash(self, scene: GameplayScene) -> None:
+        """Rendering the sky without a background image should not crash."""
+        surface = pygame.Surface((BASE_WIDTH, BASE_HEIGHT))
+        scene._render_sky(surface)
+
+    def test_render_sky_applies_dimming(self, scene: GameplayScene) -> None:
+        """After _render_sky, the dim cache should be created."""
+        surface = pygame.Surface((BASE_WIDTH, BASE_HEIGHT))
+        scene._render_sky(surface)
+        assert hasattr(scene, "_dim_cache")
+        assert scene._dim_cache.get_size() == (BASE_WIDTH, BASE_HEIGHT)
+
+    def test_reset_invalidates_dim_cache(self, scene: GameplayScene) -> None:
+        """After level reset, the dim cache should be cleared."""
+        surface = pygame.Surface((BASE_WIDTH, BASE_HEIGHT))
+        scene._render_sky(surface)
+        assert hasattr(scene, "_dim_cache")
+        scene._reset_level()
+        assert not hasattr(scene, "_dim_cache")

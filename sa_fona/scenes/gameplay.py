@@ -48,6 +48,20 @@ from sa_fona.ui.hud import HUD
 _SHAKE_INTENSITY = 6.0
 _SHAKE_DURATION = 0.3
 
+# ── Parallax and background visual constants ──────────────────
+# Parallax scroll factor: how fast the background moves relative to the camera.
+# Outdoor levels scroll faster (more depth); interior levels are subtler.
+PARALLAX_FACTOR_OUTDOOR: float = 0.3
+PARALLAX_FACTOR_INTERIOR: float = 0.15
+
+# Background dimming overlay alpha (0=fully transparent, 255=fully opaque).
+# At alpha 102 the background is ~60% brightness, making tiles pop.
+BG_DIM_ALPHA: int = 102
+
+# Interior tileset keywords -- any tileset ID containing these strings
+# is treated as an interior level for parallax purposes.
+_INTERIOR_KEYWORDS: tuple[str, ...] = ("cave", "talayot")
+
 
 class GameplayScene(BaseScene):
     """Playable level scene with player, physics, and camera.
@@ -564,34 +578,65 @@ class GameplayScene(BaseScene):
         # HUD renders on top of everything (screen space, not camera-relative).
         self._hud.render(surface)
 
+    def _is_interior_level(self) -> bool:
+        """Return True if the current level uses an interior tileset."""
+        tileset_id = self._level_data.metadata.get("tileset", "")
+        return any(kw in tileset_id for kw in _INTERIOR_KEYWORDS)
+
+    def _get_parallax_factor(self) -> float:
+        """Return the parallax scroll factor for the current level type."""
+        if self._is_interior_level():
+            return PARALLAX_FACTOR_INTERIOR
+        return PARALLAX_FACTOR_OUTDOOR
+
     def _render_sky(self, surface: pygame.Surface) -> None:
-        """Draw the level background or a Mediterranean sky gradient fallback.
+        """Draw the level background with parallax scrolling, then dim it.
 
         If a background image was loaded from the level data, it is
-        rendered at the full surface size.  Otherwise a procedural
-        sky gradient is drawn.
+        tiled horizontally and shifted by the camera position to create
+        a parallax depth effect.  A semi-transparent dark overlay is
+        drawn on top to increase contrast with the gameplay tiles.
+
+        If no background image is loaded, a procedural Mediterranean
+        sky gradient is drawn as a fallback (also dimmed).
         """
         bg = self._level_data.background
         if bg is not None:
             w, h = surface.get_size()
+            # Scale background to viewport size for seamless tiling.
             if not hasattr(self, "_bg_cache") or self._bg_cache.get_size() != (w, h):
                 self._bg_cache = pygame.transform.scale(bg, (w, h))
-            surface.blit(self._bg_cache, (0, 0))
-            return
 
+            img_w = self._bg_cache.get_width()
+            parallax_factor = self._get_parallax_factor()
+            cam_x = self._camera.offset[0]
+            shift = -(cam_x * parallax_factor) % img_w
+
+            # Draw the background image twice side-by-side to cover
+            # the seam that appears when scrolling.
+            surface.blit(self._bg_cache, (int(shift), 0))
+            surface.blit(self._bg_cache, (int(shift) - img_w, 0))
+        else:
+            w, h = surface.get_size()
+            if not hasattr(self, "_sky_cache") or self._sky_cache.get_size() != (w, h):
+                sky = pygame.Surface((w, h))
+                top = (110, 170, 220)
+                bottom = (200, 190, 160)
+                for y in range(h):
+                    t = y / max(h - 1, 1)
+                    r = int(top[0] + (bottom[0] - top[0]) * t)
+                    g = int(top[1] + (bottom[1] - top[1]) * t)
+                    b = int(top[2] + (bottom[2] - top[2]) * t)
+                    pygame.draw.line(sky, (r, g, b), (0, y), (w, y))
+                self._sky_cache = sky
+            surface.blit(self._sky_cache, (0, 0))
+
+        # Dim the background so gameplay tiles stand out.
         w, h = surface.get_size()
-        if not hasattr(self, "_sky_cache") or self._sky_cache.get_size() != (w, h):
-            sky = pygame.Surface((w, h))
-            top = (110, 170, 220)
-            bottom = (200, 190, 160)
-            for y in range(h):
-                t = y / max(h - 1, 1)
-                r = int(top[0] + (bottom[0] - top[0]) * t)
-                g = int(top[1] + (bottom[1] - top[1]) * t)
-                b = int(top[2] + (bottom[2] - top[2]) * t)
-                pygame.draw.line(sky, (r, g, b), (0, y), (w, y))
-            self._sky_cache = sky
-        surface.blit(self._sky_cache, (0, 0))
+        if not hasattr(self, "_dim_cache") or self._dim_cache.get_size() != (w, h):
+            self._dim_cache = pygame.Surface((w, h), pygame.SRCALPHA)
+            self._dim_cache.fill((0, 0, 0, BG_DIM_ALPHA))
+        surface.blit(self._dim_cache, (0, 0))
 
     def _render_save_point_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],
@@ -884,6 +929,8 @@ class GameplayScene(BaseScene):
             del self._bg_cache
         if hasattr(self, "_sky_cache"):
             del self._sky_cache
+        if hasattr(self, "_dim_cache"):
+            del self._dim_cache
 
         self._physics = PhysicsSystem(self._tilemap, gravity=PLAYER_GRAVITY)
         self._camera = Camera(

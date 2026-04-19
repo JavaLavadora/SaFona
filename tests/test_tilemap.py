@@ -3,7 +3,12 @@
 import pygame
 import pytest
 
-from sa_fona.level.tilemap import TILE_SIZE, TileMap
+from sa_fona.level.tilemap import (
+    HIGHLIGHT_COLOR_CAVE,
+    HIGHLIGHT_COLOR_OUTDOOR,
+    TILE_SIZE,
+    TileMap,
+)
 
 
 @pytest.fixture
@@ -162,3 +167,71 @@ class TestIsSolidAt:
         assert tilemap.is_solid_at(0, 2) is True
         assert tilemap.is_solid_at(1, 2) is True
         assert tilemap.is_solid_at(2, 2) is True
+
+
+class TestHighlightColor:
+    """Tests for the top-edge highlight color selection."""
+
+    def test_default_highlight_is_outdoor(self, tilemap: TileMap) -> None:
+        """Without tileset metadata, default highlight is outdoor (warm)."""
+        assert tilemap._highlight_color == HIGHLIGHT_COLOR_OUTDOOR
+
+    def test_cave_tileset_uses_cave_highlight(self, sample_tile_data: dict) -> None:
+        """A tileset containing 'cave' should use the cave (cool) highlight."""
+        sample_tile_data["metadata"] = {"tileset": "world1_cave"}
+        tm = TileMap(sample_tile_data)
+        assert tm._highlight_color == HIGHLIGHT_COLOR_CAVE
+
+    def test_talayot_tileset_uses_outdoor_highlight(self, sample_tile_data: dict) -> None:
+        """A talayot tileset (no 'cave') should use the outdoor (warm) highlight."""
+        sample_tile_data["metadata"] = {"tileset": "world1_talayot"}
+        tm = TileMap(sample_tile_data)
+        assert tm._highlight_color == HIGHLIGHT_COLOR_OUTDOOR
+
+    def test_outdoor_tileset_uses_outdoor_highlight(self, sample_tile_data: dict) -> None:
+        """An outdoor tileset should use the outdoor (warm) highlight."""
+        sample_tile_data["metadata"] = {"tileset": "world1"}
+        tm = TileMap(sample_tile_data)
+        assert tm._highlight_color == HIGHLIGHT_COLOR_OUTDOOR
+
+
+class TestRenderLayerHighlight:
+    """Tests for the 1px top-edge highlight on exposed midground tiles."""
+
+    def test_render_midground_does_not_crash(self, tilemap: TileMap) -> None:
+        """Rendering the midground layer should not crash."""
+        surface = pygame.Surface((4 * TILE_SIZE, 3 * TILE_SIZE))
+        tilemap.render_layer(surface, "midground", (0, 0))
+
+    def test_highlight_drawn_on_exposed_top_edge(self, sample_tile_data: dict) -> None:
+        """A tile with air above should have its top-left pixel highlighted."""
+        tm = TileMap(sample_tile_data)
+        surface = pygame.Surface((4 * TILE_SIZE, 3 * TILE_SIZE))
+        surface.fill((0, 0, 0))
+        tm.render_layer(surface, "midground", (0, 0))
+
+        # Tile (1, 1) has air above (row 0 col 1 = 0).
+        # The top-left pixel should be the highlight color.
+        pixel = surface.get_at((1 * TILE_SIZE, 1 * TILE_SIZE))
+        assert (pixel.r, pixel.g, pixel.b) == HIGHLIGHT_COLOR_OUTDOOR
+
+    def test_no_highlight_when_tile_above_is_solid(self, sample_tile_data: dict) -> None:
+        """A tile with a solid tile above should NOT have a highlight."""
+        tm = TileMap(sample_tile_data)
+        surface = pygame.Surface((4 * TILE_SIZE, 3 * TILE_SIZE))
+        surface.fill((0, 0, 0))
+        tm.render_layer(surface, "midground", (0, 0))
+
+        # Tile (1, 2) has tile (1, 1)=1 above — not empty.
+        # The top-left pixel should be the tile color, not highlight.
+        pixel = surface.get_at((1 * TILE_SIZE, 2 * TILE_SIZE))
+        assert (pixel.r, pixel.g, pixel.b) != HIGHLIGHT_COLOR_OUTDOOR
+
+    def test_no_highlight_on_background_layer(self, tilemap: TileMap) -> None:
+        """The background layer should NOT get top-edge highlights."""
+        surface = pygame.Surface((4 * TILE_SIZE, 3 * TILE_SIZE))
+        surface.fill((0, 0, 0))
+        tilemap.render_layer(surface, "background", (0, 0))
+        # Background is all zeros — nothing rendered, surface stays black.
+        pixel = surface.get_at((0, 0))
+        assert (pixel.r, pixel.g, pixel.b) == (0, 0, 0)

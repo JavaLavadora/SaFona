@@ -36,6 +36,8 @@ def main() -> None:
                 rel += ".json"
             level_path = str(DATA_DIR / "levels" / rel)
 
+    god_mode = "--god" in sys.argv
+
     # --boss <boss_id>: skip to boss scene directly.
     if "--boss" in sys.argv:
         idx = sys.argv.index("--boss")
@@ -50,6 +52,8 @@ def main() -> None:
             event_bus=game.event_bus,
         )
         boss_scene.scene_manager = game.scene_manager
+        if god_mode:
+            boss_scene.combat._god_mode = True
         game.scene_manager.replace(boss_scene)
 
         try:

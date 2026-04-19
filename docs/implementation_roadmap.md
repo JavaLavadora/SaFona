@@ -125,21 +125,21 @@ D1 (Core Engine Bootstrap)
 - GameOverScene, pickup drops on death
 
 **Deliverable 8: World 1 Levels (L1-L4)** -- PR #33, Issue #31
-- Merged 2026-04-18, user sign-off pending
-- 485 tests, all passing
+- Merged 2026-04-18, user signed off
 - 4 levels: Es Primer Pas (tutorial), Sa Cova des Foner (cave), Es Talayot Sagrat (vertical), Sa Porta des Bou (gauntlet)
 - Level progression chaining, Bep companion integration, 10 dialogue sequences
 - `--level` CLI argument for testing specific levels
 - Varied terrain design (hills, ledges, shafts, caves, pillars)
+- Post-playtest fixes: enemy vertical detection, sheep attack range, L1-4 platform tuning
 
 **Deliverable 9: Boss System & Es Bou de Pedra** -- PR #34, Issue #32
-- Merged 2026-04-18, user sign-off pending
-- 493 tests, all passing
+- Merged 2026-04-18, user signed off
 - BossEntity base class with phase management, attack pattern sequencing, tell/punish state machine
 - Es Bou de Pedra: 3 phases, 6 attacks (Bull Rush, Headbutt, Ground Stomp, Rock Hurl, Frenzy Rush, Core Pulse)
 - BossScene with procedural arena, destructible pillars, intro/defeat sequences
-- Boss health bar with phase markers and smooth damage trail
+- Boss health bar (bottom of screen) with phase markers and smooth damage trail
 - Boss registry/factory pattern, data-driven from JSON
+- Post-playtest fixes: projectile gravity, enemy/boss physical mass, hitbox shrink, boss size reduction, health bar snap-to-zero
 
 ### Upcoming
 
@@ -506,3 +506,4 @@ N'Aina approved the plan after Round 2 with no remaining critical findings. The 
 ## Change Log
 
 - 2026-04-17: Initial roadmap created by Na Francina. Audited by N'Aina (2 rounds). Awaiting user approval.
+- 2026-04-18: D1-D9 all completed and signed off. Playtest fixes merged (projectile gravity, enemy mass, hitbox shrink, boss tuning). D10 is next.

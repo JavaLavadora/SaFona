@@ -362,7 +362,10 @@ class BouDePedra(BossEntity):
         self.pillars.clear()
         for pos in pillar_positions:
             px = pos.get("x", 0) * TILE_SIZE
-            py = (pos.get("y", 0) - 2) * TILE_SIZE  # Pillar extends upward.
+            # Pillar bottom aligns with the ground.  The y value marks
+            # the top tile of the 3-tile-tall pillar, so the pillar
+            # rect starts at y * TILE_SIZE and extends downward.
+            py = pos.get("y", 0) * TILE_SIZE
             self.pillars.append(DestructiblePillar(px, py))
 
     @property
@@ -384,6 +387,12 @@ class BouDePedra(BossEntity):
             dt: Delta time in seconds.
         """
         self._player_rect = player_rect
+
+        # Face the player during non-rush states so the sprite mirrors
+        # correctly when idle, telling, or in punish.
+        if not self._moving and player_rect is not None:
+            self.facing_right = player_rect.centerx > self.rect.centerx
+
         self.update(dt)
 
         # Update boss projectiles.

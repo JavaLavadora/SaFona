@@ -144,7 +144,12 @@ class Enemy(Entity):
         self._font: pygame.font.Font | None = None
 
     def _build_sprite(self) -> None:
-        """Load real sprites or create a placeholder colored rectangle."""
+        """Load real sprites or create a placeholder colored rectangle.
+
+        If the loaded frames don't match ``_sprite_w x _sprite_h`` (e.g.
+        a rival_warrior drawn at 16x24 but intended to display at 24x32),
+        each frame is scaled up to the target visual size.
+        """
         # Load all available animation states.
         anim_map = {
             "_idle_frames": "idle",
@@ -156,10 +161,17 @@ class Enemy(Entity):
             "_death_frames": "death",
         }
         for attr, suffix in anim_map.items():
+            # First try loading at the target visual size.
             frames = load_frame_strip(
                 f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
                 self._sprite_w, self._sprite_h,
             )
+            if not frames:
+                # Try loading at the file's native frame dimensions and
+                # scale up to the target visual size afterwards.
+                frames = self._load_and_scale_frames(
+                    f"assets/sprites/enemies/{self.enemy_type}_{suffix}.png",
+                )
             if frames:
                 setattr(self, attr, frames)
                 self._has_sprites = True
@@ -179,6 +191,36 @@ class Enemy(Entity):
             border_color = tuple(max(0, c - 40) for c in self._base_color)
             pygame.draw.rect(surf, border_color, (0, 0, self._sprite_w, self._sprite_h), 1)
             self._sprite = surf
+
+    def _load_and_scale_frames(
+        self, path: str,
+    ) -> list[pygame.Surface] | None:
+        """Try common frame sizes and scale results to visual size.
+
+        Iterates over typical frame dimensions that the sprite file may
+        have been authored at.  When a match is found the frames are
+        scaled to ``_sprite_w x _sprite_h``.
+
+        Args:
+            path: Relative path to the sprite strip.
+
+        Returns:
+            Scaled frame list, or None.
+        """
+        # Common original frame sizes to try (width, height).
+        candidates = [(16, 16), (16, 24), (24, 32), (24, 24)]
+        for fw, fh in candidates:
+            if fw == self._sprite_w and fh == self._sprite_h:
+                continue  # Already tried at target size.
+            frames = load_frame_strip(path, fw, fh)
+            if frames:
+                # Scale each frame to the target visual dimensions.
+                scaled = [
+                    pygame.transform.scale(f, (self._sprite_w, self._sprite_h))
+                    for f in frames
+                ]
+                return scaled
+        return None
 
     # ── Properties ─────────────────────────────────────────────────
 
@@ -461,38 +503,42 @@ class Enemy(Entity):
             if blink_phase % 2 == 1:
                 return
 
+        # Align the visual sprite so its bottom matches the hitbox bottom
+        # (feet on ground) and it is horizontally centered on the hitbox.
         shrink = self._HITBOX_SHRINK
         vis_x = self.rect.x - camera_offset[0] - shrink
-        vis_y = self.rect.y - camera_offset[1] - shrink
+        vis_y = self.rect.bottom - self._sprite_h - camera_offset[1]
 
         if self._sprite is not None:
             surface.blit(self._sprite, (vis_x, vis_y))
 
-        if self.is_in_tell:
-            tell_surf = pygame.Surface(
-                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
-            )
-            tell_surf.fill(_TELL_COLOR)
-            surface.blit(tell_surf, (vis_x, vis_y))
-
-        if self.is_blocking:
-            block_surf = pygame.Surface(
-                (self._sprite_w, self._sprite_h), pygame.SRCALPHA
-            )
-            block_surf.fill(_BLOCK_COLOR)
-            surface.blit(block_surf, (vis_x, vis_y))
-
-        if self.is_stunned:
-            # Blink the stun overlay to indicate the effect.
-            blink_phase = int(self._stun_timer / 0.15)
-            if blink_phase % 2 == 0:
-                stun_surf = pygame.Surface(
+        # State overlays are only drawn for placeholder enemies (no real
+        # sprites).  When real sprites are loaded, the animation frames
+        # already communicate the state (charge, attack, block, hit).
+        if not self._has_sprites:
+            if self.is_in_tell:
+                tell_surf = pygame.Surface(
                     (self._sprite_w, self._sprite_h), pygame.SRCALPHA
                 )
-                stun_surf.fill(_STUN_COLOR)
-                surface.blit(stun_surf, (vis_x, vis_y))
+                tell_surf.fill(_TELL_COLOR)
+                surface.blit(tell_surf, (vis_x, vis_y))
 
-        if not self._has_sprites:
+            if self.is_blocking:
+                block_surf = pygame.Surface(
+                    (self._sprite_w, self._sprite_h), pygame.SRCALPHA
+                )
+                block_surf.fill(_BLOCK_COLOR)
+                surface.blit(block_surf, (vis_x, vis_y))
+
+            if self.is_stunned:
+                blink_phase = int(self._stun_timer / 0.15)
+                if blink_phase % 2 == 0:
+                    stun_surf = pygame.Surface(
+                        (self._sprite_w, self._sprite_h), pygame.SRCALPHA
+                    )
+                    stun_surf.fill(_STUN_COLOR)
+                    surface.blit(stun_surf, (vis_x, vis_y))
+
             try:
                 if self._font is None:
                     self._font = pygame.font.Font(None, 14)

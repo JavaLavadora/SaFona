@@ -139,9 +139,11 @@ class ShopUI:
             equipped_mask_id: ID of the currently equipped mask (for
                 the Masks tab display).
         """
-        # Lazy load shop frame image.
+        # Mark shop frame as loaded; use drawn fallback instead of image
+        # asset — the AI-processed shop_frame.png looks worse than the
+        # placeholder.
         if not self._shop_frame_loaded:
-            self._shop_frame = load_ui_asset("shop_frame")
+            self._shop_frame = None
             self._shop_frame_loaded = True
 
         # Semi-transparent dark overlay.

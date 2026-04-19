@@ -637,9 +637,13 @@ class BossEntity(Entity):
         screen_x = self.rect.x - camera_offset[0]
         screen_y = self.rect.y - camera_offset[1]
 
-        # Draw base sprite.
+        # Draw base sprite, mirrored when facing left.
         if self._sprite is not None:
-            surface.blit(self._sprite, (screen_x, screen_y))
+            if not self.facing_right:
+                flipped = pygame.transform.flip(self._sprite, True, False)
+                surface.blit(flipped, (screen_x, screen_y))
+            else:
+                surface.blit(self._sprite, (screen_x, screen_y))
 
         # Overlays only when using placeholder sprites (no sprite assets).
         if not self._has_boss_sprites:

@@ -169,7 +169,9 @@ class HUD:
         self._assets_loaded = True
         self._heart_frames = load_ui_frame_strip("hud_heart")
         self._stone_icon = load_ui_asset("hud_stone")
-        self._mask_icon = load_ui_asset("mask_stone_slam")
+        # Skip loading mask_stone_slam.png — the AI-processed icon looks
+        # worse than the placeholder golden square.
+        self._mask_icon = None
 
     def render(self, surface: pygame.Surface) -> None:
         """Draw the HUD onto the target surface (screen space).

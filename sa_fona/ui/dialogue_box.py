@@ -35,6 +35,13 @@ TEXT_COLOR = (255, 255, 255)
 PORTRAIT_BG_COLOR = (60, 50, 80)
 PORTRAIT_BORDER_COLOR = (200, 180, 130)
 
+# Fallback map for portrait keys used in dialogues but missing from the
+# asset manifest.  Maps the missing key to the closest available portrait.
+_PORTRAIT_FALLBACK: dict[str, str] = {
+    "ramon_annoyed": "ramon_angry",
+    "bep_neutral": "bep_happy",
+}
+
 # Speaker -> portrait color mapping.
 _SPEAKER_COLORS: dict[str, tuple[int, int, int]] = {
     "bep": (50, 180, 80),
@@ -221,12 +228,18 @@ class DialogueBox:
                 self.advance()
 
     def _load_frame_image(self) -> None:
-        """Load the dialogue frame image once."""
+        """Mark frame as loaded; use drawn fallback instead of image asset."""
         self._frame_loaded = True
-        self._frame_image = load_ui_asset("dialogue_frame")
+        # Intentionally skip loading dialogue_frame.png — the drawn
+        # fallback (semi-transparent box + border) looks better than the
+        # AI-processed frame asset.
+        self._frame_image = None
 
     def _get_portrait_image(self, portrait_key: str) -> pygame.Surface | None:
         """Load and cache a portrait image by key.
+
+        Falls back to ``_PORTRAIT_FALLBACK`` when the exact key is not
+        found in the asset manifest.
 
         Args:
             portrait_key: The portrait identifier (e.g. "ramon_neutral").
@@ -235,7 +248,13 @@ class DialogueBox:
             A pygame Surface, or None if not found.
         """
         if portrait_key not in self._portrait_cache:
-            self._portrait_cache[portrait_key] = load_portrait(portrait_key)
+            surface = load_portrait(portrait_key)
+            if surface is None:
+                # Try a fallback mapping for keys that don't exist yet.
+                fallback_key = _PORTRAIT_FALLBACK.get(portrait_key)
+                if fallback_key:
+                    surface = load_portrait(fallback_key)
+            self._portrait_cache[portrait_key] = surface
         return self._portrait_cache[portrait_key]
 
     def render(self, surface: pygame.Surface) -> None:

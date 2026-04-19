@@ -186,10 +186,12 @@ class BossHealthBar:
             surface.blit(shadow_surf, (nx + 1, name_y + 1))
             surface.blit(name_surf, (nx, name_y))
 
-        # Lazy load bar background image.
+        # Mark bar background as loaded; use drawn fallback instead of
+        # image asset — the AI-processed boss_health_bar.png looks worse
+        # than the placeholder.
         if not self._bar_bg_loaded:
             self._bar_bg_loaded = True
-            self._bar_bg_image = load_ui_asset("boss_health_bar")
+            self._bar_bg_image = None
 
         # Bar background.
         bar_rect = pygame.Rect(_BAR_MARGIN_X, bar_y, bar_width, _BAR_HEIGHT)

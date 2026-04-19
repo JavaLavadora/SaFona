@@ -107,8 +107,74 @@
     "world1": {
       "path": "assets/tilesets/world1/tileset.png",
       "tile_size": 16
+    },
+    "world1_cave": {
+      "path": "assets/tilesets/world1_cave/tileset.png",
+      "tile_size": 16
+    },
+    "world1_talayot": {
+      "path": "assets/tilesets/world1_talayot/tileset.png",
+      "tile_size": 16
     }
   },
-  "backgrounds": {},
-  "ui": {}
+  "backgrounds": {
+    "world1": {
+      "path": "assets/backgrounds/world1.png"
+    },
+    "world1_cave": {
+      "path": "assets/backgrounds/world1_cave.png"
+    },
+    "world1_talayot": {
+      "path": "assets/backgrounds/world1_talayot.png"
+    }
+  },
+  "ui": {
+    "hud_heart": {
+      "path": "assets/ui/hud_heart.png",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 3
+    },
+    "hud_stone": {
+      "path": "assets/ui/hud_stone.png",
+      "width": 12,
+      "height": 12
+    },
+    "mask_stone_slam": {
+      "path": "assets/ui/mask_stone_slam.png",
+      "width": 16,
+      "height": 16
+    },
+    "dialogue_frame": {
+      "path": "assets/ui/dialogue_frame.png",
+      "width": 372,
+      "height": 68
+    },
+    "shop_frame": {
+      "path": "assets/ui/shop_frame.png",
+      "width": 280,
+      "height": 160
+    },
+    "boss_health_bar": {
+      "path": "assets/ui/boss_health_bar.png",
+      "width": 200,
+      "height": 12
+    },
+    "charge_indicator": {
+      "path": "assets/ui/charge_indicator.png",
+      "frame_width": 12,
+      "frame_height": 4,
+      "frame_count": 3
+    },
+    "game_over": {
+      "path": "assets/ui/game_over.png",
+      "width": 200,
+      "height": 100
+    },
+    "title": {
+      "path": "assets/ui/title.png",
+      "width": 280,
+      "height": 80
+    }
+  }
 }

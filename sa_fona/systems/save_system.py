@@ -12,6 +12,8 @@ at level transitions and ``rollback_to_snapshot()`` on death.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -97,8 +99,17 @@ class SaveSystem:
         save_dir = Path(self._save_path).parent
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(self._save_path, "w", encoding="utf-8") as fh:
-            json.dump(self._state, fh, indent=2)
+        fd, tmp_path = tempfile.mkstemp(dir=str(save_dir), suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump(self._state, fh, indent=2)
+            os.replace(tmp_path, self._save_path)
+        except BaseException:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     def load(self) -> dict[str, Any] | None:
         """Load game state from disk.
@@ -110,8 +121,10 @@ class SaveSystem:
         try:
             with open(self._save_path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
-            self._state = data
-            return data
+            merged = self._default_state()
+            merged.update(data)
+            self._state = merged
+            return merged
         except (FileNotFoundError, json.JSONDecodeError):
             return None
 

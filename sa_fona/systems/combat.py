@@ -77,6 +77,11 @@ class CombatSystem:
         return self._player_hearts
 
     @property
+    def player_max_hearts(self) -> int:
+        """Maximum player heart capacity."""
+        return self._player_max_hearts
+
+    @property
     def player_dead(self) -> bool:
         """Whether the player is dead (hearts <= 0)."""
         return self._player_dead

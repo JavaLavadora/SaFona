@@ -103,6 +103,7 @@ class Game:
             )
             gameplay_scene.scene_manager = self.scene_manager
             gameplay_scene.save_system = self.save_system
+            gameplay_scene.take_level_entry_snapshot()
             self.scene_manager.push(gameplay_scene)
         else:
             # Show main menu.

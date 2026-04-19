@@ -266,6 +266,7 @@ class MainMenuScene(BaseScene):
         # Wire up SaveSystem to the gameplay scene.
         if self._save_system is not None:
             scene.save_system = self._save_system
+            scene.take_level_entry_snapshot()
 
         self._scene_manager.replace(scene)
 
@@ -306,6 +307,8 @@ class MainMenuScene(BaseScene):
             current_hearts=current_hearts,
             stone_count=stone_count,
         )
+
+        scene.take_level_entry_snapshot()
 
         self._scene_manager.replace(scene)
 

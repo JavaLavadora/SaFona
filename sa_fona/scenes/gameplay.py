@@ -250,19 +250,18 @@ class GameplayScene(BaseScene):
 
     @save_system.setter
     def save_system(self, value) -> None:
-        """Set the save system and take a level-entry snapshot.
-
-        Args:
-            value: The SaveSystem instance to use.
-        """
         self._save_system = value
-        if self._save_system is not None:
-            self._save_system.set_level(self._level_path)
-            self._save_system.snapshot_level_entry(
-                stone_count=self._economy.stone_count,
-                current_hearts=self._combat.player_hearts,
-                max_hearts=int(self._economy.get_starting_hearts()),
-            )
+
+    def take_level_entry_snapshot(self) -> None:
+        """Record the current state as the level-entry snapshot for death rollback."""
+        if self._save_system is None:
+            return
+        self._save_system.set_level(self._level_path)
+        self._save_system.snapshot_level_entry(
+            stone_count=self._economy.stone_count,
+            current_hearts=self._combat.player_hearts,
+            max_hearts=self._combat.player_max_hearts,
+        )
 
     # ── Scene lifecycle ────────────────────────────────────────────
 
@@ -770,7 +769,7 @@ class GameplayScene(BaseScene):
             self._save_system.set_player_state(
                 stone_count=self._economy.stone_count,
                 current_hearts=self._combat.player_hearts,
-                max_hearts=self._combat._player_max_hearts,
+                max_hearts=self._combat.player_max_hearts,
             )
             self._save_system.save()
 
@@ -804,6 +803,7 @@ class GameplayScene(BaseScene):
         new_scene.scene_manager = self._scene_manager
         if self._save_system is not None:
             new_scene.save_system = self._save_system
+            new_scene.take_level_entry_snapshot()
         self._scene_manager.replace(new_scene)
 
     # ── Event callbacks ────────────────────────────────────────────
@@ -896,11 +896,18 @@ class GameplayScene(BaseScene):
 
     def _on_player_died(self, **kwargs) -> None:
         """Handle player_died event: rollback economy and defer game over."""
-        # Rollback to level-entry snapshot (restores stones, consumables).
         if self._save_system is not None:
             snap = self._save_system.rollback_to_snapshot()
             if snap is not None:
                 self._economy.restore({"stone_count": snap["stone_count"]})
+                self._combat.set_player_health(
+                    snap["current_hearts"], snap["max_hearts"]
+                )
+                self._hud.set_state(
+                    max_hearts=snap["max_hearts"],
+                    current_hearts=snap["current_hearts"],
+                    stone_count=snap["stone_count"],
+                )
         self._pending_game_over = True
 
     def _push_game_over(self) -> None:
@@ -918,13 +925,7 @@ class GameplayScene(BaseScene):
             if self._scene_manager is not None:
                 self._scene_manager.pop()  # Remove GameOverScene.
                 self._reset_level()
-                # Re-take snapshot after reset so next death also rolls back.
-                if self._save_system is not None:
-                    self._save_system.snapshot_level_entry(
-                        stone_count=self._economy.stone_count,
-                        current_hearts=self._combat.player_hearts,
-                        max_hearts=self._combat._player_max_hearts,
-                    )
+                self.take_level_entry_snapshot()
 
         scene = GameOverScene(on_restart=_on_restart)
         self._scene_manager.push(scene)

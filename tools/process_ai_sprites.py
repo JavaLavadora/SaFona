@@ -521,8 +521,9 @@ def process_source(source_config: dict[str, Any]) -> dict[str, Any]:
     rgba = remove_green_background(img)
     log.info("  Green removal complete")
 
-    # Detect poses
-    pose_bboxes = detect_poses(rgba)
+    # Detect poses (min_area filters out small label regions in AI images)
+    min_area = source_config.get("min_area", 500)
+    pose_bboxes = detect_poses(rgba, min_area=min_area)
     log.info("  Detected %d poses (>= 500px area)", len(pose_bboxes))
 
     for i, (x0, y0, x1, y1) in enumerate(pose_bboxes):

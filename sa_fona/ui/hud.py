@@ -168,7 +168,9 @@ class HUD:
         """Load HUD sprite assets from disk (called once on first render)."""
         self._assets_loaded = True
         self._heart_frames = load_ui_frame_strip("hud_heart")
-        self._stone_icon = load_ui_asset("hud_stone")
+        # Skip loading hud_stone — the AI-processed icon looks worse than
+        # the placeholder grey circle.
+        self._stone_icon = None
         # Skip loading mask_stone_slam.png — the AI-processed icon looks
         # worse than the placeholder golden square.
         self._mask_icon = None

@@ -175,6 +175,7 @@ class BossScene(BaseScene):
         self._defeat_timer: float = 0.0
         self._defeat_duration: float = 3.0
         self._cutscene_pushed: bool = False
+        self._cutscene_completed: bool = False
 
         # Cutscene configuration.
         self._cutscene_id: str | None = cutscene_id
@@ -233,6 +234,11 @@ class BossScene(BaseScene):
     def on_enter(self) -> None:
         """Scene entered."""
 
+    def on_resume(self) -> None:
+        """Called when the cutscene pops off the stack."""
+        if self._cutscene_pushed:
+            self._cutscene_completed = True
+
     def on_exit(self) -> None:
         """Clean up subscriptions."""
         self._event_bus.unsubscribe("screen_shake", self._on_screen_shake)
@@ -287,7 +293,8 @@ class BossScene(BaseScene):
 
         # Defeat sequence.
         if self._boss_defeated:
-            self._defeat_timer += dt
+            if not self._cutscene_completed:
+                self._defeat_timer += dt
             self._camera.update(dt)
             # After a brief defeat flash, push the cutscene.
             if (
@@ -648,13 +655,33 @@ class BossScene(BaseScene):
     def _render_defeat(self, surface: pygame.Surface) -> None:
         """Render the defeat overlay.
 
-        Shows a white flash effect. When a cutscene is configured, only
-        renders the flash (the cutscene overlay handles text). When no
-        cutscene is configured, shows the legacy "VICTORY!" text.
+        Shows a white flash effect during the defeat sequence. After the
+        post-boss cutscene completes, shows a dim overlay with VICTORY
+        text and exit instructions.
 
         Args:
             surface: Target surface.
         """
+        if self._cutscene_completed:
+            overlay = pygame.Surface(
+                (self._screen_width, self._screen_height), pygame.SRCALPHA
+            )
+            overlay.fill((0, 0, 0, 160))
+            surface.blit(overlay, (0, 0))
+            try:
+                font = pygame.font.Font(None, 24)
+                text = font.render("VICTORY!", False, (255, 220, 50))
+                tx = (self._screen_width - text.get_width()) // 2
+                ty = self._screen_height // 2 - 16
+                surface.blit(text, (tx, ty))
+                small = pygame.font.Font(None, 16)
+                hint = small.render("Press ESC to continue", False, (200, 200, 200))
+                hx = (self._screen_width - hint.get_width()) // 2
+                surface.blit(hint, (hx, ty + 24))
+            except pygame.error:
+                pass
+            return
+
         alpha = min(200, int(self._defeat_timer * 80))
         overlay = pygame.Surface(
             (self._screen_width, self._screen_height), pygame.SRCALPHA
@@ -662,7 +689,6 @@ class BossScene(BaseScene):
         overlay.fill((255, 255, 255, alpha))
         surface.blit(overlay, (0, 0))
 
-        # Only show VICTORY text if no cutscene is configured.
         if self._cutscene_id is None and self._defeat_timer > 1.0:
             try:
                 font = pygame.font.Font(None, 20)
@@ -731,6 +757,7 @@ class BossScene(BaseScene):
         self._boss_defeated = False
         self._defeat_timer = 0.0
         self._cutscene_pushed = False
+        self._cutscene_completed = False
         self._is_retry = True  # Fast-forward cutscene on retry.
         self._pending_game_over = False
         self._input_state = InputState()

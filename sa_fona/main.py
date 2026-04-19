@@ -54,6 +54,7 @@ def main() -> None:
         boss_scene.scene_manager = game.scene_manager
         if god_mode:
             boss_scene.combat._god_mode = True
+            boss_scene.boss._health = 1
         game.scene_manager.replace(boss_scene)
 
         try:

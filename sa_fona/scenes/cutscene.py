@@ -317,8 +317,14 @@ class CutsceneScene(BaseScene):
         self._start_step()
 
     def _complete(self) -> None:
-        """Mark the cutscene as finished."""
+        """Mark the cutscene as finished and remove from scene stack."""
         self._done = True
+        if self._scene_manager is not None:
+            try:
+                if self._scene_manager.active_scene is self:
+                    self._scene_manager.pop()
+            except IndexError:
+                pass
 
     # ── Static loaders ─────────────────────────────────────────────
 

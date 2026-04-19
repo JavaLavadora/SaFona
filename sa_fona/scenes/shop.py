@@ -83,6 +83,10 @@ class ShopScene(BaseScene):
         self._active_tab: int = _TAB_ITEMS
         self._cursor_index: int = 0
 
+        # One-shot key tracking for up/down navigation.
+        self._prev_up: bool = False
+        self._prev_down: bool = False
+
         # UI renderer.
         self._ui = ShopUI()
 
@@ -151,24 +155,19 @@ class ShopScene(BaseScene):
         elif input_state.move_right:
             self._switch_tab(1)
 
-        # Cursor navigation.
+        # Cursor navigation (one-shot press detection).
         items = self._get_current_tab_items()
-        if input_state.jump_pressed:  # Up (Space used as up alternative)
-            pass  # Up/down handled below
-        if hasattr(input_state, "move_x"):
-            pass  # Left/right handled by tab switching
-
-        # We use jump_pressed for confirm and check arrow keys via
-        # the raw move actions.  For up/down in the shop we need
-        # dedicated handling.  The InputState does not expose up/down
-        # as separate booleans, so we rely on interact (Enter) for
-        # confirm and jump (Space) for confirm as well.
-        # For vertical navigation we check pygame keys directly.
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            self._move_cursor(-1, len(items))
-        if keys[pygame.K_DOWN]:
+        up_now = keys[pygame.K_UP] or keys[pygame.K_w]
+        down_now = keys[pygame.K_DOWN] or keys[pygame.K_s]
+
+        if down_now and not self._prev_down:
             self._move_cursor(1, len(items))
+        if up_now and not self._prev_up:
+            self._move_cursor(-1, len(items))
+
+        self._prev_up = up_now
+        self._prev_down = down_now
 
         # Purchase / equip.
         if input_state.interact_pressed or input_state.jump_pressed:

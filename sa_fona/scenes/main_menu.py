@@ -318,6 +318,14 @@ class MainMenuScene(BaseScene):
             "equipped_mask": equipped,
         })
 
+        # Restore mid-level checkpoint position.
+        cp_x = save_data.get("checkpoint_x")
+        cp_y = save_data.get("checkpoint_y")
+        if cp_x is not None and cp_y is not None:
+            scene._checkpoint_pos = (float(cp_x), float(cp_y))
+            scene._player.rect.x = int(cp_x)
+            scene._player.rect.y = int(cp_y)
+
         scene.take_level_entry_snapshot()
 
         self._scene_manager.replace(scene)

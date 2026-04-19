@@ -6,10 +6,10 @@
     "attack": ["j", "z"],
     "mask_power": ["k", "x"],
     "mask_cycle_left": ["q"],
-    "mask_cycle_right": ["e"],
+    "mask_cycle_right": [],
     "special_ammo_toggle": ["l", "c"],
     "pause": ["escape"],
-    "interact": ["return"],
+    "interact": ["return", "e"],
     "reset": ["r"]
   },
   "gamepad": {

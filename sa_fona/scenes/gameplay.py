@@ -142,6 +142,9 @@ class GameplayScene(BaseScene):
         # Pending shop push (deferred like dialogue to avoid stack issues).
         self._pending_shop: bool = False
 
+        # Mid-level checkpoint (set by save_point triggers).
+        self._checkpoint_pos: tuple[float, float] | None = None
+
         # Pickups and breakables (spawned from level entity definitions).
         self._pickups: list[Pickup] = []
         self._breakables: list[Breakable] = []
@@ -281,6 +284,8 @@ class GameplayScene(BaseScene):
         if self._save_system is None:
             return
         self._save_system.set_level(self._level_path)
+        self._save_system.state.pop("checkpoint_x", None)
+        self._save_system.state.pop("checkpoint_y", None)
         self._save_system.snapshot_level_entry(
             stone_count=self._economy.stone_count,
             current_hearts=self._combat.player_hearts,
@@ -475,7 +480,8 @@ class GameplayScene(BaseScene):
         for npc in self._npcs:
             npc.render(surface, cam_offset)
 
-        # Level-end gate visual cue.
+        # Save point and level-end visual cues.
+        self._render_save_point_cues(surface, cam_offset)
         self._render_level_end_cues(surface, cam_offset)
 
         # Melee hitboxes (debug: translucent white flash).
@@ -532,6 +538,40 @@ class GameplayScene(BaseScene):
                 pygame.draw.line(sky, (r, g, b), (0, y), (w, y))
             self._sky_cache = sky
         surface.blit(self._sky_cache, (0, 0))
+
+    def _render_save_point_cues(
+        self, surface: pygame.Surface, cam_offset: tuple[int, int],
+    ) -> None:
+        """Draw a visible beacon at save_point trigger locations."""
+        from sa_fona.level.trigger import TriggerType as _TT
+
+        for trigger in self._trigger_system.triggers:
+            if trigger.trigger_type != _TT.SAVE_POINT:
+                continue
+            sx = trigger.rect.x - cam_offset[0]
+            sy = trigger.rect.y - cam_offset[1]
+            w = trigger.rect.width
+            h = trigger.rect.height
+
+            beacon_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+            beacon_surf.fill((80, 200, 255, 40))
+            surface.blit(beacon_surf, (sx, sy))
+
+            pygame.draw.rect(surface, (80, 200, 255), (sx, sy, w, h), 1)
+
+            pillar_w = 4
+            cx = sx + w // 2 - pillar_w // 2
+            pygame.draw.rect(surface, (60, 160, 220), (cx, sy, pillar_w, h))
+
+            try:
+                if not hasattr(self, "_save_font"):
+                    self._save_font = pygame.font.Font(None, 10)
+                label = self._save_font.render("SAVE", False, (80, 220, 255))
+                lx = sx + (w - label.get_width()) // 2
+                ly = sy - label.get_height() - 1
+                surface.blit(label, (lx, ly))
+            except pygame.error:
+                pass
 
     def _render_level_end_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],
@@ -787,8 +827,12 @@ class GameplayScene(BaseScene):
             self._screen_height,
         )
 
-        spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
-        spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
+        if self._checkpoint_pos is not None:
+            spawn_x = self._checkpoint_pos[0]
+            spawn_y = self._checkpoint_pos[1]
+        else:
+            spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
+            spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
         self._player = Player(spawn_x, spawn_y)
         self._input_state = InputState()
 
@@ -804,16 +848,28 @@ class GameplayScene(BaseScene):
         self._npcs.clear()
         self._spawn_entities()
 
-        # Reset HUD to starting values (keep economy state).
-        starting_hearts = self._economy.get_starting_hearts()
-        self._hud.set_state(
-            max_hearts=int(starting_hearts),
-            current_hearts=starting_hearts,
-            stone_count=self._economy.stone_count,
+        # Restore player state from the death-rollback snapshot if one
+        # exists, otherwise fall back to defaults.
+        snap = (
+            self._save_system.level_entry_snapshot
+            if self._save_system is not None else None
         )
+        if snap is not None:
+            max_h = snap["max_hearts"]
+            cur_h = snap["current_hearts"]
+            stones = snap["stone_count"]
+            self._economy.restore({"stone_count": stones})
+        else:
+            max_h = int(self._economy.get_starting_hearts())
+            cur_h = float(max_h)
+            stones = self._economy.stone_count
 
-        # Reset combat system health tracking.
-        self._combat.set_player_health(starting_hearts, int(starting_hearts))
+        self._hud.set_state(
+            max_hearts=max_h,
+            current_hearts=cur_h,
+            stone_count=stones,
+        )
+        self._combat.set_player_health(cur_h, max_h)
 
         # Reset companion.
         comp_x = self._level_data.companion_spawn[0] * TILE_SIZE
@@ -1014,22 +1070,27 @@ class GameplayScene(BaseScene):
     def _on_trigger_save_point(self, trigger=None) -> None:
         """Handle save_point trigger events.
 
-        Publishes a save_point_reached event.  If the trigger has
+        Records the checkpoint position so the player respawns here on
+        death.  Saves progress to disk.  If the trigger has
         ``shop_available: true``, spawns Llorencc NPC near the save
-        point (offset slightly to the right).
+        point.
 
         Args:
             trigger: The Trigger instance that fired.
         """
         shop_available = False
         if trigger is not None:
+            self._checkpoint_pos = (
+                float(trigger.rect.x),
+                float(trigger.rect.bottom - self._player.rect.height),
+            )
+
             shop_available = trigger.properties.get("shop_available", False)
 
             # Spawn Llorencc NPC near the save point if shop is available.
             if shop_available:
                 npc_x = trigger.rect.right + 8
-                npc_y = trigger.rect.bottom - 36  # Align feet with ground.
-                # Avoid duplicate spawns.
+                npc_y = trigger.rect.bottom - 36
                 already_spawned = any(
                     n.npc_id == "llorencc" for n in self._npcs
                 )
@@ -1041,6 +1102,29 @@ class GameplayScene(BaseScene):
                         label="L",
                     )
                     self._npcs.append(npc)
+
+        # Save progress and update the snapshot so death rolls back here.
+        if self._save_system is not None:
+            self._save_system.set_level(self._level_path)
+            self._save_system.set_player_state(
+                stone_count=self._economy.stone_count,
+                current_hearts=self._combat.player_hearts,
+                max_hearts=self._combat.player_max_hearts,
+            )
+            if self._checkpoint_pos is not None:
+                self._save_system.state["checkpoint_x"] = self._checkpoint_pos[0]
+                self._save_system.state["checkpoint_y"] = self._checkpoint_pos[1]
+            mask_state = self._mask_system.get_save_state()
+            self._save_system.state["masks_unlocked"] = mask_state["unlocked_masks"]
+            self._save_system.state["masks_equipped"] = (
+                [mask_state["equipped_mask"]] if mask_state["equipped_mask"] else []
+            )
+            self._save_system.save()
+            self._save_system.snapshot_level_entry(
+                stone_count=self._economy.stone_count,
+                current_hearts=self._combat.player_hearts,
+                max_hearts=self._combat.player_max_hearts,
+            )
 
         self._event_bus.publish(
             "save_point_reached", shop_available=shop_available
@@ -1131,8 +1215,16 @@ class GameplayScene(BaseScene):
         def _on_restart() -> None:
             if self._scene_manager is not None:
                 self._scene_manager.pop()  # Remove GameOverScene.
+                saved_checkpoint = self._checkpoint_pos
                 self._reset_level()
+                self._checkpoint_pos = saved_checkpoint
                 self.take_level_entry_snapshot()
+                # Re-persist the checkpoint so subsequent deaths still
+                # respawn here and Continue from menu also works.
+                if self._checkpoint_pos is not None and self._save_system is not None:
+                    self._save_system.state["checkpoint_x"] = self._checkpoint_pos[0]
+                    self._save_system.state["checkpoint_y"] = self._checkpoint_pos[1]
+                    self._save_system.save()
 
         scene = GameOverScene(on_restart=_on_restart)
         self._scene_manager.push(scene)

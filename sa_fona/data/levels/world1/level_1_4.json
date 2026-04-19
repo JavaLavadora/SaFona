@@ -4739,7 +4739,9 @@
         "y": 13,
         "w": 2,
         "h": 3
-      }
+      },
+      "shop_available": true,
+      "once": false
     },
     {
       "type": "level_end",

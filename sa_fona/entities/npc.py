@@ -105,13 +105,20 @@ class NPC(Entity):
             surface, (30, 120, 50), (sx, sy, self.rect.width, self.rect.height), 1,
         )
 
-        # Label letter (centred).
         try:
             font = pygame.font.Font(None, 16)
+            # Label letter (centred).
             label_surf = font.render(self._label, False, (255, 255, 255))
             lx = sx + (self.rect.width - label_surf.get_width()) // 2
             ly = sy + (self.rect.height - label_surf.get_height()) // 2
             surface.blit(label_surf, (lx, ly))
+
+            # Floating type indicator above the NPC.
+            tag = "SHOP" if self._npc_type == "shop" else self._npc_type.upper()
+            tag_surf = font.render(tag, False, (255, 220, 80))
+            tx = sx + (self.rect.width - tag_surf.get_width()) // 2
+            ty = sy - tag_surf.get_height() - 2
+            surface.blit(tag_surf, (tx, ty))
         except pygame.error:
             pass
 

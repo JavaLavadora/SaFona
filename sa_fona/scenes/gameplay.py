@@ -402,6 +402,14 @@ class GameplayScene(BaseScene):
         # 4b. Push player out of enemy bodies (enemies have mass).
         self._resolve_enemy_push(self._player)
 
+        # 4c. Kill player if they fall below the level.
+        if (
+            not self._pending_game_over
+            and self._player.rect.top
+            > self._tilemap.height_pixels + TILE_SIZE * 2
+        ):
+            self._event_bus.publish("player_died")
+
         # 5. Sling combat system: process input, spawn projectiles.
         new_projectiles = self._sling_system.update(
             self._input_state, self._player, dt

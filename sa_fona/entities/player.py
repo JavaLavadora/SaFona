@@ -1,6 +1,11 @@
 """Player entity (Ramon) with a state-machine driven moveset.
 
-States: idle, running, jumping, falling, wall_sliding, wall_jumping.
+States: idle, running, jumping, falling, wall_sliding, wall_jumping,
+sling_charging, sling_releasing.  The sling visual states are driven
+externally by the scene via ``set_sling_state()`` and override the
+movement-based sprite when the sling system is active (charging or
+in cooldown after release).
+
 Receives physics results from the scene integration layer.  Input is
 read via InputState.  Uses real sprite sheets when available, falling
 back to colored rectangles.

@@ -342,6 +342,9 @@ class BossScene(BaseScene):
         )
         self._projectiles.extend(new_projectiles)
 
+        # 5b. Sync sling state to player for attack animation.
+        self._player.set_sling_state(self._sling_system.state)
+
         # 6. Update projectiles.
         for proj in self._projectiles:
             proj.update(dt)

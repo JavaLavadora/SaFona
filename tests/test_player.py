@@ -909,13 +909,15 @@ class TestSlingAnimationOverride:
         player, physics = _make_player(flat_ground, 32, ground_y - 32)
         _settle_on_ground(player, physics)
 
+        idle_sprite = player.sprite
+
         player.set_sling_state("cooldown")
         player.handle_input(_input())
         _step(player, physics, 1.0 / 60.0)
 
         if player._sling_frames and len(player._sling_frames) >= 2:
-            # Should be showing the release frame (index 1).
-            assert player.sprite is not None
+            # Should be showing the release frame (index 1), not idle.
+            assert player.sprite is not idle_sprite
 
     def test_sling_idle_does_not_override(self, flat_ground: dict) -> None:
         """When sling is idle, normal movement animation should play."""

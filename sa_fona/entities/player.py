@@ -71,6 +71,7 @@ class Player(Entity):
     def __init__(self, x: float, y: float) -> None:
         super().__init__(x, y, PLAYER_WIDTH, PLAYER_HEIGHT)
         self._state: PlayerState = PlayerState.IDLE
+        self._prev_state: PlayerState = PlayerState.IDLE
 
         # Timers.
         self._coyote_timer: float = 0.0
@@ -110,19 +111,49 @@ class Player(Entity):
     def _build_surfaces(self) -> None:
         """Load real sprites or fall back to colored rectangles."""
         self._idle_frames: list[pygame.Surface] = []
+        self._walk_frames: list[pygame.Surface] = []
+        self._jump_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
+        self._walk_anim_speed: float = 0.1
 
-        frames = load_sprite_sheet_from_file(
+        idle = load_sprite_sheet_from_file(
             "assets/sprites/ramon/idle.png", PLAYER_WIDTH, PLAYER_HEIGHT,
         )
-        if frames:
-            self._idle_frames = frames
+        if idle:
+            self._idle_frames = idle
+
+        walk = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/walk.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if walk:
+            self._walk_frames = walk
+
+        jump = load_sprite_sheet_from_file(
+            "assets/sprites/ramon/jump.png", PLAYER_WIDTH, PLAYER_HEIGHT,
+        )
+        if jump:
+            self._jump_frames = jump
+
+        has_sprites = bool(
+            self._idle_frames or self._walk_frames or self._jump_frames
+        )
 
         for state, key in _STATE_KEY.items():
             if self._idle_frames and state == PlayerState.IDLE:
                 self._surfaces[state] = self._idle_frames[0]
+            elif self._walk_frames and state == PlayerState.RUNNING:
+                self._surfaces[state] = self._walk_frames[0]
+            elif self._jump_frames and state == PlayerState.JUMPING:
+                self._surfaces[state] = self._jump_frames[0]
+            elif self._jump_frames and state == PlayerState.FALLING:
+                self._surfaces[state] = self._jump_frames[-1]
+            elif has_sprites:
+                surf = pygame.Surface(
+                    (PLAYER_WIDTH, PLAYER_HEIGHT), pygame.SRCALPHA,
+                )
+                self._surfaces[state] = surf
             else:
                 color = PLAYER_STATE_COLORS.get(key, (255, 255, 255))
                 surf = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
@@ -254,17 +285,50 @@ class Player(Entity):
 
     def _update_sprite(self, dt: float) -> None:
         """Select the correct sprite frame, with animation and flipping."""
-        if self._idle_frames and self._state == PlayerState.IDLE:
+        if self._state != self._prev_state:
+            self._anim_frame = 0
+            self._anim_timer = 0.0
+            self._prev_state = self._state
+
+        frames: list[pygame.Surface] | None = None
+        speed = self._anim_speed
+
+        if self._state == PlayerState.IDLE and self._idle_frames:
+            frames = self._idle_frames
+        elif self._state == PlayerState.RUNNING and self._walk_frames:
+            frames = self._walk_frames
+            speed = self._walk_anim_speed
+        elif self._state == PlayerState.JUMPING and self._jump_frames:
+            base = self._jump_frames[0]
+            self._anim_frame = 0
+            self._anim_timer = 0.0
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+        elif self._state == PlayerState.FALLING and self._jump_frames:
+            base = self._jump_frames[-1]
+            self._anim_frame = 0
+            self._anim_timer = 0.0
+            if not self.facing_right:
+                self._sprite = pygame.transform.flip(base, True, False)
+            else:
+                self._sprite = base
+            return
+
+        if frames:
             self._anim_timer += dt
-            if self._anim_timer >= self._anim_speed:
-                self._anim_timer -= self._anim_speed
-                self._anim_frame = (self._anim_frame + 1) % len(self._idle_frames)
-            base = self._idle_frames[self._anim_frame]
+            if self._anim_timer >= speed:
+                self._anim_timer -= speed
+                self._anim_frame = (self._anim_frame + 1) % len(frames)
+            if self._anim_frame >= len(frames):
+                self._anim_frame = 0
+            base = frames[self._anim_frame]
         else:
             base = self._surfaces[self._state]
-            if self._state != PlayerState.IDLE:
-                self._anim_frame = 0
-                self._anim_timer = 0.0
+            self._anim_frame = 0
+            self._anim_timer = 0.0
 
         if not self.facing_right:
             self._sprite = pygame.transform.flip(base, True, False)

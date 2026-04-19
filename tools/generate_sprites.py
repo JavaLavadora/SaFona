@@ -159,6 +159,10 @@ def generate_sprite_sheet(
         )
 
     frames = [grid_to_frame(g, palette, width, height) for g in grids]
+
+    if getattr(sprite_module, "MIRROR", False):
+        frames = [f.transpose(Image.FLIP_LEFT_RIGHT) for f in frames]
+
     sheet = frames_to_sheet(frames, width, height)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -171,6 +175,16 @@ SPRITE_REGISTRY: list[dict[str, str]] = [
         "module": "tools.sprite_defs.ramon",
         "animation": "idle",
         "manifest_key": "ramon_idle",
+    },
+    {
+        "module": "tools.sprite_defs.ramon",
+        "animation": "walk",
+        "manifest_key": "ramon_walk",
+    },
+    {
+        "module": "tools.sprite_defs.ramon",
+        "animation": "jump",
+        "manifest_key": "ramon_jump",
     },
     {
         "module": "tools.sprite_defs.bep",

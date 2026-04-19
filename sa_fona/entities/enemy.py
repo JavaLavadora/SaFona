@@ -208,7 +208,8 @@ class Enemy(Entity):
             Scaled frame list, or None.
         """
         # Common original frame sizes to try (width, height).
-        candidates = [(16, 16), (16, 24), (24, 32), (24, 24)]
+        # Larger sizes first to avoid cropping (e.g. 16x16 matching a 16x24 strip).
+        candidates = [(24, 32), (16, 24), (24, 24), (16, 16)]
         for fw, fh in candidates:
             if fw == self._sprite_w and fh == self._sprite_h:
                 continue  # Already tried at target size.

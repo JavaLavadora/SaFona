@@ -536,16 +536,6 @@ class GameplayScene(BaseScene):
         self._render_save_point_cues(surface, cam_offset)
         self._render_level_end_cues(surface, cam_offset)
 
-        # Melee hitboxes (debug: translucent white flash).
-        for hitbox in self._sling_system.melee_hitboxes:
-            sx = hitbox.rect.x - cam_offset[0]
-            sy = hitbox.rect.y - cam_offset[1]
-            melee_surf = pygame.Surface(
-                (hitbox.rect.width, hitbox.rect.height), pygame.SRCALPHA
-            )
-            melee_surf.fill((255, 255, 255, 120))
-            surface.blit(melee_surf, (sx, sy))
-
         # Shockwave visual (mask system ground pound flash).
         shock_rect = self._mask_system.shockwave_rect
         if shock_rect is not None:

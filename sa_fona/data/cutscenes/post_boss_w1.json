@@ -14,12 +14,14 @@
     {
       "type": "dialogue",
       "speaker": "Dimoni",
-      "text": "You have proven your worth, foner. The Bou de Pedra was merely the first guardian."
+      "text": "You have proven your worth, foner. The Bou de Pedra was merely the first guardian.",
+      "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
       "speaker": "Dimoni",
-      "text": "Take this ancient power. The Talayotic mask shall bend stone to your will."
+      "text": "Take this ancient power. The Talayotic mask shall bend stone to your will.",
+      "portrait": "dimoni_granting"
     },
     {
       "type": "transition",
@@ -43,12 +45,14 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ramon, look! A mask! The legends about the Dimoni's trials were true..."
+      "text": "Ramon, look! A mask! The legends about the Dimoni's trials were true...",
+      "portrait": "bep_excited"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "I can feel its power. The stones themselves tremble!"
+      "text": "I can feel its power. The stones themselves tremble!",
+      "portrait": "bep_scared"
     },
     {
       "type": "wait",

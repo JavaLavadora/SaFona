@@ -252,7 +252,8 @@ class CutsceneScene(BaseScene):
         """
         speaker = step.get("speaker", "")
         text = step.get("text", "")
-        line = {"speaker": speaker, "text": text}
+        portrait = step.get("portrait", "")
+        line = {"speaker": speaker, "text": text, "portrait": portrait}
         self._dialogue_box.start([line], skippable=False)
         self._dialogue_active = True
         if self._fast_forward:

@@ -1,7 +1,13 @@
 {
   "llorencc_greeting": {
     "lines": [
-      {"speaker": "Llorencc", "text": "Welcome, traveler! Take a look at my wares."}
+      {
+        "speaker": "llorencc",
+        "portrait": "llorencc_friendly",
+        "text": "Welcome, traveler! Take a look at my wares.",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
     ]
   }
 }

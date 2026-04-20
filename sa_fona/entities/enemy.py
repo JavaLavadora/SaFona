@@ -89,12 +89,18 @@ class Enemy(Entity):
         self.health: float = float(definition.get("health", 1))
         self.max_health: float = self.health
         self.contact_damage: float = float(definition.get("contact_damage", 0.5))
+        self.attack_damage: float = float(
+            definition.get("attack_damage", self.contact_damage)
+        )
 
         # Drop table.
         drops = definition.get("drops", {})
         self._stones_min: int = drops.get("stones", {}).get("min", 1)
         self._stones_max: int = drops.get("stones", {}).get("max", 2)
         self._heart_chance: float = drops.get("heart_chance", 0.1)
+
+        # Attack hitbox width extension (0 = body IS the hitbox).
+        self._attack_hitbox_w: int = int(definition.get("attack_hitbox_w", 16))
 
         # Behavior component.
         behavior_type = definition.get("behavior", "patrol")
@@ -246,6 +252,11 @@ class Enemy(Entity):
         return self._behavior_result.attack_state == AttackState.TELL
 
     @property
+    def is_recovering(self) -> bool:
+        """Whether the enemy is in post-attack recovery."""
+        return self._behavior_result.attack_state == AttackState.RECOVERY
+
+    @property
     def is_blocking(self) -> bool:
         """Whether the enemy is currently blocking."""
         return self._behavior_result.is_blocking
@@ -259,6 +270,32 @@ class Enemy(Entity):
     def is_stunned(self) -> bool:
         """Whether the enemy is currently stunned."""
         return self._stun_timer > 0
+
+    @property
+    def attack_hitbox(self) -> pygame.Rect:
+        """Return the active attack hitbox when the enemy is striking.
+
+        When ``_attack_hitbox_w`` is 0 the enemy's own body rect is
+        the weapon (e.g. sheep headbutt).  Otherwise the hitbox extends
+        ``_attack_hitbox_w`` pixels in the direction the enemy faces.
+
+        Only meaningful when ``is_attacking`` is True.
+
+        Returns:
+            A pygame.Rect representing the attack hitbox.
+        """
+        if self._attack_hitbox_w == 0:
+            # Body IS the weapon (e.g. possessed sheep headbutt).
+            return self.rect.copy()
+
+        hitbox_w = self._attack_hitbox_w
+        hitbox_h = self.rect.height + 4
+        if self.facing_right:
+            hx = self.rect.right
+        else:
+            hx = self.rect.left - hitbox_w
+        hy = self.rect.top - 2
+        return pygame.Rect(hx, hy, hitbox_w, hitbox_h)
 
     def stun(self, duration: float) -> None:
         """Apply a stun effect for the given duration.
@@ -451,7 +488,7 @@ class Enemy(Entity):
         elif self.is_blocking and self._block_frames:
             frames = self._block_frames
             speed = self._anim_speed
-        elif self.is_attacking and self._attack_frames:
+        elif (self.is_attacking or self.is_in_tell or self.is_recovering) and self._attack_frames:
             frames = self._attack_frames
             speed = 0.12
         elif self.is_in_tell and self._charge_frames:

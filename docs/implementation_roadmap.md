@@ -449,9 +449,51 @@ D1 (Core Engine Bootstrap)
 
 ---
 
-## Phase 2+ (Deferred)
+## Phase 2: Content Production Tools & Workflow
 
-After Phase 1 sign-off, the following will be planned:
+Phase 2 focuses on empowering the project owner (Toni) to create game content directly — pixel art assets and level layouts — with minimal friction. These tools streamline the handoff between creative work and the game engine.
+
+### Completed
+
+**Deliverable 11: ASCII Level Editor Tooling** — PR #66, Issue #65
+- Merged 2026-04-20, user signed off
+- `tools/map_to_json.py` CLI converter, `tools/json_to_map.py` reverse converter
+- All 5 standard levels converted to `.map` + `.yaml` (W1 L1-L4, W2 L2-1)
+- Auto-compilation on game startup (`sa_fona/level/map_compiler.py`)
+- `.map` + `.yaml` are now the source of truth; `.json` is generated output
+- 62 tests, all passing
+- **Purpose**: Build a converter tool (`tools/map_to_json.py`) that transforms human-readable ASCII tilemaps (`.map`) and YAML metadata (`.yaml`) into the engine's JSON level format, so level design can be done in a text editor without touching raw JSON arrays.
+- **Depends on**: D2 (tilemap/level format), D8 (existing level data for validation)
+- **Assigned to**: N'Andreu (Engine Programmer)
+- **Status**: Complete
+- **Acceptance criteria**:
+  - [ ] `tools/map_to_json.py` reads a `.map` ASCII tilemap and a `.yaml` metadata file
+  - [ ] ASCII character legend: `.`=air, `#`=solid, `-`=one-way, `X`=hazard, `B`=breakable_slam, `P`=player spawn, `C`=companion spawn
+  - [ ] Player/companion spawn positions auto-detected from `P`/`C` markers in the map
+  - [ ] YAML metadata supports: metadata block, enemies list, pickups list, breakables list, triggers list, secrets list, parallax list (matching the engine JSON schema)
+  - [ ] Output JSON is identical in structure to existing level files (validated by loading in-game)
+  - [ ] Auto-generates empty background and foreground layers
+  - [ ] Validates grid dimensions (all rows same width, matches declared dimensions)
+  - [ ] Clear error messages for common mistakes (wrong row length, unknown tile character, missing metadata)
+  - [ ] Includes a `--preview` flag that prints the ASCII map back with color highlighting for verification
+  - [ ] An example `.map` + `.yaml` pair is included (converting an existing W1 level)
+  - [ ] Documentation in the tool's `--help` output and a short README section
+  - [ ] The game launches and runs the converted level without errors
+  - [ ] Tests exist for: grid parsing, spawn detection, YAML loading, dimension validation, JSON output structure
+- **Estimated complexity**: Small-Medium
+- **References**: Issue #65 (Level Design Guide), `sa_fona/level/level_loader.py`, existing level JSON files in `sa_fona/data/levels/`
+
+### Upcoming
+
+- Asset pipeline improvements (sprite hot-reload, folder conventions) — per Issue #64
+- W1 level redesign (user-driven, using D11 tooling)
+- W2 level design (levels 2-2, 2-3, 2-4)
+
+---
+
+## Phase 3+ (Deferred)
+
+After Phase 2 content tools are in place and World 1 is polished:
 - W2 complete (remaining 3 levels + Metellus boss)
 - W3 through W5.5 (incremental world production)
 - Double Jump, Fire Dash, Smoke Vanish, Tourist Rage mask powers
@@ -523,3 +565,4 @@ N'Aina approved the plan after Round 2 with no remaining critical findings. The 
 - 2026-04-17: Initial roadmap created by Na Francina. Audited by N'Aina (2 rounds). Awaiting user approval.
 - 2026-04-18: D1-D9 all completed and signed off. Playtest fixes merged (projectile gravity, enemy mass, hitbox shrink, boss tuning). D10 is next.
 - 2026-04-19: D10 completed and signed off. Phase 1 vertical slice complete. All 10 deliverables merged.
+- 2026-04-20: Phase 2 started. D11 (ASCII Level Editor Tooling) created, implemented, reviewed, and merged (PR #66). All levels converted to .map + .yaml with auto-compilation on startup.

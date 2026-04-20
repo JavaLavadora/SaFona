@@ -945,6 +945,9 @@ class GuardianBehavior(EnemyBehavior):
                 result.move_x = charge_dir
                 result.speed = self._speed * 2.5
                 result.attack_state = AttackState.TELL
+                if self.check_edge_ahead(enemy_rect, charge_dir, tilemap):
+                    result.move_x = 0.0
+                    result.speed = 0.0
                 return result
 
             # Normal patrol movement.
@@ -971,6 +974,9 @@ class GuardianBehavior(EnemyBehavior):
             result.move_x = charge_dir
             result.speed = self._speed * 2.5
             result.attack_state = AttackState.TELL
+            if self.check_edge_ahead(enemy_rect, charge_dir, tilemap):
+                result.move_x = 0.0
+                result.speed = 0.0
             if self._attack_timer <= 0:
                 # Transition to strike phase.
                 self._attack_state = AttackState.ATTACKING

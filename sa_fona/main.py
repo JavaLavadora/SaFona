@@ -24,6 +24,12 @@ def main() -> None:
     """Create the Game instance and start the main loop."""
     from sa_fona.config.settings import DATA_DIR
     from sa_fona.core.game import Game
+    from sa_fona.level.map_compiler import compile_all_maps
+
+    # Auto-compile any .map + .yaml level sources that are newer than
+    # their .json counterparts.  This runs before any level loading so
+    # the engine always sees up-to-date JSON files.
+    compile_all_maps()
 
     level_path = None
     # Simple CLI: --level <relative_path>

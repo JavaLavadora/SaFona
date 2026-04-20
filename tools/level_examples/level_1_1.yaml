@@ -1,0 +1,119 @@
+metadata:
+  world: 1
+  level: 1
+  name: "Es Primer Pas"
+  name_en: "The First Step"
+  music_slot: "world_1_theme"
+  difficulty: 1
+  tileset: "world1"
+  background: "world1_bg"
+
+enemies:
+  - type: possessed_sheep
+    x: 40
+    y: 12
+  - type: possessed_sheep
+    x: 48
+    y: 12
+  - type: possessed_sheep
+    x: 54
+    y: 12
+
+pickups:
+  - type: heart
+    x: 31
+    y: 6
+    value: 1
+  - type: stone
+    x: 4
+    y: 12
+    value: 1
+  - type: stone
+    x: 6
+    y: 12
+    value: 1
+  - type: stone
+    x: 8
+    y: 12
+    value: 1
+  - type: stone
+    x: 10
+    y: 12
+    value: 1
+  - type: stone
+    x: 12
+    y: 12
+    value: 1
+  - type: stone
+    x: 14
+    y: 11
+    value: 1
+  - type: stone
+    x: 16
+    y: 11
+    value: 1
+  - type: stone
+    x: 18
+    y: 12
+    value: 1
+  - type: stone
+    x: 23
+    y: 12
+    value: 1
+  - type: stone
+    x: 26
+    y: 12
+    value: 1
+  - type: stone
+    x: 29
+    y: 12
+    value: 1
+  - type: stone
+    x: 32
+    y: 12
+    value: 1
+  - type: stone
+    x: 35
+    y: 12
+    value: 1
+  - type: stone
+    x: 38
+    y: 12
+    value: 1
+  - type: stone
+    x: 42
+    y: 12
+    value: 1
+  - type: heart
+    x: 45
+    y: 12
+    value: 1
+
+breakables: []
+
+triggers:
+  - type: dialogue
+    dialogue_id: "w1_l1_movement_hint"
+    rect: { x: 3, y: 9, w: 3, h: 4 }
+    once: true
+  - type: dialogue
+    dialogue_id: "w1_l1_jump_hint"
+    rect: { x: 18, y: 9, w: 2, h: 4 }
+    once: true
+  - type: dialogue
+    dialogue_id: "w1_l1_wall_jump_hint"
+    rect: { x: 28, y: 9, w: 2, h: 4 }
+    once: true
+  - type: dialogue
+    dialogue_id: "w1_l1_sheep_encounter"
+    rect: { x: 38, y: 9, w: 2, h: 4 }
+    once: true
+  - type: save_point
+    rect: { x: 56, y: 10, w: 2, h: 3 }
+  - type: level_end
+    rect: { x: 57, y: 10, w: 2, h: 3 }
+    next_level: "world1/level_1_2"
+
+secrets: []
+
+parallax: {}

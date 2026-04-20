@@ -63,7 +63,8 @@ class TestGuardianBehaviorCycle:
 
         result = guardian.update(enemy_rect, player_rect, 1 / 60)
         assert result.attack_state == AttackState.TELL
-        assert result.move_x == 0.0  # Stops during wind-up.
+        assert result.move_x != 0.0  # Charges toward player during wind-up.
+        assert result.speed == 20 * 2.5  # 2.5x charge speed.
 
     def test_windup_to_strike_transition(self):
         """Guardian transitions from TELL to ATTACKING after windup time."""
@@ -254,7 +255,7 @@ class TestGuardianAttackDamage:
         # Place the FakePlayer in the attack hitbox zone (in front of enemy)
         # but NOT overlapping the enemy's body rect to avoid contact damage.
         # Enemy body: x=102, width=20, right=122.
-        # Attack hitbox: x=122, width=20, covers [122, 142].
+        # Attack hitbox: x=122, width=48, covers [122, 170].
         # Place player at x=125 to overlap the attack hitbox but not the body.
 
         class FakePlayer:

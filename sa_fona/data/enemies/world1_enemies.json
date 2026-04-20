@@ -52,7 +52,7 @@
     "health": 6,
     "contact_damage": 1.5,
     "attack_damage": 2.0,
-    "attack_range": 80,
+    "attack_range": 120,
     "attack_windup": 0.8,
     "attack_strike": 0.5,
     "attack_recovery": 0.6,
@@ -61,7 +61,7 @@
     "behavior_params": {
       "patrol_range": 3,
       "speed": 20,
-      "attack_range": 80,
+      "attack_range": 120,
       "attack_windup": 0.8,
       "attack_strike": 0.5,
       "attack_recovery": 0.6,

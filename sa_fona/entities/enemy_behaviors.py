@@ -937,16 +937,13 @@ class GuardianBehavior(EnemyBehavior):
                 and dist_to_player < self._attack_range
                 and self._cooldown_timer <= 0
             ):
-                # Enter wind-up (tell) phase.
+                # Enter wind-up (tell) phase — charge toward player.
                 self._attack_state = AttackState.TELL
                 self._attack_timer = self._attack_windup
-                # Face the player.
-                if dx_to_player > 0:
-                    self._direction = 1.0
-                elif dx_to_player < 0:
-                    self._direction = -1.0
-                result.move_x = 0.0
-                result.speed = 0.0
+                charge_dir = 1.0 if dx_to_player > 0 else -1.0
+                self._direction = charge_dir
+                result.move_x = charge_dir
+                result.speed = self._speed * 2.5
                 result.attack_state = AttackState.TELL
                 return result
 
@@ -967,10 +964,12 @@ class GuardianBehavior(EnemyBehavior):
                 result.move_x = self._direction
 
         elif self._attack_state == AttackState.TELL:
-            # Wind-up phase: enemy stops, shows attack animation slowly.
+            # Wind-up phase: guardian charges toward the player at 2.5x speed.
             self._attack_timer -= dt
-            result.move_x = 0.0
-            result.speed = 0.0
+            charge_dir = 1.0 if dx_to_player > 0 else -1.0
+            self._direction = charge_dir
+            result.move_x = charge_dir
+            result.speed = self._speed * 2.5
             result.attack_state = AttackState.TELL
             if self._attack_timer <= 0:
                 # Transition to strike phase.

@@ -279,7 +279,7 @@ class Enemy(Entity):
         Returns:
             A pygame.Rect representing the attack hitbox.
         """
-        hitbox_w = 20
+        hitbox_w = 48
         hitbox_h = self.rect.height + 4
         if self.facing_right:
             hx = self.rect.right

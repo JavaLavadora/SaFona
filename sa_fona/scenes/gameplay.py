@@ -566,6 +566,18 @@ class GameplayScene(BaseScene):
         for enemy in self._enemies:
             enemy.render(target, cam_offset)
 
+        # Debug: enemy attack hitboxes (translucent red).
+        for enemy in self._enemies:
+            if enemy.is_attacking:
+                atk_rect = enemy.attack_hitbox
+                sx = atk_rect.x - cam_offset[0]
+                sy = atk_rect.y - cam_offset[1]
+                atk_surf = pygame.Surface(
+                    (atk_rect.width, atk_rect.height), pygame.SRCALPHA
+                )
+                atk_surf.fill((255, 50, 50, 120))  # Translucent red
+                target.blit(atk_surf, (sx, sy))
+
         # NPCs.
         for npc in self._npcs:
             npc.render(target, cam_offset)

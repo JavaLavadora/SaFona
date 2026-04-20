@@ -135,6 +135,8 @@ class Player(Entity):
         self._sling_frames: list[pygame.Surface] = []
         self._hit_frames: list[pygame.Surface] = []
         self._death_frames: list[pygame.Surface] = []
+        self._crouch_idle_frames: list[pygame.Surface] = []
+        self._crouch_walk_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
@@ -175,6 +177,21 @@ class Player(Entity):
             or self._sling_frames
         )
 
+        # Generate crouch frames by cropping the bottom portion of
+        # idle/walk frames (torso + legs, removing the head area).
+        crop_rect = pygame.Rect(
+            0, PLAYER_HEIGHT - PLAYER_CROUCH_HEIGHT,
+            PLAYER_WIDTH, PLAYER_CROUCH_HEIGHT,
+        )
+        if self._idle_frames:
+            self._crouch_idle_frames = [
+                f.subsurface(crop_rect).copy() for f in self._idle_frames
+            ]
+        if self._walk_frames:
+            self._crouch_walk_frames = [
+                f.subsurface(crop_rect).copy() for f in self._walk_frames
+            ]
+
         for state, key in _STATE_KEY.items():
             # Crouch/crawl states use the shorter hitbox height.
             is_crouch_state = state in (PlayerState.CROUCHING, PlayerState.CRAWLING)
@@ -192,6 +209,10 @@ class Player(Entity):
                 self._surfaces[state] = self._wall_slide_frames[0]
             elif self._wall_jump_frames and state == PlayerState.WALL_JUMPING:
                 self._surfaces[state] = self._wall_jump_frames[0]
+            elif is_crouch_state and self._crouch_idle_frames:
+                # Use cropped idle frame for crouch states instead of
+                # a transparent surface.
+                self._surfaces[state] = self._crouch_idle_frames[0]
             elif has_sprites:
                 surf = pygame.Surface(
                     (PLAYER_WIDTH, surf_h), pygame.SRCALPHA,
@@ -456,6 +477,11 @@ class Player(Entity):
             frames = self._wall_slide_frames
         elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
             frames = self._wall_jump_frames
+        elif self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
+            frames = self._crouch_idle_frames
+        elif self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
+            frames = self._crouch_walk_frames
+            speed = self._walk_anim_speed
 
         if frames:
             self._anim_timer += dt

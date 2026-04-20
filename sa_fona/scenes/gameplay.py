@@ -19,7 +19,9 @@ from sa_fona.config.settings import (
     CAMERA_ZOOM,
     DATA_DIR,
     GAMEPLAY_BG_COLOR,
+    PLAYER_CROUCH_HEIGHT,
     PLAYER_GRAVITY,
+    PLAYER_HEIGHT,
     PLAYER_WALL_CHECK_MARGIN,
 )
 from sa_fona.core.camera import Camera
@@ -361,6 +363,8 @@ class GameplayScene(BaseScene):
             input_state: The current frame's input snapshot.
         """
         self._input_state = input_state
+        # Update ceiling check before input so crouch logic can query it.
+        self._player._ceiling_blocked = self._check_ceiling_for_standup()
         self._player.handle_input(input_state)
 
         if input_state.pause_pressed:
@@ -915,6 +919,11 @@ class GameplayScene(BaseScene):
     ) -> tuple[bool, bool]:
         """Probe the tilemap for wall contact on left and right sides.
 
+        Only reports wall contact for tiles that are part of a tall wall
+        (at least 2 vertically stacked solid tiles). Isolated floating
+        platforms (1 tile tall) are excluded so the player cannot
+        wall-slide or wall-jump on them.
+
         Args:
             rect: The entity's bounding box to probe around.
 
@@ -929,7 +938,8 @@ class GameplayScene(BaseScene):
             margin,
             rect.height - 4,
         )
-        wall_left = len(self._physics.check_collision(left_probe, "solid")) > 0
+        left_hits = self._physics.check_collision(left_probe, "solid")
+        wall_left = self._has_tall_wall(left_hits)
 
         right_probe = pygame.Rect(
             rect.right,
@@ -937,9 +947,57 @@ class GameplayScene(BaseScene):
             margin,
             rect.height - 4,
         )
-        wall_right = len(self._physics.check_collision(right_probe, "solid")) > 0
+        right_hits = self._physics.check_collision(right_probe, "solid")
+        wall_right = self._has_tall_wall(right_hits)
 
         return wall_left, wall_right
+
+    def _has_tall_wall(self, tile_rects: list[pygame.Rect]) -> bool:
+        """Check whether any of the hit tiles belong to a tall wall.
+
+        A tile counts as part of a tall wall if there is at least one
+        solid neighbor directly above or below it in the tilemap.  This
+        filters out isolated floating platforms (single-tile-tall) while
+        allowing wall sliding on thick walls and cave edges.
+
+        Args:
+            tile_rects: Tile rects returned by ``check_collision``.
+
+        Returns:
+            True if at least one tile is part of a vertically stacked wall.
+        """
+        solid_ids = self._tilemap._collision_types.get("solid", set())
+        for tile_rect in tile_rects:
+            col = tile_rect.x // TILE_SIZE
+            row = tile_rect.y // TILE_SIZE
+            # Check for a solid neighbor above or below.
+            tile_above = self._tilemap.get_tile_at(col, row - 1, "midground")
+            tile_below = self._tilemap.get_tile_at(col, row + 1, "midground")
+            if tile_above in solid_ids or tile_below in solid_ids:
+                return True
+        return False
+
+    def _check_ceiling_for_standup(self) -> bool:
+        """Check whether the player would collide with a solid tile above
+        if they stood up from a crouching position.
+
+        Constructs the would-be standing hitbox (taller, same bottom) and
+        probes for solid tile overlap in the extra headroom region.
+
+        Returns:
+            True if standing up is blocked by a solid tile overhead.
+        """
+        if not self._player.is_crouched:
+            return False
+        height_diff = PLAYER_HEIGHT - PLAYER_CROUCH_HEIGHT
+        # Probe the region above the current crouched hitbox.
+        probe = pygame.Rect(
+            self._player.rect.left,
+            self._player.rect.top - height_diff,
+            self._player.rect.width,
+            height_diff,
+        )
+        return len(self._physics.check_collision(probe, "solid")) > 0
 
     # ── Projectile management ─────────────────────────────────────
 

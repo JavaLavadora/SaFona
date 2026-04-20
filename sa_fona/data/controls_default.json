@@ -2,6 +2,7 @@
   "keyboard": {
     "move_left": ["a", "left"],
     "move_right": ["d", "right"],
+    "move_down": ["s", "down"],
     "jump": ["space", "w", "up"],
     "attack": ["j", "z"],
     "mask_power": ["k", "x"],

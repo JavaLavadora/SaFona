@@ -14,6 +14,9 @@ import pygame
 
 from sa_fona.config.settings import (
     PLAYER_COYOTE_TIME,
+    PLAYER_CROUCH_HEIGHT,
+    PLAYER_CROUCH_JUMP_FORCE,
+    PLAYER_CRAWL_SPEED_FACTOR,
     PLAYER_HEIGHT,
     PLAYER_JUMP_BUFFER,
     PLAYER_JUMP_FORCE,
@@ -40,6 +43,8 @@ class PlayerState(Enum):
     FALLING = auto()
     WALL_SLIDING = auto()
     WALL_JUMPING = auto()
+    CROUCHING = auto()
+    CRAWLING = auto()
 
 
 # Map enum values to string keys used in settings color dict.
@@ -50,6 +55,8 @@ _STATE_KEY: dict[PlayerState, str] = {
     PlayerState.FALLING: "falling",
     PlayerState.WALL_SLIDING: "wall_sliding",
     PlayerState.WALL_JUMPING: "wall_jumping",
+    PlayerState.CROUCHING: "crouching",
+    PlayerState.CRAWLING: "crawling",
 }
 
 
@@ -96,8 +103,18 @@ class Player(Entity):
         # physically impossible to gain height on the same wall.
         self._wall_jump_origin_y: float | None = None
 
+        # Crouch / crawl state.
+        self._is_crouched: bool = False
+        # When crouching is forced (ceiling above), this flag stays True
+        # even after the down key is released, until the ceiling clears.
+        self._crouch_forced: bool = False
+        # Set by the scene each frame: True if standing up would collide
+        # with a solid tile above.
+        self._ceiling_blocked: bool = False
+
         # Cached input for the current frame.
         self._input_x: float = 0.0
+        self._input_down: bool = False
         self._jump_pressed: bool = False
         self._jump_held: bool = False
         self._jump_released: bool = False
@@ -118,6 +135,8 @@ class Player(Entity):
         self._sling_frames: list[pygame.Surface] = []
         self._hit_frames: list[pygame.Surface] = []
         self._death_frames: list[pygame.Surface] = []
+        self._crouch_idle_frames: list[pygame.Surface] = []
+        self._crouch_walk_frames: list[pygame.Surface] = []
         self._anim_timer: float = 0.0
         self._anim_frame: int = 0
         self._anim_speed: float = 0.15
@@ -158,7 +177,26 @@ class Player(Entity):
             or self._sling_frames
         )
 
+        # Generate crouch frames by cropping the top portion of
+        # idle/walk frames (head + torso visible, legs hidden).
+        crop_rect = pygame.Rect(
+            0, 0,
+            PLAYER_WIDTH, PLAYER_CROUCH_HEIGHT,
+        )
+        if self._idle_frames:
+            self._crouch_idle_frames = [
+                f.subsurface(crop_rect).copy() for f in self._idle_frames
+            ]
+        if self._walk_frames:
+            self._crouch_walk_frames = [
+                f.subsurface(crop_rect).copy() for f in self._walk_frames
+            ]
+
         for state, key in _STATE_KEY.items():
+            # Crouch/crawl states use the shorter hitbox height.
+            is_crouch_state = state in (PlayerState.CROUCHING, PlayerState.CRAWLING)
+            surf_h = PLAYER_CROUCH_HEIGHT if is_crouch_state else PLAYER_HEIGHT
+
             if self._idle_frames and state == PlayerState.IDLE:
                 self._surfaces[state] = self._idle_frames[0]
             elif self._walk_frames and state == PlayerState.RUNNING:
@@ -171,14 +209,18 @@ class Player(Entity):
                 self._surfaces[state] = self._wall_slide_frames[0]
             elif self._wall_jump_frames and state == PlayerState.WALL_JUMPING:
                 self._surfaces[state] = self._wall_jump_frames[0]
+            elif is_crouch_state and self._crouch_idle_frames:
+                # Use cropped idle frame for crouch states instead of
+                # a transparent surface.
+                self._surfaces[state] = self._crouch_idle_frames[0]
             elif has_sprites:
                 surf = pygame.Surface(
-                    (PLAYER_WIDTH, PLAYER_HEIGHT), pygame.SRCALPHA,
+                    (PLAYER_WIDTH, surf_h), pygame.SRCALPHA,
                 )
                 self._surfaces[state] = surf
             else:
                 color = PLAYER_STATE_COLORS.get(key, (255, 255, 255))
-                surf = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+                surf = pygame.Surface((PLAYER_WIDTH, surf_h))
                 surf.fill(color)
                 self._surfaces[state] = surf
         self._sprite = self._surfaces[self._state]
@@ -242,6 +284,11 @@ class Player(Entity):
         """
         return self._wall_jump_origin_y
 
+    @property
+    def is_crouched(self) -> bool:
+        """True when the player is in a crouched or crawling posture."""
+        return self._is_crouched
+
     def handle_input(self, input_state: InputState) -> None:
         """Cache relevant input actions for the update step.
 
@@ -249,6 +296,7 @@ class Player(Entity):
             input_state: The current frame's input snapshot.
         """
         self._input_x = input_state.move_x
+        self._input_down = input_state.move_down
         self._jump_pressed = input_state.jump_pressed
         self._jump_held = input_state.jump_held
         self._jump_released = input_state.jump_released
@@ -429,6 +477,11 @@ class Player(Entity):
             frames = self._wall_slide_frames
         elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
             frames = self._wall_jump_frames
+        elif self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
+            frames = self._crouch_idle_frames
+        elif self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
+            frames = self._crouch_walk_frames
+            speed = self._walk_anim_speed
 
         if frames:
             self._anim_timer += dt
@@ -521,9 +574,34 @@ class Player(Entity):
         """Translate cached input into velocity changes."""
         locked = self._wall_jump_lockout_timer > 0
 
+        # ── Crouch / crawl entry and exit ──────────────────────
+        if self.on_ground and self._input_down and not locked:
+            if not self._is_crouched:
+                self._enter_crouch()
+        elif self._is_crouched and not self._input_down:
+            # Try to stand up; stay crouched if ceiling blocks.
+            if not self._is_blocked_above():
+                self._exit_crouch()
+            else:
+                self._crouch_forced = True
+
+        # While crouched and forced, keep checking every frame.
+        if self._crouch_forced and not self._input_down:
+            if not self._is_blocked_above():
+                self._exit_crouch()
+                self._crouch_forced = False
+
+        # If the player leaves the ground while crouched (e.g. falls
+        # off a ledge), un-crouch immediately.
+        if self._is_crouched and not self.on_ground:
+            self._exit_crouch()
+
         # ── Horizontal movement ────────────────────────────────
         if not locked:
-            self.velocity[0] = self._input_x * PLAYER_MOVE_SPEED
+            speed = PLAYER_MOVE_SPEED
+            if self._is_crouched:
+                speed = PLAYER_MOVE_SPEED * PLAYER_CRAWL_SPEED_FACTOR
+            self.velocity[0] = self._input_x * speed
             if self._input_x > 0:
                 self.facing_right = True
             elif self._input_x < 0:
@@ -556,7 +634,11 @@ class Player(Entity):
         want_jump = self._jump_pressed or self._jump_buffer_timer > 0
 
         if want_jump and can_jump_ground:
-            self.velocity[1] = PLAYER_JUMP_FORCE
+            # Crouched players do a shorter hop.
+            if self._is_crouched:
+                self.velocity[1] = PLAYER_CROUCH_JUMP_FORCE
+            else:
+                self.velocity[1] = PLAYER_JUMP_FORCE
             self._coyote_timer = 0.0
             self._jump_buffer_timer = 0.0
         elif (
@@ -594,6 +676,39 @@ class Player(Entity):
         if self._jump_released and self.velocity[1] < 0:
             self.velocity[1] *= PLAYER_VARIABLE_JUMP_CUTOFF
 
+    # ── Crouch helpers ────────────────────────────────────────────
+
+    def _enter_crouch(self) -> None:
+        """Shrink the player hitbox for crouching, keeping bottom aligned."""
+        if self._is_crouched:
+            return
+        self._is_crouched = True
+        old_bottom = self.rect.bottom
+        self.rect.height = PLAYER_CROUCH_HEIGHT
+        self.rect.bottom = old_bottom
+
+    def _exit_crouch(self) -> None:
+        """Restore the player hitbox to standing height, keeping bottom aligned."""
+        if not self._is_crouched:
+            return
+        self._is_crouched = False
+        self._crouch_forced = False
+        old_bottom = self.rect.bottom
+        self.rect.height = PLAYER_HEIGHT
+        self.rect.bottom = old_bottom
+
+    def _is_blocked_above(self) -> bool:
+        """Check if standing up would collide with a solid tile above.
+
+        The ``_ceiling_blocked`` flag is set each frame by the scene's
+        ``_check_ceiling_for_standup`` helper before player input is
+        processed.
+
+        Returns:
+            True if the standing hitbox would overlap a solid tile.
+        """
+        return self._ceiling_blocked
+
     def _update_state(self) -> None:
         """Determine the correct state from velocity and flags."""
         if self._wall_jump_lockout_timer > 0:
@@ -618,7 +733,12 @@ class Player(Entity):
         ):
             self._state = PlayerState.WALL_SLIDING
         elif self.on_ground:
-            if abs(self.velocity[0]) > 1.0:
+            if self._is_crouched:
+                if abs(self.velocity[0]) > 1.0:
+                    self._state = PlayerState.CRAWLING
+                else:
+                    self._state = PlayerState.CROUCHING
+            elif abs(self.velocity[0]) > 1.0:
                 self._state = PlayerState.RUNNING
             else:
                 self._state = PlayerState.IDLE

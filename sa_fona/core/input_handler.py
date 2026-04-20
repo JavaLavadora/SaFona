@@ -33,6 +33,7 @@ class InputState:
 
     move_left: bool = False
     move_right: bool = False
+    move_down: bool = False
     jump_pressed: bool = False
     jump_held: bool = False
     jump_released: bool = False
@@ -131,7 +132,7 @@ _PRESS_ONLY_ACTIONS = {
 }
 
 # Actions that are continuous (held = True while key is down).
-_HELD_ACTIONS = {"move_left", "move_right"}
+_HELD_ACTIONS = {"move_left", "move_right", "move_down"}
 
 
 def _key_name_to_constant(name: str) -> int:

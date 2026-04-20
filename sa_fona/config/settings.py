@@ -40,6 +40,9 @@ PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
 PLAYER_GRAVITY: float = 800.0             # px/s^2
 PLAYER_WALL_CHECK_MARGIN: int = 2         # pixels to probe for wall contact
+PLAYER_CROUCH_HEIGHT: int = 16            # crouching hitbox height (half of 32)
+PLAYER_CRAWL_SPEED_FACTOR: float = 0.55   # crawl speed = 55% of normal walk
+PLAYER_CROUCH_JUMP_FORCE: float = -200.0  # shorter jump while crouching
 
 # ── Player State Colors (placeholder rendering) ────────────────
 PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {
@@ -49,6 +52,8 @@ PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {
     "falling": (200, 150, 50),     # orange
     "wall_sliding": (50, 200, 200),# cyan
     "wall_jumping": (200, 50, 200),# magenta
+    "crouching": (100, 100, 200),  # dark blue
+    "crawling": (100, 150, 200),   # blue-grey
 }
 
 # ── Combat ─────────────────────────────────────────────────────

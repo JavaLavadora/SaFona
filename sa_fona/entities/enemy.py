@@ -479,7 +479,7 @@ class Enemy(Entity):
         elif self.is_blocking and self._block_frames:
             frames = self._block_frames
             speed = self._anim_speed
-        elif self.is_attacking and self._attack_frames:
+        elif (self.is_attacking or self.is_in_tell or self.is_recovering) and self._attack_frames:
             frames = self._attack_frames
             speed = 0.12
         elif self.is_in_tell and self._charge_frames:

@@ -99,6 +99,9 @@ class Enemy(Entity):
         self._stones_max: int = drops.get("stones", {}).get("max", 2)
         self._heart_chance: float = drops.get("heart_chance", 0.1)
 
+        # Attack hitbox width extension (0 = body IS the hitbox).
+        self._attack_hitbox_w: int = int(definition.get("attack_hitbox_w", 16))
+
         # Behavior component.
         behavior_type = definition.get("behavior", "patrol")
         behavior_params = definition.get("behavior_params", {})
@@ -272,14 +275,20 @@ class Enemy(Entity):
     def attack_hitbox(self) -> pygame.Rect:
         """Return the active attack hitbox when the enemy is striking.
 
-        The hitbox extends in the direction the enemy is facing,
-        covering the area in front of the enemy.  Only meaningful
-        when ``is_attacking`` is True.
+        When ``_attack_hitbox_w`` is 0 the enemy's own body rect is
+        the weapon (e.g. sheep headbutt).  Otherwise the hitbox extends
+        ``_attack_hitbox_w`` pixels in the direction the enemy faces.
+
+        Only meaningful when ``is_attacking`` is True.
 
         Returns:
             A pygame.Rect representing the attack hitbox.
         """
-        hitbox_w = 48
+        if self._attack_hitbox_w == 0:
+            # Body IS the weapon (e.g. possessed sheep headbutt).
+            return self.rect.copy()
+
+        hitbox_w = self._attack_hitbox_w
         hitbox_h = self.rect.height + 4
         if self.facing_right:
             hx = self.rect.right

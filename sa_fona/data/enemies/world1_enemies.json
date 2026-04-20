@@ -14,6 +14,7 @@
     },
     "sprite": "enemy_possessed_sheep",
     "hitbox": { "w": 16, "h": 16 },
+    "attack_hitbox_w": 0,
     "drops": {
       "stones": { "min": 1, "max": 2 },
       "heart_chance": 0.1
@@ -38,6 +39,7 @@
     },
     "sprite": "enemy_rival_warrior",
     "hitbox": { "w": 24, "h": 32 },
+    "attack_hitbox_w": 16,
     "drops": {
       "stones": { "min": 1, "max": 3 },
       "heart_chance": 0.15
@@ -70,6 +72,7 @@
     },
     "sprite": "enemy_stone_guardian",
     "hitbox": { "w": 24, "h": 32 },
+    "attack_hitbox_w": 32,
     "drops": {
       "stones": { "min": 2, "max": 4 },
       "heart_chance": 0.2

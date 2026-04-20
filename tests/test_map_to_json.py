@@ -462,7 +462,10 @@ class TestCLI:
     @pytest.fixture
     def example_files(self):
         """Path to the example .map and .yaml files."""
-        base = Path(__file__).resolve().parent.parent / "tools" / "level_examples"
+        base = (
+            Path(__file__).resolve().parent.parent
+            / "sa_fona" / "data" / "levels" / "world1"
+        )
         return str(base / "level_1_1.map"), str(base / "level_1_1.yaml")
 
     def test_validate_only(self, example_files, capsys):
@@ -538,14 +541,13 @@ class TestCLI:
 class TestRoundTrip:
     """Test that example files produce JSON matching the original level."""
 
-    def test_level_1_1_roundtrip(self):
-        """Conversion of example .map + .yaml matches original level_1_1.json."""
-        base = Path(__file__).resolve().parent.parent
-        original_path = (
-            base / "sa_fona" / "data" / "levels" / "world1" / "level_1_1.json"
-        )
-        map_path = base / "tools" / "level_examples" / "level_1_1.map"
-        yaml_path = base / "tools" / "level_examples" / "level_1_1.yaml"
+    @staticmethod
+    def _assert_roundtrip(level_dir: str, level_stem: str) -> None:
+        """Assert that .map + .yaml round-trips to the original .json."""
+        base = Path(level_dir)
+        original_path = base / f"{level_stem}.json"
+        map_path = base / f"{level_stem}.map"
+        yaml_path = base / f"{level_stem}.yaml"
 
         with open(original_path, encoding="utf-8") as f:
             original = json.load(f)
@@ -579,3 +581,43 @@ class TestRoundTrip:
             key=lambda e: (e["type"], e.get("x", 0), e.get("y", 0)),
         )
         assert gen_ents == orig_ents
+
+    def test_level_1_1_roundtrip(self):
+        """Conversion of level_1_1 .map + .yaml matches original .json."""
+        base = Path(__file__).resolve().parent.parent
+        self._assert_roundtrip(
+            str(base / "sa_fona" / "data" / "levels" / "world1"),
+            "level_1_1",
+        )
+
+    def test_level_1_2_roundtrip(self):
+        """Conversion of level_1_2 .map + .yaml matches original .json."""
+        base = Path(__file__).resolve().parent.parent
+        self._assert_roundtrip(
+            str(base / "sa_fona" / "data" / "levels" / "world1"),
+            "level_1_2",
+        )
+
+    def test_level_1_3_roundtrip(self):
+        """Conversion of level_1_3 .map + .yaml matches original .json."""
+        base = Path(__file__).resolve().parent.parent
+        self._assert_roundtrip(
+            str(base / "sa_fona" / "data" / "levels" / "world1"),
+            "level_1_3",
+        )
+
+    def test_level_1_4_roundtrip(self):
+        """Conversion of level_1_4 .map + .yaml matches original .json."""
+        base = Path(__file__).resolve().parent.parent
+        self._assert_roundtrip(
+            str(base / "sa_fona" / "data" / "levels" / "world1"),
+            "level_1_4",
+        )
+
+    def test_level_2_1_roundtrip(self):
+        """Conversion of level_2_1 .map + .yaml matches original .json."""
+        base = Path(__file__).resolve().parent.parent
+        self._assert_roundtrip(
+            str(base / "sa_fona" / "data" / "levels" / "world2"),
+            "level_2_1",
+        )

@@ -177,10 +177,10 @@ class Player(Entity):
             or self._sling_frames
         )
 
-        # Generate crouch frames by cropping the bottom portion of
-        # idle/walk frames (torso + legs, removing the head area).
+        # Generate crouch frames by cropping the top portion of
+        # idle/walk frames (head + torso visible, legs hidden).
         crop_rect = pygame.Rect(
-            0, PLAYER_HEIGHT - PLAYER_CROUCH_HEIGHT,
+            0, 0,
             PLAYER_WIDTH, PLAYER_CROUCH_HEIGHT,
         )
         if self._idle_frames:

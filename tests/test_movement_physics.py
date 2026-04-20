@@ -368,8 +368,8 @@ class TestCrouchCeiling:
             then is repositioned under the ceiling to test standup blocking.
 
         Ground top at y=144.  Ceiling row 7 occupies y=112..128.
-        Player crouched: bottom=144, top=124, height=20.
-        Standing probe: height_diff=12, probe top=124-12=112, covers [112,124).
+        Player crouched: bottom=144, top=128, height=16.
+        Standing probe: height_diff=16, probe top=128-16=112, covers [112,128).
         Ceiling tile: [112,128). Overlap exists -> blocked.
         """
         custom_rows = [[0] * 10 for _ in range(12)]

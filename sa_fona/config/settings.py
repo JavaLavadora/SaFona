@@ -40,7 +40,7 @@ PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
 PLAYER_GRAVITY: float = 800.0             # px/s^2
 PLAYER_WALL_CHECK_MARGIN: int = 2         # pixels to probe for wall contact
-PLAYER_CROUCH_HEIGHT: int = 20            # crouching hitbox height (vs 32 normal)
+PLAYER_CROUCH_HEIGHT: int = 16            # crouching hitbox height (half of 32)
 PLAYER_CRAWL_SPEED_FACTOR: float = 0.55   # crawl speed = 55% of normal walk
 PLAYER_CROUCH_JUMP_FORCE: float = -200.0  # shorter jump while crouching
 

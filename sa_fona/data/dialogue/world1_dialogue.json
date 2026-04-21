@@ -5,28 +5,43 @@
     "lines": [
       {
         "speaker": "bep",
-        "portrait": "bep_excited",
+        "portrait": "bep_scared",
         "text": "Ramon! Move! The sheep are acting strange!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
-        "portrait": "ramon_annoyed",
-        "text": "...They're always strange.",
+        "portrait": "ramon_angry",
+        "text": "...They're sheeps, they are always strange.",
         "sfx": null,
         "auto_advance_ms": null
-      }
-    ]
-  },
-  "w1_l1_movement_hint": {
-    "trigger": "area",
-    "skippable": true,
-    "lines": [
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_surprised",
+        "text": "Wait... You can talk?!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "It's a long story but we need to get out of here! Follow me!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_neutral",
+        "text": "Give me a second I just woke up from my nap I don't even know my name yet.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Use the arrow keys or A/D to move. Press Space to jump!",
+        "text": "Come on Ramon! Use the arrow keys or A/D to move. Press Space to jump!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -39,40 +54,20 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Jump, Ramon! You've done it a thousand times!",
+        "text": "Jump, Ramon! They say the devil will eat you if you fall in those pits!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
         "portrait": "ramon_annoyed",
-        "text": "Don't remind me.",
+        "text": "I'm not scared of a few holes in the ground. But I don't want to stain my new robe either.",
         "sfx": null,
         "auto_advance_ms": null
       }
     ]
   },
-  "w1_l1_wall_jump_hint": {
-    "trigger": "area",
-    "skippable": true,
-    "lines": [
-      {
-        "speaker": "bep",
-        "portrait": "bep_excited",
-        "text": "That wall looks climbable... if you jump at it!",
-        "sfx": null,
-        "auto_advance_ms": null
-      },
-      {
-        "speaker": "bep",
-        "portrait": "bep_neutral",
-        "text": "Press into a wall and jump to wall-jump. It might lead somewhere good!",
-        "sfx": null,
-        "auto_advance_ms": null
-      }
-    ]
-  },
-  "w1_l1_sheep_encounter": {
+  "w1_l1_sheep_encounter_physical": {
     "trigger": "area",
     "skippable": true,
     "lines": [
@@ -93,7 +88,27 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Try hitting it with your sling! Press J to swing it!",
+        "text": "Looks like it cannot move, try hitting it! Quickly Press Z to attack!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l1_sheep_encounter_range": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "There are so many!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Keep your distance and try a long shot with your sling! Press Z to charge and release to shoot a stone!",
         "sfx": null,
         "auto_advance_ms": null
       }

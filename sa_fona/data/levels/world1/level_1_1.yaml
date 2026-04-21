@@ -9,126 +9,134 @@ metadata:
   background: world1_bg
 enemies:
 - type: possessed_sheep
-  x: 40
+  x: 62
+  y: 11
+- type: possessed_sheep
+  x: 77
   y: 12
 - type: possessed_sheep
-  x: 48
+  x: 79
   y: 12
 - type: possessed_sheep
-  x: 54
+  x: 81
   y: 12
 pickups:
+- type: stone
+  x: 5
+  y: 12
+  value: 1
+- type: stone
+  x: 7
+  y: 12
+  value: 1
+- type: stone
+  x: 9
+  y: 12
+  value: 1
+- type: stone
+  x: 13
+  y: 11
+  value: 1
+- type: stone
+  x: 20
+  y: 12
+  value: 1
+- type: stone
+  x: 25
+  y: 12
+  value: 1
+- type: stone
+  x: 30
+  y: 12
+  value: 1
 - type: heart
-  x: 31
-  y: 6
-  value: 1
-- type: stone
-  x: 4
-  y: 12
-  value: 1
-- type: stone
-  x: 6
-  y: 12
-  value: 1
-- type: stone
-  x: 8
-  y: 12
-  value: 1
-- type: stone
-  x: 10
-  y: 12
-  value: 1
-- type: stone
-  x: 12
-  y: 12
-  value: 1
-- type: stone
-  x: 14
-  y: 11
-  value: 1
-- type: stone
-  x: 16
-  y: 11
-  value: 1
-- type: stone
-  x: 18
-  y: 12
-  value: 1
-- type: stone
-  x: 23
-  y: 12
-  value: 1
-- type: stone
-  x: 26
-  y: 12
-  value: 1
-- type: stone
-  x: 29
-  y: 12
-  value: 1
-- type: stone
-  x: 32
-  y: 12
-  value: 1
-- type: stone
-  x: 35
-  y: 12
-  value: 1
-- type: stone
-  x: 38
+  x: 37
   y: 12
   value: 1
 - type: stone
   x: 42
   y: 12
   value: 1
+- type: stone
+  x: 46
+  y: 12
+  value: 1
+- type: stone
+  x: 48
+  y: 11
+  value: 1
+- type: stone
+  x: 53
+  y: 12
+  value: 1
+- type: stone
+  x: 56
+  y: 12
+  value: 1
+- type: stone
+  x: 66
+  y: 12
+  value: 1
+- type: stone
+  x: 70
+  y: 12
+  value: 1
 - type: heart
-  x: 45
+  x: 74
+  y: 12
+  value: 1
+- type: stone
+  x: 84
+  y: 12
+  value: 1
+- type: stone
+  x: 87
   y: 12
   value: 1
 breakables: []
 triggers:
 - type: dialogue
-  dialogue_id: w1_l1_movement_hint
+  dialogue_id: w1_l1_bep_intro
   rect:
-    x: 3
+    x: 2
     y: 9
-    w: 3
+    w: 1
     h: 4
   once: true
 - type: dialogue
   dialogue_id: w1_l1_jump_hint
   rect:
-    x: 18
-    y: 9
-    w: 2
-    h: 4
-  once: true
-- type: dialogue
-  dialogue_id: w1_l1_wall_jump_hint
-  rect:
     x: 28
     y: 9
+    w: 3
+    h: 4
+  once: true
+
+- type: dialogue
+  dialogue_id: w1_l1_sheep_encounter_physical
+  rect:
+    x: 57
+    y: 9
     w: 2
     h: 4
   once: true
 - type: dialogue
-  dialogue_id: w1_l1_sheep_encounter
+  dialogue_id: w1_l1_sheep_encounter_range
   rect:
-    x: 38
+    x: 60
     y: 9
     w: 2
     h: 4
   once: true
 - type: save_point
   rect:
-    x: 56
+    x: 90
     y: 10
     w: 2
     h: 3
 - type: level_end
   rect:
-    x: 57
+    x: 91
     y: 10
     w: 2
     h: 3

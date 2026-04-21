@@ -404,6 +404,45 @@ class TestPatrolEdgeDetection:
         patrol.on_damaged(float(player_rect.centerx), float(player_rect.centery))
         assert patrol._retreating or patrol._hesitation_timer > 0
 
+    def test_detects_edge_on_elevated_platform(self):
+        """Enemy on a raised platform should detect the ledge even when
+        solid ground exists one row below (the main ground level)."""
+        # Layout (5 wide, 5 tall):
+        #   Row 0-1: empty
+        #   Row 2: enemy level (all empty)
+        #   Row 3: solid, solid, EMPTY, EMPTY, EMPTY  <- raised platform
+        #   Row 4: solid, solid, solid, solid, solid   <- main ground
+        tile_data = {
+            "dimensions": {"width": 5, "height": 5},
+            "layers": {
+                "midground": [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 1, 0, 0, 0],
+                    [1, 1, 1, 1, 1],
+                ],
+            },
+            "collision_types": {"solid": [1]},
+        }
+        tilemap = TileMap(tile_data)
+
+        params = {"patrol_range": 10, "speed": 40}
+        patrol = PatrolBehavior(params)
+        patrol.reset(0.0)
+
+        # Enemy at col 1, feet at row 3 (the raised platform).
+        # rect.bottom = 3 * TILE_SIZE (tile-aligned by _snap_to_ground).
+        enemy_rect = pygame.Rect(
+            1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE
+        )
+        player_rect = pygame.Rect(500, 100, 24, 32)
+
+        # Probe going right: tile_x = (1*16+16+1)//16 = 2, tile_y = 3.
+        # Tile (2, 3) = 0 (empty) -> ledge detected, should reverse.
+        result = patrol.update(enemy_rect, player_rect, 1 / 60, tilemap=tilemap)
+        assert result.move_x == -1.0
+
     def test_aggro_attacks_when_in_range(self):
         """During aggro chase, enemy should attack when close enough."""
         params = {

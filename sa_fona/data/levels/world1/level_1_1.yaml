@@ -123,7 +123,7 @@ triggers:
 - type: dialogue
   dialogue_id: w1_l1_sheep_encounter_range
   rect:
-    x: 60
+    x: 73
     y: 9
     w: 2
     h: 4

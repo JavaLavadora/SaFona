@@ -215,8 +215,28 @@
       },
       {
         "speaker": "bep",
-        "portrait": "bep_neutral",
+        "portrait": "bep_happy",
         "text": "Try pressing down to crouch and fit through that gap! You can still move side to side while crouching!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l3_intro": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_sleepy",
+        "text": "We need to go UP! I think I see the exit! above us",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "Es Talayot Sagrat des Migdia... my people were forced to build these. Never thought I'd climb one from the inside.",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -228,15 +248,22 @@
     "lines": [
       {
         "speaker": "bep",
-        "portrait": "bep_excited",
-        "text": "We need to go UP! Try jumping off the walls!",
+        "portrait": "bep_sleepy",
+        "text": "The next lege is too high, try using that extra wall to reach further",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
-        "text": "Es Talayot Sagrat... my people built these. Never thought I'd climb one from the inside.",
+        "speaker": "bep",
+        "portrait": "bep_sleepy",
+        "text": "Jump towards a wall and then jump again while pressing the direction button to jump higher.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_sleepy",
+        "text": " Chain as many jumps as you need to get higher!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -249,14 +276,42 @@
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "That one's big! Watch out for its swing!",
+        "text": "That one's big! What on earth is that?",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_surprised",
+        "text": "Wow, that's a Stone Guardian! My grandma used to tell me stories about them",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_angry",
+        "text": " It is said that they can destroy complete villages with just a swing of their arm",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
-        "portrait": "bep_neutral",
-        "text": "Stone guardians hit hard but they're slow. Watch for the wind-up!",
+        "portrait": "bep_scared",
+        "text": "What?! Come on let's turn around there is no way you can defeat that beast!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_smirk",
+        "text": "Well, I guess there is only one way to find out... This one seems trapped, it should not be a problem",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "Be careful! It looks like his attack has a long range",
         "sfx": null,
         "auto_advance_ms": null
       }

@@ -4976,7 +4976,13 @@
     {
       "type": "enemy",
       "enemy_type": "possessed_sheep",
-      "x": 82,
+      "x": 73,
+      "y": 12
+    },
+    {
+      "type": "enemy",
+      "enemy_type": "possessed_sheep",
+      "x": 81,
       "y": 10
     }
   ],
@@ -4996,7 +5002,7 @@
       "type": "dialogue",
       "dialogue_id": "w1_l2_warrior_hint",
       "rect": {
-        "x": 30,
+        "x": 32,
         "y": 9,
         "w": 3,
         "h": 4

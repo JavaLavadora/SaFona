@@ -120,15 +120,22 @@
     "lines": [
       {
         "speaker": "bep",
-        "portrait": "bep_scared",
-        "text": "It's dark in there! I'll stay close.",
+        "portrait": "bep_sleepy",
+        "text": "Wha.. What happened? The floor collapsed!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
         "portrait": "ramon_neutral",
-        "text": "Sa Cova des Foner... the slinger's cave. My ancestors trained here.",
+        "text": "Sa Cova des Bous... this is a place of magic. The best warriors of the island train here. I hope we don't come accross any of them.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_scared",
+        "text": "It's dark in there! I'll stay close.",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -141,34 +148,75 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "He's blocking! Try hitting him harder... or from the side!",
+        "text": "He's blocking the jump! Try hitting him from a distance!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Hold J to charge your sling for a stronger shot!",
+        "text": "Hold Z to charge your sling for a long shot!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "They look strong, they might take a few hits to go down!",
         "sfx": null,
         "auto_advance_ms": null
       }
     ]
   },
-  "w1_l2_charge_hint": {
+  "w1_l2_super_charge_hint": {
     "trigger": "area",
     "skippable": true,
     "lines": [
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "That target is too far for a normal swing...",
+        "text": "If they keep resisting so many shorts we'll never make it in time for snack...",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Maybe if you hold the sling longer... try holding J until it glows bright!",
+        "text": "Maybe if you hold the sling longer... try holding Z until it glows bright!",
+        "sfx": null,
+        "auto_advance_ms": null
+      }
+    ]
+  },
+  "w1_l2_crouch_hint": {
+    "trigger": "area",
+    "skippable": true,
+    "lines": [
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Looks a bit tight for you Ramon...",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+     {
+        "speaker": "ramon",
+        "portrait": "ramon_annoyed",
+        "text": "What do you mean tight... for me?",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_excited",
+        "text": "Well it's not news that you've let yourself go since you stopped working as a shepherd.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "bep",
+        "portrait": "bep_neutral",
+        "text": "Try pressing down to crouch and fit through that gap! You can still move side to side while crouching!",
         "sfx": null,
         "auto_advance_ms": null
       }

@@ -13,6 +13,20 @@
     "width": 24,
     "height": 30
   },
+  "collision_types": {
+    "solid": [
+      1
+    ],
+    "one_way": [
+      10
+    ],
+    "hazard": [
+      20
+    ],
+    "breakable_slam": [
+      30
+    ]
+  },
   "layers": {
     "background": [
       [
@@ -2359,20 +2373,6 @@
         0,
         0
       ]
-    ]
-  },
-  "collision_types": {
-    "solid": [
-      1
-    ],
-    "one_way": [
-      10
-    ],
-    "hazard": [
-      20
-    ],
-    "breakable_slam": [
-      30
     ]
   },
   "player_spawn": {

@@ -21,6 +21,7 @@ from sa_fona.config.settings import (
     PLAYER_JUMP_BUFFER,
     PLAYER_JUMP_FORCE,
     PLAYER_MOVE_SPEED,
+    PLAYER_SPRITE_WIDTH,
     PLAYER_STATE_COLORS,
     PLAYER_VARIABLE_JUMP_CUTOFF,
     PLAYER_WALL_JUMP_FORCE_X,
@@ -166,7 +167,7 @@ class Player(Entity):
         for attr, name in anim_paths.items():
             frames = load_frame_strip(
                 f"assets/sprites/ramon/{name}.png",
-                PLAYER_WIDTH, PLAYER_HEIGHT,
+                PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT,
             )
             if frames:
                 setattr(self, attr, frames)
@@ -181,7 +182,7 @@ class Player(Entity):
         # idle/walk frames (head + torso visible, legs hidden).
         crop_rect = pygame.Rect(
             0, 0,
-            PLAYER_WIDTH, PLAYER_CROUCH_HEIGHT,
+            PLAYER_SPRITE_WIDTH, PLAYER_CROUCH_HEIGHT,
         )
         if self._idle_frames:
             self._crouch_idle_frames = [
@@ -215,12 +216,12 @@ class Player(Entity):
                 self._surfaces[state] = self._crouch_idle_frames[0]
             elif has_sprites:
                 surf = pygame.Surface(
-                    (PLAYER_WIDTH, surf_h), pygame.SRCALPHA,
+                    (PLAYER_SPRITE_WIDTH, surf_h), pygame.SRCALPHA,
                 )
                 self._surfaces[state] = surf
             else:
                 color = PLAYER_STATE_COLORS.get(key, (255, 255, 255))
-                surf = pygame.Surface((PLAYER_WIDTH, surf_h))
+                surf = pygame.Surface((PLAYER_SPRITE_WIDTH, surf_h))
                 surf.fill(color)
                 self._surfaces[state] = surf
         self._sprite = self._surfaces[self._state]
@@ -288,6 +289,24 @@ class Player(Entity):
     def is_crouched(self) -> bool:
         """True when the player is in a crouched or crawling posture."""
         return self._is_crouched
+
+    def render(self, surface: pygame.Surface, camera_offset: tuple[int, int]) -> None:
+        """Draw the player sprite centered on the collision hitbox.
+
+        The sprite (PLAYER_SPRITE_WIDTH px) is wider than the collision
+        rect (PLAYER_WIDTH px).  This override offsets the blit so the
+        sprite is visually centered over the narrower hitbox.
+
+        Args:
+            surface: Target pygame Surface.
+            camera_offset: ``(cam_x, cam_y)`` world-pixel offset of the camera.
+        """
+        if self._sprite is None:
+            return
+        sprite_offset = (PLAYER_SPRITE_WIDTH - PLAYER_WIDTH) // 2
+        screen_x = self.rect.x - camera_offset[0] - sprite_offset
+        screen_y = self.rect.y - camera_offset[1]
+        surface.blit(self._sprite, (screen_x, screen_y))
 
     def handle_input(self, input_state: InputState) -> None:
         """Cache relevant input actions for the update step.

@@ -28,6 +28,7 @@ COLORS: dict[str, tuple[int, int, int]] = {
 
 # ── Player Movement ─────────────────────────────────────────────
 PLAYER_WIDTH: int = 16
+PLAYER_SPRITE_WIDTH: int = 24  # sprite sheet frame width (wider than hitbox)
 PLAYER_HEIGHT: int = 32
 PLAYER_MOVE_SPEED: float = 120.0          # px/s horizontal
 PLAYER_JUMP_FORCE: float = -330.0         # px/s upward impulse

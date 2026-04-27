@@ -27,7 +27,7 @@ COLORS: dict[str, tuple[int, int, int]] = {
 }
 
 # ── Player Movement ─────────────────────────────────────────────
-PLAYER_WIDTH: int = 24
+PLAYER_WIDTH: int = 16
 PLAYER_HEIGHT: int = 32
 PLAYER_MOVE_SPEED: float = 120.0          # px/s horizontal
 PLAYER_JUMP_FORCE: float = -330.0         # px/s upward impulse

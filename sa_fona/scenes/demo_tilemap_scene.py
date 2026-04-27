@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pygame
 
-from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH, DATA_DIR
+from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH, DATA_DIR, PLAYER_SPRITE_WIDTH
 from sa_fona.core.camera import Camera
 from sa_fona.core.event_bus import EventBus
 from sa_fona.core.input_handler import InputState
@@ -14,7 +14,7 @@ from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.physics import PhysicsSystem
 
 # Ramon placeholder dimensions and color.
-_RAMON_WIDTH = 24
+_RAMON_WIDTH = PLAYER_SPRITE_WIDTH
 _RAMON_HEIGHT = 32
 _RAMON_COLOR = (50, 100, 200)
 

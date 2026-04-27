@@ -5,10 +5,11 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.core.input_handler import InputState
+from sa_fona.config.settings import PLAYER_SPRITE_WIDTH
 from sa_fona.scenes.base_scene import BaseScene
 
 # Ramon placeholder dimensions and color.
-_RAMON_WIDTH = 24
+_RAMON_WIDTH = PLAYER_SPRITE_WIDTH
 _RAMON_HEIGHT = 32
 _RAMON_COLOR = (50, 100, 200)
 

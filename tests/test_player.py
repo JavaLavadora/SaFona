@@ -16,6 +16,7 @@ from sa_fona.config.settings import (
     PLAYER_WALL_JUMP_FORCE_X,
     PLAYER_WALL_JUMP_FORCE_Y,
     PLAYER_WALL_SLIDE_SPEED,
+    PLAYER_WIDTH,
 )
 from sa_fona.core.input_handler import InputState
 from sa_fona.entities.player import Player, PlayerState
@@ -180,7 +181,7 @@ class TestStateTransitions:
     def test_wall_sliding_state(self, walled_level: dict) -> None:
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -212,7 +213,7 @@ class TestWallJump:
     def test_wall_jump_gives_upward_velocity(self, walled_level: dict) -> None:
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -263,7 +264,7 @@ class TestWallJump:
         should NOT trigger a wall jump."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -295,7 +296,7 @@ class TestWallJump:
         trigger a wall jump."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -329,7 +330,7 @@ class TestWallJump:
         detach the player from the wall (fall) without wall jump forces."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -440,7 +441,7 @@ class TestWallSlide:
     def test_wall_slide_caps_speed(self, walled_level: dict) -> None:
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 80)
 
         # Don't settle -- start in the air.
@@ -529,7 +530,7 @@ class TestSameWallRegrab:
         ground_y = 9 * TILE_SIZE
         # Place player next to the right-side wall (column 12).
         wall_x = 12 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(wide_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -581,7 +582,7 @@ class TestSameWallRegrab:
         never reach above the first wall jump's origin Y."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -645,7 +646,7 @@ class TestSameWallRegrab:
         """Wall jump should record the Y position for height tracking."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -678,7 +679,7 @@ class TestSameWallRegrab:
         """Height tracking state should clear when the player lands."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 
@@ -719,7 +720,7 @@ class TestSameWallRegrab:
         successive jump starts lower."""
         ground_y = 9 * TILE_SIZE
         wall_x = 5 * TILE_SIZE
-        px = wall_x - 24 - 1
+        px = wall_x - PLAYER_WIDTH - 1
         player, physics = _make_player(walled_level, px, ground_y - 32)
         _settle_on_ground(player, physics)
 

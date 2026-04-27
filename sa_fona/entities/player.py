@@ -611,9 +611,10 @@ class Player(Entity):
                 self._crouch_forced = False
 
         # If the player leaves the ground while crouched (e.g. falls
-        # off a ledge), un-crouch immediately.
+        # off a ledge), un-crouch unless ceiling blocks.
         if self._is_crouched and not self.on_ground:
-            self._exit_crouch()
+            if not self._is_blocked_above():
+                self._exit_crouch()
 
         # ── Horizontal movement ────────────────────────────────
         if not locked:

@@ -4097,120 +4097,120 @@
     {
       "type": "pickup",
       "pickup_type": "stone",
-      "x": 5,
-      "y": 27,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 8,
-      "y": 27,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 11,
-      "y": 27,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 15,
-      "y": 23,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 18,
-      "y": 23,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 3,
-      "y": 19,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
       "x": 6,
-      "y": 19,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 9,
-      "y": 19,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 12,
-      "y": 15,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 15,
-      "y": 15,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 18,
-      "y": 15,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 3,
-      "y": 11,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "stone",
-      "x": 6,
-      "y": 11,
+      "y": 42,
       "value": 1
     },
     {
       "type": "pickup",
       "pickup_type": "stone",
       "x": 14,
-      "y": 7,
+      "y": 42,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 10,
+      "y": 38,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 20,
+      "y": 38,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 4,
+      "y": 32,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 9,
+      "y": 32,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 7,
+      "y": 26,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 11,
+      "y": 26,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "heart",
+      "x": 18,
+      "y": 22,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 2,
+      "y": 18,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 7,
+      "y": 18,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 12,
+      "y": 18,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 8,
+      "y": 12,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 13,
+      "y": 12,
       "value": 1
     },
     {
       "type": "pickup",
       "pickup_type": "stone",
       "x": 17,
+      "y": 11,
+      "value": 1
+    },
+    {
+      "type": "pickup",
+      "pickup_type": "stone",
+      "x": 10,
       "y": 7,
       "value": 1
     },
     {
       "type": "pickup",
       "pickup_type": "heart",
-      "x": 9,
-      "y": 11,
-      "value": 1
-    },
-    {
-      "type": "pickup",
-      "pickup_type": "heart",
-      "x": 5,
-      "y": 3,
+      "x": 4,
+      "y": 4,
       "value": 1
     },
     {
@@ -4284,9 +4284,9 @@
       "dialogue_id": "w1_l3_guardian_warning",
       "rect": {
         "x": 6,
-        "y": 15,
+        "y": 16,
         "w": 5,
-        "h": 3
+        "h": 4
       },
       "once": true
     },

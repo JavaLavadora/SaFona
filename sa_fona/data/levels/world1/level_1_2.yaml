@@ -8,41 +8,41 @@ metadata:
   tileset: world1_cave
   background: world1_cave_bg
 enemies:
+# Early sheep on cave floor - gentle intro
 - type: possessed_sheep
   x: 16
   y: 12
 - type: possessed_sheep
-  x: 19
-  y: 12
-- type: possessed_sheep
   x: 22
   y: 12
+# First warrior guards narrow passage before the gap
 - type: rival_warrior
-  x: 38
+  x: 30
   y: 12
+# Warrior past the first gap, mid-cave
 - type: rival_warrior
   x: 55
   y: 12
+# Sheep on cave floor near transition to upper path
+- type: possessed_sheep
+  x: 68
+  y: 12
+# Warrior on upper cave ledge (y=10 platform at x=77-84)
 - type: rival_warrior
-  x: 67
-  y: 12
-- type: possessed_sheep
-  x: 73
-  y: 12
-- type: possessed_sheep
-  x: 81
+  x: 80
   y: 10
+# Sheep near exit on upper path (y=9 platform at x=91-102)
+- type: possessed_sheep
+  x: 95
+  y: 9
 pickups:
+# Early ammo near cave entrance
 - type: stone
   x: 3
   y: 12
   value: 1
 - type: stone
-  x: 5
-  y: 12
-  value: 1
-- type: stone
-  x: 8
+  x: 6
   y: 12
   value: 1
 - type: stone
@@ -50,67 +50,44 @@ pickups:
   y: 12
   value: 1
 - type: stone
-  x: 13
+  x: 14
   y: 12
   value: 1
-- type: stone
-  x: 16
-  y: 12
-  value: 1
-- type: stone
-  x: 19
-  y: 12
-  value: 1
-- type: stone
-  x: 22
-  y: 12
-  value: 1
+# Ammo before first warrior
 - type: stone
   x: 26
-  y: 10
+  y: 12
   value: 1
 - type: stone
   x: 28
-  y: 10
+  y: 12
   value: 1
-- type: stone
-  x: 30
-  y: 10
-  value: 1
-- type: stone
+# Heart as reward for surviving first warrior
+- type: heart
   x: 33
   y: 12
   value: 1
+# Ammo past the gaps (ground resumes at x=42)
 - type: stone
-  x: 38
+  x: 43
   y: 12
   value: 1
 - type: stone
-  x: 40
+  x: 46
   y: 12
   value: 1
 - type: stone
-  x: 42
+  x: 50
   y: 12
   value: 1
-- type: stone
-  x: 44
-  y: 12
-  value: 1
-- type: stone
-  x: 47
-  y: 12
-  value: 1
-- type: stone
-  x: 49
-  y: 12
-  value: 1
+# Stone on elevated cave shelf (y=9 platform at x=48-56, exploration reward)
 - type: stone
   x: 52
-  y: 12
+  y: 9
   value: 1
+# Ammo for mid-section
 - type: stone
-  x: 54
+  x: 58
   y: 12
   value: 1
 - type: stone
@@ -118,16 +95,31 @@ pickups:
   y: 12
   value: 1
 - type: stone
-  x: 65
+  x: 66
   y: 12
   value: 1
-- type: heart
-  x: 32
+# Ammo approaching upper cave section
+- type: stone
+  x: 72
   y: 12
   value: 1
+# Heart on upper ledge (y=10 platform at x=77-84, exploration reward before warrior)
 - type: heart
-  x: 60
-  y: 12
+  x: 78
+  y: 10
+  value: 1
+# Stones on upper cave path approaching exit
+- type: stone
+  x: 84
+  y: 10
+  value: 1
+- type: stone
+  x: 92
+  y: 9
+  value: 1
+- type: stone
+  x: 98
+  y: 9
   value: 1
 breakables: []
 triggers:
@@ -168,7 +160,7 @@ triggers:
     x: 42
     y: 10
     w: 2
-    h: 3
+    h: 4
   shop_available: false
   once: false
 - type: level_end
@@ -176,7 +168,7 @@ triggers:
     x: 100
     y: 7
     w: 3
-    h: 5
+    h: 6
   next_level: world1/level_1_3
   once: true
 secrets:

@@ -92,11 +92,10 @@ class BossScene(BaseScene):
         if tileset_id:
             tileset_path = ASSETS_DIR / "tilesets" / tileset_id / "tileset.png"
             if tileset_path.is_file():
-                raw = pygame.image.load(str(tileset_path))
                 try:
-                    tileset_surface = raw.convert_alpha()
+                    tileset_surface = pygame.image.load(str(tileset_path)).convert_alpha()
                 except pygame.error:
-                    tileset_surface = raw
+                    tileset_surface = None
 
         # Build arena tilemap (procedural if no level_path).
         if level_path is not None:

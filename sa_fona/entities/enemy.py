@@ -85,7 +85,6 @@ class AttackEffectOverlay:
         timer: Internal animation timer.
         frame_index: Current frame index.
         active: Whether the overlay is currently being displayed.
-        _prev_active: Previous frame's active state for edge detection.
     """
 
     frames: list[pygame.Surface]
@@ -93,13 +92,12 @@ class AttackEffectOverlay:
     frame_h: int
     offset_x: int
     offset_y: int
-    show_during: set
+    show_during: set[AttackState]
     fps: float
     loop: bool
     timer: float = 0.0
     frame_index: int = 0
     active: bool = False
-    _prev_active: bool = False
 
 
 class Enemy(Entity):
@@ -648,7 +646,6 @@ class Enemy(Entity):
             overlay.timer = 0.0
             overlay.frame_index = 0
 
-        overlay._prev_active = overlay.active
         overlay.active = should_be_active
 
         if not overlay.active:
@@ -672,7 +669,6 @@ class Enemy(Entity):
     def _render_attack_effect(
         self,
         surface: pygame.Surface,
-        camera_offset: tuple[int, int],
         vis_x: int,
         vis_y: int,
     ) -> None:
@@ -685,7 +681,6 @@ class Enemy(Entity):
 
         Args:
             surface: Target pygame Surface.
-            camera_offset: ``(cam_x, cam_y)`` world-pixel camera offset.
             vis_x: Screen X of the enemy's visual top-left corner.
             vis_y: Screen Y of the enemy's visual top-left corner.
         """
@@ -745,7 +740,7 @@ class Enemy(Entity):
             surface.blit(self._sprite, (vis_x, vis_y))
 
         # Render attack effect overlay (data-driven, independent of body).
-        self._render_attack_effect(surface, camera_offset, vis_x, vis_y)
+        self._render_attack_effect(surface, vis_x, vis_y)
 
         # State overlays are only drawn for placeholder enemies (no real
         # sprites).  When real sprites are loaded, the animation frames

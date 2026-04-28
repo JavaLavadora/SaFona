@@ -329,13 +329,12 @@ class TestAttackEffectOverlay:
             enemy.facing_right = True
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
-            camera_offset = (0, 0)
             shrink = Enemy._HITBOX_SHRINK
             vis_x = enemy.rect.x - shrink
             vis_y = enemy.rect.bottom - enemy._sprite_h
 
             # Should not crash and should blit to the surface.
-            enemy._render_attack_effect(surface, camera_offset, vis_x, vis_y)
+            enemy._render_attack_effect(surface, vis_x, vis_y)
 
             # Verify the expected position.
             enemy_center_x = vis_x + enemy._sprite_w // 2
@@ -362,12 +361,11 @@ class TestAttackEffectOverlay:
             enemy.facing_right = False
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
-            camera_offset = (0, 0)
             shrink = Enemy._HITBOX_SHRINK
             vis_x = enemy.rect.x - shrink
             vis_y = enemy.rect.bottom - enemy._sprite_h
 
-            enemy._render_attack_effect(surface, camera_offset, vis_x, vis_y)
+            enemy._render_attack_effect(surface, vis_x, vis_y)
 
             # When facing left, the offset_x is negated.
             enemy_center_x = vis_x + enemy._sprite_w // 2
@@ -386,7 +384,7 @@ class TestAttackEffectOverlay:
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
             # Should not raise.
-            enemy._render_attack_effect(surface, (0, 0), 100, 180)
+            enemy._render_attack_effect(surface, 100, 180)
 
     def test_render_skipped_when_inactive(self):
         """No blit should happen when overlay exists but is inactive."""
@@ -398,7 +396,7 @@ class TestAttackEffectOverlay:
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
             surface.fill((0, 0, 0, 0))
 
-            enemy._render_attack_effect(surface, (0, 0), 100, 180)
+            enemy._render_attack_effect(surface, 100, 180)
 
             # Surface should still be fully transparent (no blit occurred).
             # Check a sampling of pixels.

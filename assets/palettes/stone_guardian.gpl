@@ -1,0 +1,13 @@
+GIMP Palette
+Name: Stone Guardian (Sa Fona)
+Columns: 3
+# Sa Fona - Stone Guardian enemy palette (SNES 15-bit compliant)
+128 128 136	Stone base
+152 152 152	Stone light
+ 96  96 104	Stone dark
+ 80  80  88	Stone very dark
+ 80 200  80	Eye glow
+120 248 120	Eye bright
+ 72  96  56	Moss
+ 88 120  72	Moss light
+ 56  56  64	Crack

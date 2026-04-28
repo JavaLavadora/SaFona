@@ -1,0 +1,15 @@
+GIMP Palette
+Name: UI Elements (Sa Fona)
+Columns: 4
+# Sa Fona - UI/HUD palette (SNES 15-bit compliant)
+224  40  40	Health red
+248  96  80	Health bright
+ 64 184  64	Health green (full)
+248 216  48	Coin / gold
+200 168  32	Coin shadow
+ 80 144 224	Ammo / mana blue
+248 248 240	Text white
+200 200 192	Text shadow
+ 32  32  40	Dark background
+ 56  56  64	Panel border
+200 152  64	Orange (warning)

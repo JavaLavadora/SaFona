@@ -1,0 +1,12 @@
+GIMP Palette
+Name: Projectiles (Sa Fona)
+Columns: 4
+# Sa Fona - Sling stone projectile palette (SNES 15-bit compliant)
+160 160 152	Tier 1 stone base
+128 128 120	Tier 1 stone shadow
+192 192 184	Tier 1 stone highlight
+ 80 144 224	Tier 2 blue glow
+120 184 248	Tier 2 blue bright
+216 184  56	Tier 3 gold glow
+248 224  96	Tier 3 gold bright
+ 96  96  88	Dark outline

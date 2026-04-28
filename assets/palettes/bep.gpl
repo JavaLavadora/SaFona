@@ -1,0 +1,13 @@
+GIMP Palette
+Name: Bep (Sa Fona)
+Columns: 3
+# Sa Fona - Bep myotragus companion palette (SNES 15-bit compliant)
+160 128  88	Fur base
+192 160 120	Fur highlight
+128 104  72	Fur dark
+224 208 200	Face / eye white
+ 32  24  16	Pupil
+104  72  48	Nose
+200 184 160	Horn light
+168 152 128	Horn dark
+ 80  56  32	Hooves

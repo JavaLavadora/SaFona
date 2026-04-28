@@ -1,0 +1,9 @@
+GIMP Palette
+Name: Stone Pickup (Sa Fona)
+Columns: 5
+# Sa Fona - Stone pickup palette (SNES 15-bit compliant)
+160 152 144	Stone base
+184 184 168	Stone light
+128 128 112	Stone dark
+112 104  88	Stone shadow
+200 192 184	Highlight

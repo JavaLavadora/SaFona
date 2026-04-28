@@ -1,0 +1,9 @@
+GIMP Palette
+Name: Breakable Crate (Sa Fona)
+Columns: 5
+# Sa Fona - Breakable crate palette (SNES 15-bit compliant)
+160 120  72	Wood base
+184 144  88	Wood light
+128  96  56	Wood dark
+112  80  48	Wood shadow
+ 96  72  40	Nails / metal

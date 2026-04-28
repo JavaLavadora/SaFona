@@ -17,7 +17,7 @@ enemies:
   y: 12
 # First warrior guards narrow passage before the gap
 - type: rival_warrior
-  x: 30
+  x: 38
   y: 12
 # Warrior past the first gap, mid-cave
 - type: rival_warrior
@@ -126,7 +126,7 @@ triggers:
 - type: dialogue
   dialogue_id: w1_l2_cave_entrance
   rect:
-    x: 4
+    x: 1
     y: 9
     w: 2
     h: 4

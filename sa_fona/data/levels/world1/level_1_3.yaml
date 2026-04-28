@@ -64,11 +64,11 @@ pickups:
 # Mid platform y=26 (x=6-13): ammo
 - type: stone
   x: 7
-  y: 26
+  y: 24
   value: 1
 - type: stone
   x: 11
-  y: 26
+  y: 4
   value: 1
 # Heart as reward for climbing to right shelf y=22 (x=15-26)
 - type: heart

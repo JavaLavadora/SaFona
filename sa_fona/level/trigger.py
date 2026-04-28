@@ -189,6 +189,47 @@ class TriggerSystem:
             if trigger.check(player_rect):
                 trigger.fire(self._event_bus)
 
+    def get_fired_dialogue_ids(self) -> set[str]:
+        """Return the set of dialogue IDs whose triggers have already fired.
+
+        Inspects all dialogue triggers that are ``once`` and no longer
+        ``active``, meaning they have been triggered during this session.
+
+        Returns:
+            A set of dialogue_id strings that have already been shown.
+        """
+        fired: set[str] = set()
+        for trigger in self._triggers:
+            if (
+                trigger.trigger_type == TriggerType.DIALOGUE
+                and trigger.once
+                and not trigger.active
+            ):
+                dialogue_id = trigger.properties.get("dialogue_id", "")
+                if dialogue_id:
+                    fired.add(dialogue_id)
+        return fired
+
+    def suppress_dialogue_ids(self, dialogue_ids: set[str]) -> None:
+        """Deactivate dialogue triggers whose IDs are in the given set.
+
+        Used after a same-level respawn to prevent already-seen dialogues
+        from replaying.
+
+        Args:
+            dialogue_ids: Set of dialogue_id strings to suppress.
+        """
+        if not dialogue_ids:
+            return
+        for trigger in self._triggers:
+            if (
+                trigger.trigger_type == TriggerType.DIALOGUE
+                and trigger.once
+            ):
+                dialogue_id = trigger.properties.get("dialogue_id", "")
+                if dialogue_id in dialogue_ids:
+                    trigger.active = False
+
     def reset(self) -> None:
         """Clear all triggers."""
         self._triggers.clear()

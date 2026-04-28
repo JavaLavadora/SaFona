@@ -104,6 +104,17 @@ class EnemyBehavior(ABC):
             player_y: The player's Y position in world pixels.
         """
 
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol/facing direction.
+
+        Called after spawn when wall proximity suggests the enemy should
+        face a particular way.  Default implementation does nothing;
+        subclasses with a ``_direction`` attribute override this.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+
     @abstractmethod
     def reset(self, spawn_x: float) -> None:
         """Reset the behavior to its initial state.
@@ -144,6 +155,46 @@ class EnemyBehavior(ABC):
         tile_y = enemy_rect.bottom // TILE_SIZE
 
         return not tilemap.is_solid_at(tile_x, tile_y)
+
+    @staticmethod
+    def check_wall_ahead(
+        enemy_rect: pygame.Rect,
+        direction: float,
+        tilemap: TileMap | None,
+    ) -> bool:
+        """Check if there is a solid wall one pixel ahead of the enemy.
+
+        Probes one pixel ahead of the enemy's leading edge and checks
+        whether any tile at the enemy's body height (top to bottom) is
+        solid.  This complements ``check_edge_ahead`` which only detects
+        missing ground (ledges).
+
+        Args:
+            enemy_rect: The enemy's current bounding box.
+            direction: Movement direction (-1.0 or 1.0).
+            tilemap: The level tilemap (None skips the check).
+
+        Returns:
+            True if a wall is detected ahead.
+        """
+        if tilemap is None:
+            return False
+
+        from sa_fona.level.tilemap import TILE_SIZE
+
+        if direction > 0:
+            probe_x_px = enemy_rect.right + 1
+        else:
+            probe_x_px = enemy_rect.left - 1
+
+        tile_x = probe_x_px // TILE_SIZE
+        top_ty = enemy_rect.top // TILE_SIZE
+        bot_ty = (enemy_rect.bottom - 1) // TILE_SIZE
+
+        for ty in range(top_ty, bot_ty + 1):
+            if tilemap.is_solid_at(tile_x, ty):
+                return True
+        return False
 
 
 class PatrolBehavior(EnemyBehavior):
@@ -204,6 +255,14 @@ class PatrolBehavior(EnemyBehavior):
     def aggro_timer(self) -> float:
         """Remaining aggro time in seconds (for testing)."""
         return self._aggro_timer
+
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol direction after spawn.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+        self._direction = direction
 
     def reset(self, spawn_x: float) -> None:
         """Reset patrol to initial state centered on spawn.
@@ -320,6 +379,13 @@ class PatrolBehavior(EnemyBehavior):
                 result.move_x = 0.0
                 result.speed = 0.0
                 return result
+            elif self.check_wall_ahead(enemy_rect, chase_dir, tilemap):
+                # Wall ahead during aggro chase — reverse and cancel aggro.
+                self._direction = -chase_dir
+                self._aggro_timer = 0.0
+                result.move_x = self._direction
+                result.speed = self._speed
+                return result
             else:
                 self._direction = chase_dir
                 result.move_x = chase_dir
@@ -363,6 +429,10 @@ class PatrolBehavior(EnemyBehavior):
             if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
                 self._direction *= -1.0
                 result.move_x = self._direction
+            # Wall detection: reverse when hitting a wall.
+            elif self.check_wall_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
 
         elif self._attack_state == AttackState.TELL:
             # Showing the attack tell (visual warning).
@@ -392,7 +462,11 @@ class PatrolBehavior(EnemyBehavior):
             result.wants_attack = True
 
             if self._charge_speed > 0:
-                if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                if self.check_edge_ahead(
+                    enemy_rect, self._direction, tilemap
+                ) or self.check_wall_ahead(
+                    enemy_rect, self._direction, tilemap
+                ):
                     result.move_x = 0.0
                     result.speed = 0.0
                 else:
@@ -420,6 +494,9 @@ class PatrolBehavior(EnemyBehavior):
                 result.move_x = 1.0
 
             if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
+            elif self.check_wall_ahead(enemy_rect, self._direction, tilemap):
                 self._direction *= -1.0
                 result.move_x = self._direction
 
@@ -531,15 +608,17 @@ class ChaseBehavior(EnemyBehavior):
         enemy_rect: pygame.Rect,
         tilemap: TileMap | None,
     ) -> BehaviorResult | None:
-        """If result has movement toward a ledge, trigger retreat instead.
+        """If result has movement toward a ledge or wall, trigger retreat.
 
-        Returns a replacement BehaviorResult if at a ledge, or None to
-        keep the original result.
+        Returns a replacement BehaviorResult if at a ledge or wall, or
+        None to keep the original result.
         """
         if result.move_x == 0.0 or tilemap is None:
             return None
         direction = 1.0 if result.move_x > 0 else -1.0
-        if self.check_edge_ahead(enemy_rect, direction, tilemap):
+        if self.check_edge_ahead(
+            enemy_rect, direction, tilemap
+        ) or self.check_wall_ahead(enemy_rect, direction, tilemap):
             self._hesitation_timer = self._LEDGE_HESITATION
             ledge_result = BehaviorResult()
             ledge_result.move_x = 0.0
@@ -836,6 +915,14 @@ class GuardianBehavior(EnemyBehavior):
         """Remaining aggro time in seconds (for testing)."""
         return self._aggro_timer
 
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol direction after spawn.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+        self._direction = direction
+
     def reset(self, spawn_x: float) -> None:
         """Reset guardian to initial state centered on spawn.
 
@@ -940,6 +1027,13 @@ class GuardianBehavior(EnemyBehavior):
                 result.move_x = 0.0
                 result.speed = 0.0
                 return result
+            elif self.check_wall_ahead(enemy_rect, chase_dir, tilemap):
+                # Wall ahead during aggro chase — reverse and cancel aggro.
+                self._direction = -chase_dir
+                self._aggro_timer = 0.0
+                result.move_x = self._direction
+                result.speed = self._speed
+                return result
             else:
                 self._direction = chase_dir
                 result.move_x = chase_dir
@@ -964,7 +1058,11 @@ class GuardianBehavior(EnemyBehavior):
                 result.move_x = charge_dir
                 result.speed = self._speed * 2.5
                 result.attack_state = AttackState.TELL
-                if self.check_edge_ahead(enemy_rect, charge_dir, tilemap):
+                if self.check_edge_ahead(
+                    enemy_rect, charge_dir, tilemap
+                ) or self.check_wall_ahead(
+                    enemy_rect, charge_dir, tilemap
+                ):
                     result.move_x = 0.0
                     result.speed = 0.0
                 return result
@@ -984,6 +1082,9 @@ class GuardianBehavior(EnemyBehavior):
             if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
                 self._direction *= -1.0
                 result.move_x = self._direction
+            elif self.check_wall_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
 
         elif self._attack_state == AttackState.TELL:
             # Wind-up phase: guardian charges toward the player at 2.5x speed.
@@ -993,7 +1094,11 @@ class GuardianBehavior(EnemyBehavior):
             result.move_x = charge_dir
             result.speed = self._speed * 2.5
             result.attack_state = AttackState.TELL
-            if self.check_edge_ahead(enemy_rect, charge_dir, tilemap):
+            if self.check_edge_ahead(
+                enemy_rect, charge_dir, tilemap
+            ) or self.check_wall_ahead(
+                enemy_rect, charge_dir, tilemap
+            ):
                 result.move_x = 0.0
                 result.speed = 0.0
             if self._attack_timer <= 0:
@@ -1039,6 +1144,9 @@ class GuardianBehavior(EnemyBehavior):
                 result.move_x = 1.0
 
             if self.check_edge_ahead(enemy_rect, self._direction, tilemap):
+                self._direction *= -1.0
+                result.move_x = self._direction
+            elif self.check_wall_ahead(enemy_rect, self._direction, tilemap):
                 self._direction *= -1.0
                 result.move_x = self._direction
 

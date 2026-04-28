@@ -97,6 +97,20 @@ class BossScene(BaseScene):
                 except pygame.error:
                     tileset_surface = None
 
+        # Load background image for the arena (if specified).
+        self._background: pygame.Surface | None = None
+        bg_id = arena_data.get("background", "")
+        if bg_id:
+            base_name = bg_id
+            if base_name.endswith("_bg"):
+                base_name = base_name[:-3]
+            bg_path = ASSETS_DIR / "backgrounds" / f"{base_name}.png"
+            if bg_path.is_file():
+                try:
+                    self._background = pygame.image.load(str(bg_path)).convert()
+                except pygame.error:
+                    self._background = None
+
         # Build arena tilemap (procedural if no level_path).
         if level_path is not None:
             loader = LevelLoader()
@@ -443,7 +457,7 @@ class BossScene(BaseScene):
         else:
             target = surface
 
-        target.fill(GAMEPLAY_BG_COLOR)
+        self._render_background(target)
         cam_offset = self._camera.offset
 
         # Tilemap layers.
@@ -702,6 +716,66 @@ class BossScene(BaseScene):
         scene.scene_manager = self._scene_manager
         self._scene_manager.push(scene)
         self._cutscene_pushed = True
+
+    # ── Background rendering ─────────────────────────────────────────
+
+    # Boss arenas are interior levels; use a subtle parallax factor.
+    _PARALLAX_FACTOR: float = 0.15
+    # Dim overlay alpha (~60% brightness) so tiles stay readable.
+    _BG_DIM_ALPHA: int = 102
+
+    def _render_background(self, surface: pygame.Surface) -> None:
+        """Draw the arena background with parallax scrolling and dim overlay.
+
+        If a background image was loaded from the boss definition, it is
+        scaled to cover the full parallax scroll range and shifted by
+        the camera position.  Otherwise falls back to the solid
+        GAMEPLAY_BG_COLOR fill.
+
+        A semi-transparent dim overlay is drawn on top to keep tiles
+        readable, matching the GameplayScene pattern.
+
+        Args:
+            surface: Target surface (may be the zoom surface).
+        """
+        if self._background is not None:
+            vp_w, vp_h = surface.get_size()
+            level_px_w = self._tilemap.width_pixels
+
+            # Background must be wide enough so that at maximum camera
+            # scroll the parallax-shifted image still covers the viewport.
+            required_w = max(
+                vp_w,
+                int(vp_w + (level_px_w - vp_w) * self._PARALLAX_FACTOR),
+            )
+
+            # Cache the scaled background to avoid per-frame scaling.
+            if (
+                not hasattr(self, "_bg_cache")
+                or self._bg_cache.get_size() != (required_w, vp_h)
+            ):
+                self._bg_cache = pygame.transform.scale(
+                    self._background, (required_w, vp_h)
+                )
+
+            cam_x = self._camera.offset[0]
+            shift = -(cam_x * self._PARALLAX_FACTOR)
+            # Clamp so edges never go past the viewport.
+            shift = min(shift, 0)
+            shift = max(shift, -(required_w - vp_w))
+            surface.blit(self._bg_cache, (int(shift), 0))
+        else:
+            surface.fill(GAMEPLAY_BG_COLOR)
+
+        # Dim overlay so gameplay tiles stand out.
+        vp_w, vp_h = surface.get_size()
+        if (
+            not hasattr(self, "_dim_cache")
+            or self._dim_cache.get_size() != (vp_w, vp_h)
+        ):
+            self._dim_cache = pygame.Surface((vp_w, vp_h), pygame.SRCALPHA)
+            self._dim_cache.fill((0, 0, 0, self._BG_DIM_ALPHA))
+        surface.blit(self._dim_cache, (0, 0))
 
     # ── Intro / Defeat sequences ───────────────────────────────────
 

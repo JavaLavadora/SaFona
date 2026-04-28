@@ -1099,3 +1099,45 @@ class TestBossSceneDamage:
         scene.on_enter()
         scene.update(1.0 / 60.0)
         scene.on_exit()
+
+
+class TestBossSceneBackground:
+    """Tests for boss scene background rendering."""
+
+    def test_background_loaded_from_definition(self):
+        """BossScene loads the background image when specified in arena data."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        # The boss_bou_de_pedra.json specifies "background": "world1_cave",
+        # and the asset should exist.
+        assert scene._background is not None
+
+    def test_render_background_with_image(self):
+        """_render_background draws without error when background is loaded."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        surface = pygame.Surface((384, 216))
+        scene._render_background(surface)
+        # No exception = pass.
+
+    def test_render_background_fallback_no_image(self):
+        """_render_background falls back to solid fill when no background."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene._background = None  # Force no background.
+        surface = pygame.Surface((384, 216))
+        scene._render_background(surface)
+        # No exception = pass.
+
+    def test_full_render_with_background(self):
+        """Full render pipeline works with background image."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene.on_enter()
+        scene.update(1.0 / 60.0)
+        surface = pygame.Surface((384, 216))
+        scene.render(surface)

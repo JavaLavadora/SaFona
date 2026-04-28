@@ -1283,6 +1283,7 @@ class TestPillarCollision:
 
         wall_left, wall_right = scene._check_wall_contact(player.rect)
         # The destroyed pillar should not register as a wall.
+        assert not wall_right
         # (wall_right could still be True if near a tile wall.)
 
     def test_corner_case_no_glitch(self):

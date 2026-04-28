@@ -101,7 +101,10 @@ class BossScene(BaseScene):
         self._background: pygame.Surface | None = None
         bg_id = arena_data.get("background", "")
         if bg_id:
-            bg_path = ASSETS_DIR / "backgrounds" / f"{bg_id}.png"
+            base_name = bg_id
+            if base_name.endswith("_bg"):
+                base_name = base_name[:-3]
+            bg_path = ASSETS_DIR / "backgrounds" / f"{base_name}.png"
             if bg_path.is_file():
                 try:
                     self._background = pygame.image.load(str(bg_path)).convert()
@@ -719,7 +722,7 @@ class BossScene(BaseScene):
     # Boss arenas are interior levels; use a subtle parallax factor.
     _PARALLAX_FACTOR: float = 0.15
     # Dim overlay alpha (~60% brightness) so tiles stay readable.
-    _BG_DIM_ALPHA: int = 100
+    _BG_DIM_ALPHA: int = 102
 
     def _render_background(self, surface: pygame.Surface) -> None:
         """Draw the arena background with parallax scrolling and dim overlay.

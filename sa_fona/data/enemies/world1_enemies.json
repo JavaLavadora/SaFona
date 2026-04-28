@@ -34,6 +34,8 @@
       "speed": 50,
       "attack_range": 1.5,
       "attack_cooldown": 1.0,
+      "attack_windup": 0.35,
+      "attack_strike": 0.3,
       "block_chance": 0.3,
       "block_duration": 0.5
     },
@@ -56,7 +58,7 @@
       "offset_y": 0,
       "fps": 12.0,
       "loop": false,
-      "show_during": ["attacking"]
+      "show_during": ["tell", "attacking"]
     }
   },
   "stone_guardian": {

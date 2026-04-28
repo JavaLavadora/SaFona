@@ -71,13 +71,14 @@ class AttackEffectOverlay:
 
     Loaded from the ``attack_effect`` block in enemy JSON definitions.
     The overlay renders independently of the enemy's body sprite and
-    is positioned relative to the enemy's visual center.
+    is positioned relative to the enemy's body edge.
 
     Attributes:
         frames: List of pre-sliced animation frames.
         frame_w: Width of a single frame in pixels.
         frame_h: Height of a single frame in pixels.
-        offset_x: Pixel offset from enemy visual center in facing direction.
+        offset_x: Pixel offset from enemy body edge in facing direction.
+            0 = flush with edge.
         offset_y: Pixel offset from enemy visual top (negative = above).
         show_during: Set of AttackState values that activate the overlay.
         fps: Playback speed in frames per second.
@@ -693,14 +694,13 @@ class Enemy(Entity):
 
         frame = overlay.frames[overlay.frame_index]
 
-        # Compute position relative to enemy visual center.
-        enemy_center_x = vis_x + self._sprite_w // 2
-
         if self.facing_right:
-            eff_x = enemy_center_x + overlay.offset_x - overlay.frame_w // 2
+            # Effect starts at the right edge of the enemy visual, offset outward
+            eff_x = vis_x + self._sprite_w + overlay.offset_x
             blit_frame = frame
         else:
-            eff_x = enemy_center_x - overlay.offset_x - overlay.frame_w // 2
+            # Effect ends at the left edge of the enemy visual, offset outward
+            eff_x = vis_x - overlay.frame_w - overlay.offset_x
             blit_frame = pygame.transform.flip(frame, True, False)
 
         eff_y = vis_y + overlay.offset_y

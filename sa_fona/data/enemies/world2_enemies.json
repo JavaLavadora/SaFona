@@ -28,7 +28,7 @@
       "sprite": "legionary_gladius_stab",
       "frame_w": 16,
       "frame_h": 16,
-      "offset_x": 8,
+      "offset_x": 0,
       "offset_y": -4,
       "fps": 10.0,
       "loop": false,

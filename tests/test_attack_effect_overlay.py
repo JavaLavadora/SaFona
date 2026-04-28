@@ -336,9 +336,8 @@ class TestAttackEffectOverlay:
             # Should not crash and should blit to the surface.
             enemy._render_attack_effect(surface, vis_x, vis_y)
 
-            # Verify the expected position.
-            enemy_center_x = vis_x + enemy._sprite_w // 2
-            expected_x = enemy_center_x + overlay.offset_x - overlay.frame_w // 2
+            # Verify the expected position (anchored from body edge).
+            expected_x = vis_x + enemy._sprite_w + overlay.offset_x
             expected_y = vis_y + overlay.offset_y
 
             # Check that pixels in the expected region are not fully transparent.
@@ -367,9 +366,8 @@ class TestAttackEffectOverlay:
 
             enemy._render_attack_effect(surface, vis_x, vis_y)
 
-            # When facing left, the offset_x is negated.
-            enemy_center_x = vis_x + enemy._sprite_w // 2
-            expected_x = enemy_center_x - overlay.offset_x - overlay.frame_w // 2
+            # When facing left, effect extends to the left of the body edge.
+            expected_x = vis_x - overlay.frame_w - overlay.offset_x
             expected_y = vis_y + overlay.offset_y
 
             pixel_color = surface.get_at((expected_x + overlay.frame_w // 2, expected_y + overlay.frame_h // 2))

@@ -367,7 +367,7 @@ class BossScene(BaseScene):
         # 1. Player intent.
         self._player.update_intent(dt)
 
-        # 2. Physics.
+        # 2. Physics (tilemap only).
         self._player.rect, self._player.velocity, on_ground = (
             self._physics.update_rect(
                 self._player.rect,
@@ -377,7 +377,10 @@ class BossScene(BaseScene):
             )
         )
 
-        # 3. Wall contact.
+        # 2b. Pillar collision (before post_physics so on_ground is correct).
+        on_ground = self._resolve_pillar_collision(on_ground)
+
+        # 3. Wall contact (includes pillar walls).
         wall_left, wall_right = self._check_wall_contact(self._player.rect)
 
         # 4. Post-physics.
@@ -588,10 +591,76 @@ class BossScene(BaseScene):
 
     # ── Physics helpers ────────────────────────────────────────────
 
+    def _resolve_pillar_collision(self, on_ground: bool) -> bool:
+        """Resolve player collision against active destructible pillars.
+
+        Treats each active pillar as a solid AABB obstacle, resolving
+        penetration on the axis with the smaller overlap.  When overlaps
+        are nearly equal (corner case), velocity direction disambiguates.
+
+        Must be called AFTER tilemap physics and BEFORE ``post_physics``
+        so that the returned ``on_ground`` flag includes pillar surfaces.
+
+        Args:
+            on_ground: The on_ground flag from the tilemap physics pass.
+
+        Returns:
+            Updated on_ground flag (True if the player is standing on a
+            pillar top).
+        """
+        player = self._player
+        vel = player.velocity
+
+        for pillar in self._boss.active_pillars:
+            if not player.rect.colliderect(pillar.rect):
+                continue
+
+            overlap = player.rect.clip(pillar.rect)
+            ow = overlap.width
+            oh = overlap.height
+
+            # Determine push axis: smaller overlap = penetration axis.
+            # When overlap dimensions are very close (corner region),
+            # use velocity to pick the intended axis of movement.
+            corner_threshold = 3  # pixels
+            if abs(ow - oh) <= corner_threshold:
+                # Disambiguate using velocity direction.
+                # If moving more horizontally, resolve horizontally.
+                # If moving more vertically, resolve vertically.
+                if abs(vel[0]) >= abs(vel[1]):
+                    push_x = True
+                else:
+                    push_x = False
+            else:
+                push_x = ow < oh
+
+            if push_x:
+                # Horizontal push.
+                if player.rect.centerx < pillar.rect.centerx:
+                    player.rect.right = pillar.rect.left
+                else:
+                    player.rect.left = pillar.rect.right
+                vel[0] = 0.0
+            else:
+                # Vertical push.
+                if player.rect.centery < pillar.rect.centery:
+                    # Player is above the pillar -> landing on top.
+                    player.rect.bottom = pillar.rect.top
+                    if vel[1] > 0:
+                        vel[1] = 0.0
+                    on_ground = True
+                else:
+                    # Player is below the pillar -> head bump.
+                    player.rect.top = pillar.rect.bottom
+                    if vel[1] < 0:
+                        vel[1] = 0.0
+
+        return on_ground
+
     def _check_wall_contact(
         self, rect: pygame.Rect
     ) -> tuple[bool, bool]:
-        """Probe for wall contact.
+        """Probe for wall contact against tiles and active pillars.
 
         Args:
             rect: Entity bounding box.
@@ -610,6 +679,16 @@ class BossScene(BaseScene):
             rect.right, rect.top + 2, margin, rect.height - 4
         )
         wall_right = len(self._physics.check_collision(right_probe, "solid")) > 0
+
+        # Also check active pillars for wall contact.
+        if not wall_left or not wall_right:
+            for pillar in self._boss.active_pillars:
+                if not wall_left and left_probe.colliderect(pillar.rect):
+                    wall_left = True
+                if not wall_right and right_probe.colliderect(pillar.rect):
+                    wall_right = True
+                if wall_left and wall_right:
+                    break
 
         return wall_left, wall_right
 

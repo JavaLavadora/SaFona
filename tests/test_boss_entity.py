@@ -1141,3 +1141,187 @@ class TestBossSceneBackground:
         scene.update(1.0 / 60.0)
         surface = pygame.Surface((384, 216))
         scene.render(surface)
+
+
+# ── Player-Pillar collision tests ────────────────────────────────
+
+
+class TestPillarCollision:
+    """Tests for player-pillar AABB collision in BossScene."""
+
+    @staticmethod
+    def _make_scene():
+        """Create a BossScene for pillar collision testing."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        scene.on_enter()
+        # Burn through intro so fight_started is True.
+        dt = 1.0 / 60.0
+        for _ in range(150):
+            from sa_fona.core.input_handler import InputState
+            scene.handle_input(InputState())
+            scene.update(dt)
+        assert scene.fight_started
+        return scene
+
+    def test_horizontal_block_from_left(self):
+        """Player walking right into a pillar is stopped."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Position player just to the left of the pillar, overlapping.
+        player.rect.right = pillar.rect.left + 4  # 4px overlap
+        player.rect.centery = pillar.rect.centery
+        player.velocity[0] = 80.0
+        player.velocity[1] = 0.0
+
+        on_ground = scene._resolve_pillar_collision(False)
+        assert player.rect.right <= pillar.rect.left
+        assert player.velocity[0] == 0.0
+
+    def test_horizontal_block_from_right(self):
+        """Player walking left into a pillar is stopped."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Position player just to the right of the pillar, overlapping.
+        player.rect.left = pillar.rect.right - 4  # 4px overlap
+        player.rect.centery = pillar.rect.centery
+        player.velocity[0] = -80.0
+        player.velocity[1] = 0.0
+
+        on_ground = scene._resolve_pillar_collision(False)
+        assert player.rect.left >= pillar.rect.right
+        assert player.velocity[0] == 0.0
+
+    def test_land_on_pillar_top(self):
+        """Player falling onto a pillar top becomes on_ground."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Position player above the pillar, overlapping top by 3px.
+        player.rect.bottom = pillar.rect.top + 3
+        player.rect.centerx = pillar.rect.centerx
+        player.velocity[0] = 0.0
+        player.velocity[1] = 100.0  # Falling down.
+
+        on_ground = scene._resolve_pillar_collision(False)
+        assert on_ground is True
+        assert player.rect.bottom <= pillar.rect.top
+        assert player.velocity[1] == 0.0
+
+    def test_head_bump_on_pillar_bottom(self):
+        """Player jumping up into a pillar bottom stops upward velocity."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Position player below the pillar, overlapping bottom by 3px.
+        player.rect.top = pillar.rect.bottom - 3
+        player.rect.centerx = pillar.rect.centerx
+        player.velocity[0] = 0.0
+        player.velocity[1] = -150.0  # Moving up.
+
+        on_ground = scene._resolve_pillar_collision(False)
+        assert player.rect.top >= pillar.rect.bottom
+        assert player.velocity[1] == 0.0
+        assert on_ground is False  # Should not set on_ground.
+
+    def test_inactive_pillar_no_collision(self):
+        """Destroyed pillars do not block the player."""
+        scene = self._make_scene()
+        pillar = scene.boss.pillars[0]
+        player = scene.player
+
+        # Destroy the pillar.
+        pillar.active = False
+
+        # Position player overlapping the pillar.
+        player.rect.centerx = pillar.rect.centerx
+        player.rect.centery = pillar.rect.centery
+        original_x = player.rect.x
+        player.velocity[0] = 50.0
+
+        on_ground = scene._resolve_pillar_collision(False)
+        # Player should not have been pushed.
+        assert player.rect.x == original_x
+
+    def test_wall_contact_detects_pillar(self):
+        """Wall contact probes detect active pillars."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Place player flush against the left side of the pillar.
+        player.rect.right = pillar.rect.left
+        player.rect.centery = pillar.rect.centery
+
+        wall_left, wall_right = scene._check_wall_contact(player.rect)
+        assert wall_right is True
+
+    def test_wall_contact_ignores_inactive_pillar(self):
+        """Wall contact probes do not detect destroyed pillars."""
+        scene = self._make_scene()
+        pillar = scene.boss.pillars[0]
+        player = scene.player
+
+        pillar.active = False
+
+        # Place player flush against the left side of the pillar.
+        player.rect.right = pillar.rect.left
+        player.rect.centery = pillar.rect.centery
+
+        # Check that the pillar is not detected as a wall
+        # (we need to ensure the player is not near any tile wall either).
+        # Move player to an open area far from tile walls.
+        player.rect.x = pillar.rect.left - player.rect.width
+        player.rect.centery = pillar.rect.centery
+
+        wall_left, wall_right = scene._check_wall_contact(player.rect)
+        # The destroyed pillar should not register as a wall.
+        assert not wall_right
+        # (wall_right could still be True if near a tile wall.)
+
+    def test_corner_case_no_glitch(self):
+        """Player at pillar corner does not teleport or glitch."""
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+        player = scene.player
+
+        # Position player at the corner of the pillar with diagonal velocity.
+        player.rect.right = pillar.rect.left + 2
+        player.rect.bottom = pillar.rect.top + 2
+        player.velocity[0] = 60.0
+        player.velocity[1] = 80.0
+
+        old_x = player.rect.x
+        old_y = player.rect.y
+        on_ground = scene._resolve_pillar_collision(False)
+
+        # Player should have been pushed out (not inside the pillar).
+        assert not player.rect.colliderect(pillar.rect)
+        # Player should not have teleported far away.
+        assert abs(player.rect.x - old_x) < 20
+        assert abs(player.rect.y - old_y) < 20
+
+    def test_update_loop_with_pillars_no_crash(self):
+        """Full update loop with player near pillars does not crash."""
+        from sa_fona.core.input_handler import InputState
+
+        scene = self._make_scene()
+        pillar = scene.boss.active_pillars[0]
+
+        # Position player on top of the pillar.
+        scene.player.rect.bottom = pillar.rect.top
+        scene.player.rect.centerx = pillar.rect.centerx
+        scene.player.velocity = [0.0, 0.0]
+
+        dt = 1.0 / 60.0
+        for _ in range(60):
+            scene.handle_input(InputState())
+            scene.update(dt)
+        # No crash = pass.

@@ -1,7 +1,8 @@
-"""Tests for enemy wall-facing adjustment on spawn.
+"""Tests for enemy wall-facing adjustment and wall-ahead detection.
 
 Verifies that enemies spawned next to walls face away from the wall,
-and that the correct facing direction survives behavior update ticks.
+that the correct facing direction survives behavior update ticks, and
+that patrolling enemies reverse direction when hitting a wall mid-patrol.
 """
 
 from __future__ import annotations
@@ -10,7 +11,7 @@ import pygame
 import pytest
 
 from sa_fona.entities.enemy import Enemy
-from sa_fona.entities.enemy_behaviors import PatrolBehavior
+from sa_fona.entities.enemy_behaviors import EnemyBehavior, PatrolBehavior
 from sa_fona.level.tilemap import TILE_SIZE, TileMap
 
 
@@ -350,3 +351,141 @@ class TestAdjustFacingForWalls:
         assert patrol._direction == 1.0
         patrol.set_initial_direction(-1.0)
         assert patrol._direction == -1.0
+
+
+class TestCheckWallAhead:
+    """Tests for EnemyBehavior.check_wall_ahead()."""
+
+    def test_detects_wall_on_right(self):
+        """check_wall_ahead returns True when solid tile is ahead (right)."""
+        tilemap = _make_corridor_tilemap(width=8, height=6)
+
+        # Enemy at col 6, ground row 5.  Wall at col 7.
+        # Rect: x=96, y=48, w=16, h=16 -> right=112, bottom=64.
+        # Probe x = 113 -> tile_x = 7 (wall).
+        enemy_rect = pygame.Rect(6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+
+        assert EnemyBehavior.check_wall_ahead(enemy_rect, 1.0, tilemap) is True
+
+    def test_detects_wall_on_left(self):
+        """check_wall_ahead returns True when solid tile is ahead (left)."""
+        tilemap = _make_corridor_tilemap(width=8, height=6)
+
+        # Enemy at col 1.  Wall at col 0.
+        enemy_rect = pygame.Rect(1 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+
+        assert EnemyBehavior.check_wall_ahead(enemy_rect, -1.0, tilemap) is True
+
+    def test_no_wall_in_open_space(self):
+        """check_wall_ahead returns False when no solid tile ahead."""
+        tilemap = _make_corridor_tilemap(width=8, height=6)
+
+        # Enemy at col 4 -- open space in both directions.
+        enemy_rect = pygame.Rect(4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+
+        assert EnemyBehavior.check_wall_ahead(enemy_rect, 1.0, tilemap) is False
+        assert EnemyBehavior.check_wall_ahead(enemy_rect, -1.0, tilemap) is False
+
+    def test_no_tilemap_returns_false(self):
+        """check_wall_ahead returns False when tilemap is None."""
+        enemy_rect = pygame.Rect(4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        assert EnemyBehavior.check_wall_ahead(enemy_rect, 1.0, None) is False
+
+
+class TestPatrolWallReversal:
+    """Tests that patrol enemies reverse direction when hitting a wall."""
+
+    def test_patrol_reverses_at_right_wall(self):
+        """A patrolling sheep reverses when it reaches the right wall."""
+        tilemap = _make_corridor_tilemap(width=8, height=6)
+
+        # Place enemy so its rect.right is right next to the wall at col 7.
+        # Wall starts at pixel 7*16=112.  With HITBOX_SHRINK=2 the rect
+        # is 12px wide.  We need rect.right close to 112 so probe hits
+        # tile 7.  rect.right = rect.x + 12.  If rect.x = 99 then
+        # right = 111, probe = 112, tile = 7.  spawn_x = 99 - 2 = 97.
+        enemy = _make_enemy(97, 3 * TILE_SIZE)
+        _snap_enemy(enemy, 5)
+
+        assert enemy.behavior._direction == 1.0  # default: right
+
+        # Simulate a tick with player far away.
+        player_rect = pygame.Rect(0, 4 * TILE_SIZE, 24, 32)
+        enemy.behavior.update(enemy.rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        # check_wall_ahead should have reversed the direction.
+        assert enemy.behavior._direction == -1.0, (
+            "Sheep should reverse direction when wall is ahead"
+        )
+
+    def test_patrol_reverses_at_left_wall(self):
+        """A patrolling sheep reverses when it reaches the left wall."""
+        tilemap = _make_corridor_tilemap(width=8, height=6)
+
+        # Place enemy so its rect.left is right next to the wall at col 0.
+        # Wall ends at pixel 1*16=16.  With HITBOX_SHRINK=2, rect.x = 16
+        # (spawn_x=14), rect.left = 16, probe = 15, tile = 0 (wall).
+        enemy = _make_enemy(14, 3 * TILE_SIZE)
+        _snap_enemy(enemy, 5)
+        enemy.behavior.set_initial_direction(-1.0)
+
+        player_rect = pygame.Rect(7 * TILE_SIZE, 4 * TILE_SIZE, 24, 32)
+        enemy.behavior.update(enemy.rect, player_rect, 1 / 60, tilemap=tilemap)
+
+        assert enemy.behavior._direction == 1.0, (
+            "Sheep should reverse direction when left wall is ahead"
+        )
+
+    def test_sheep_col23_wall_col27_not_stuck(self):
+        """Level 1-3 scenario: sheep spawns at col 23, patrols right, hits
+        wall at col 27.  After enough update ticks, the sheep must NOT be
+        stuck facing right -- it should reverse at the wall.
+
+        Platform: row 24, cols 15-27 solid.  Right wall column at 27
+        extends full height.
+        """
+        width, height = 28, 26
+        midground = []
+        for r in range(height):
+            row = [0] * width
+            row[0] = 1    # left wall
+            row[27] = 1   # right wall (full height)
+            midground.append(row)
+
+        # Ground platform: row 24, cols 15-27 solid.
+        for c in range(15, 28):
+            midground[24][c] = 1
+
+        tilemap = _make_tilemap(width, height, midground)
+
+        # Sheep at col 23, snapped to ground row 24.
+        enemy = _make_enemy(23 * TILE_SIZE, 22 * TILE_SIZE)
+        _snap_enemy(enemy, 24)
+        enemy.behavior.reset(23 * TILE_SIZE)
+
+        player_rect = pygame.Rect(0, 0, 24, 32)  # Far away
+
+        # Simulate 300 ticks (5 seconds at 60fps).  The sheep should
+        # walk right, hit the wall at col 27, and reverse.
+        for _ in range(300):
+            result = enemy.behavior.update(
+                enemy.rect, player_rect, 1 / 60, tilemap=tilemap
+            )
+            # Apply movement to simulate actual patrol.
+            if result.move_x != 0.0 and result.speed > 0:
+                dx = result.move_x * result.speed * (1 / 60)
+                enemy.rect.x += int(dx)
+                enemy._sub_x = float(enemy.rect.x)
+
+        # The sheep should have reversed at least once.  Its direction
+        # should NOT be stuck at 1.0 if it reached the wall.
+        # Check that it's NOT at or past the wall.
+        assert enemy.rect.right <= 27 * TILE_SIZE, (
+            "Sheep should not be inside or past the wall"
+        )
+        # The sheep should have reversed at some point (not stuck).
+        # After 300 ticks of walking, if it reversed, it should be
+        # somewhere to the left of the wall.
+        assert enemy.rect.x < 26 * TILE_SIZE, (
+            "Sheep should have reversed and walked away from the wall"
+        )

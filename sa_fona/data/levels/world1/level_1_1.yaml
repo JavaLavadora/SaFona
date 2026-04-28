@@ -8,17 +8,20 @@ metadata:
   tileset: world1
   background: world1_bg
 enemies:
+# First encounter: single sheep after sheep_encounter_physical dialogue (x=57)
 - type: possessed_sheep
-  x: 62
-  y: 11
+  x: 60
+  y: 12
+# Second encounter: sheep pair after sheep_encounter_range dialogue (x=73)
 - type: possessed_sheep
-  x: 77
+  x: 78
   y: 12
 - type: possessed_sheep
-  x: 79
+  x: 82
   y: 12
+# Late sheep near end for pacing
 - type: possessed_sheep
-  x: 81
+  x: 88
   y: 12
 pickups:
 - type: stone
@@ -74,6 +77,10 @@ pickups:
   y: 12
   value: 1
 - type: stone
+  x: 58
+  y: 12
+  value: 1
+- type: stone
   x: 66
   y: 12
   value: 1
@@ -81,11 +88,11 @@ pickups:
   x: 70
   y: 12
   value: 1
-- type: heart
-  x: 74
+- type: stone
+  x: 75
   y: 12
   value: 1
-- type: stone
+- type: heart
   x: 84
   y: 12
   value: 1
@@ -130,13 +137,13 @@ triggers:
   once: true
 - type: save_point
   rect:
-    x: 90
+    x: 88
     y: 10
     w: 2
     h: 3
 - type: level_end
   rect:
-    x: 91
+    x: 89
     y: 10
     w: 2
     h: 3

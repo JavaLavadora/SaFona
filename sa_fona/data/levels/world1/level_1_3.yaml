@@ -34,73 +34,83 @@ enemies:
   x: 21
   y: 11
 pickups:
-- type: stone
-  x: 5
-  y: 27
-  value: 1
-- type: stone
-  x: 8
-  y: 27
-  value: 1
-- type: stone
-  x: 11
-  y: 27
-  value: 1
-- type: stone
-  x: 15
-  y: 23
-  value: 1
-- type: stone
-  x: 18
-  y: 23
-  value: 1
-- type: stone
-  x: 3
-  y: 19
-  value: 1
+# Bottom floor: starting ammo near spawn (y=42 ground)
 - type: stone
   x: 6
-  y: 19
-  value: 1
-- type: stone
-  x: 9
-  y: 19
-  value: 1
-- type: stone
-  x: 12
-  y: 15
-  value: 1
-- type: stone
-  x: 15
-  y: 15
-  value: 1
-- type: stone
-  x: 18
-  y: 15
-  value: 1
-- type: stone
-  x: 3
-  y: 11
-  value: 1
-- type: stone
-  x: 6
-  y: 11
+  y: 42
   value: 1
 - type: stone
   x: 14
-  y: 7
+  y: 42
+  value: 1
+# Wide platform y=38 (x=8-24): ammo before/after warrior
+- type: stone
+  x: 10
+  y: 38
   value: 1
 - type: stone
-  x: 17
-  y: 7
+  x: 20
+  y: 38
   value: 1
-- type: heart
+# Left platform y=32 (x=1-12): ammo for mid-climb
+- type: stone
+  x: 4
+  y: 32
+  value: 1
+- type: stone
   x: 9
+  y: 32
+  value: 1
+# Mid platform y=26 (x=6-13): ammo
+- type: stone
+  x: 7
+  y: 26
+  value: 1
+- type: stone
+  x: 11
+  y: 26
+  value: 1
+# Heart as reward for climbing to right shelf y=22 (x=15-26)
+- type: heart
+  x: 18
+  y: 22
+  value: 1
+# Upper-mid platforms y=18 (x=2-4, 6-8, 10-14): ammo near stone guardian
+- type: stone
+  x: 2
+  y: 18
+  value: 1
+- type: stone
+  x: 7
+  y: 18
+  value: 1
+- type: stone
+  x: 12
+  y: 18
+  value: 1
+# Upper left shelf y=12 (x=6-14): ammo near sheep
+- type: stone
+  x: 8
+  y: 12
+  value: 1
+- type: stone
+  x: 13
+  y: 12
+  value: 1
+# Upper right shelf y=11 (x=15-26): ammo near stone guardian
+- type: stone
+  x: 17
   y: 11
   value: 1
+# Near-top y=7 platforms (x=9-11): stone
+- type: stone
+  x: 10
+  y: 7
+  value: 1
+# Heart near top as final exploration reward (y=4 platform, x=2-6)
 - type: heart
-  x: 5
-  y: 3
+  x: 4
+  y: 4
   value: 1
 breakables: []
 triggers:
@@ -124,9 +134,9 @@ triggers:
   dialogue_id: w1_l3_guardian_warning
   rect:
     x: 6
-    y: 15
+    y: 16
     w: 5
-    h: 3
+    h: 4
   once: true
 - type: save_point
   rect:

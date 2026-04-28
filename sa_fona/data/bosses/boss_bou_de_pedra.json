@@ -15,6 +15,7 @@
     "width": 25,
     "height": 14,
     "tileset": "world1_cave",
+    "background": "world1_cave",
     "destructible_pillars": 4,
     "pillar_positions": [
       {"x": 5, "y": 9},

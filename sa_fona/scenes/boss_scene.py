@@ -383,7 +383,10 @@ class BossScene(BaseScene):
         # 4. Post-physics.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
-        # 4b. Boss push-back (physical mass).
+        # 4b. Pillar collision (player can't walk through pillars).
+        self._resolve_pillar_collision()
+
+        # 4c. Boss push-back (physical mass).
         self._resolve_boss_push()
 
         # 5. Sling system.
@@ -551,6 +554,23 @@ class BossScene(BaseScene):
             and self._player.rect.colliderect(self._boss.rect)
         ):
             self._combat.deal_damage_to_player(self._boss.contact_damage)
+
+    def _resolve_pillar_collision(self) -> None:
+        """Push the player out of active pillars (solid obstacles)."""
+        for pillar in self._boss.active_pillars:
+            if not self._player.rect.colliderect(pillar.rect):
+                continue
+            overlap = self._player.rect.clip(pillar.rect)
+            if overlap.width < overlap.height:
+                if self._player.rect.centerx < pillar.rect.centerx:
+                    self._player.rect.right = pillar.rect.left
+                else:
+                    self._player.rect.left = pillar.rect.right
+            else:
+                if self._player.rect.centery < pillar.rect.centery:
+                    self._player.rect.bottom = pillar.rect.top
+                else:
+                    self._player.rect.top = pillar.rect.bottom
 
     def _resolve_boss_push(self) -> None:
         """Push the player out of the boss hitbox (physical mass)."""

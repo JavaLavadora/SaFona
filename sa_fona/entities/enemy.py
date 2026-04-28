@@ -679,8 +679,8 @@ class Enemy(Entity):
         Anchored at the collision rect edge (``rect.right`` when facing
         right, ``rect.left`` when facing left).  ``offset_x`` shifts the
         effect further outward from the rect edge.  ``offset_y`` is
-        applied relative to the visual top-left corner so the effect
-        stays vertically aligned with the enemy sprite.
+        applied relative to the attack hitbox vertical center so the
+        effect stays vertically aligned with the actual attack area.
 
         Args:
             surface: Target pygame Surface.
@@ -706,7 +706,10 @@ class Enemy(Entity):
             eff_x = self.rect.left - camera_offset[0] - overlay.frame_w - overlay.offset_x
             blit_frame = pygame.transform.flip(frame, True, False)
 
-        eff_y = vis_y + overlay.offset_y
+        # Anchor vertically to the attack hitbox center so the effect
+        # aligns with the actual damage area, not the visual sprite top.
+        atk_hb = self.attack_hitbox
+        eff_y = atk_hb.centery - camera_offset[1] - overlay.frame_h // 2 + overlay.offset_y
 
         surface.blit(blit_frame, (eff_x, eff_y))
 

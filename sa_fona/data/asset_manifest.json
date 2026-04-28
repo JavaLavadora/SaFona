@@ -395,6 +395,36 @@
       "frame_width": 24,
       "frame_height": 32,
       "frame_count": 4
+    },
+    "effect_anticipation_glow": {
+      "path": "assets/effects/anticipation_glow.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 2
+    },
+    "effect_stone_debris": {
+      "path": "assets/effects/stone_debris.png",
+      "frame_width": 8,
+      "frame_height": 8,
+      "frame_count": 3
+    },
+    "enemy_stone_guardian_arm_sweep": {
+      "path": "assets/sprites/enemies/effects/stone_guardian_arm_sweep.png",
+      "frame_width": 36,
+      "frame_height": 24,
+      "frame_count": 6
+    },
+    "enemy_rival_warrior_spear_thrust": {
+      "path": "assets/sprites/enemies/effects/rival_warrior_spear_thrust.png",
+      "frame_width": 20,
+      "frame_height": 16,
+      "frame_count": 4
+    },
+    "enemy_legionary_gladius_stab": {
+      "path": "assets/sprites/enemies/effects/legionary_gladius_stab.png",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 3
     }
   },
   "portraits": {

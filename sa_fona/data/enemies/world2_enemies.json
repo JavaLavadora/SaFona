@@ -23,6 +23,16 @@
     "vulnerabilities": {
       "slam_stun_duration": 2.0,
       "fire_dash_kills": false
+    },
+    "attack_effect": {
+      "sprite": "legionary_gladius_stab",
+      "frame_w": 16,
+      "frame_h": 16,
+      "offset_x": 0,
+      "offset_y": -4,
+      "fps": 10.0,
+      "loop": false,
+      "show_during": ["attacking"]
     }
   },
   "war_dog": {

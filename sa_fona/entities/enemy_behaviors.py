@@ -454,6 +454,8 @@ class ChaseBehavior(EnemyBehavior):
         self._speed: float = params.get("speed", 50)
         self._attack_range: float = params.get("attack_range", 1.5) * 16
         self._attack_cooldown: float = params.get("attack_cooldown", 1.0)
+        self._attack_windup: float = params.get("attack_windup", 0.0)
+        self._attack_strike: float = params.get("attack_strike", 0.3)
         self._block_chance: float = params.get("block_chance", 0.0)
         self._block_duration: float = params.get("block_duration", 0.5)
         self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
@@ -626,18 +628,38 @@ class ChaseBehavior(EnemyBehavior):
         # Attack state machine.
         if self._attack_state == AttackState.IDLE:
             if dist_to_player < self._attack_range and self._cooldown_timer <= 0:
-                self._attack_state = AttackState.ATTACKING
-                self._attack_timer = 0.3
-                result.attack_state = AttackState.ATTACKING
-                result.wants_attack = True
-                result.move_x = 0.0
-                result.speed = 0.0
+                if self._attack_windup > 0:
+                    # Enter wind-up (tell) phase before attacking.
+                    self._attack_state = AttackState.TELL
+                    self._attack_timer = self._attack_windup
+                    result.attack_state = AttackState.TELL
+                    result.move_x = 0.0
+                    result.speed = 0.0
+                else:
+                    # No windup — attack immediately.
+                    self._attack_state = AttackState.ATTACKING
+                    self._attack_timer = self._attack_strike
+                    result.attack_state = AttackState.ATTACKING
+                    result.wants_attack = True
+                    result.move_x = 0.0
+                    result.speed = 0.0
             else:
                 result.move_x = face_dir
                 result.speed = self._speed
                 ledge = self._apply_edge_check(result, enemy_rect, tilemap)
                 if ledge is not None:
                     return ledge
+
+        elif self._attack_state == AttackState.TELL:
+            self._attack_timer -= dt
+            result.attack_state = AttackState.TELL
+            result.move_x = 0.0
+            result.speed = 0.0
+
+            if self._attack_timer <= 0:
+                # Transition to strike phase.
+                self._attack_state = AttackState.ATTACKING
+                self._attack_timer = self._attack_strike
 
         elif self._attack_state == AttackState.ATTACKING:
             self._attack_timer -= dt

@@ -2199,6 +2199,25 @@ Inter-system communication follows these rules:
 2. **EventBus** for loosely coupled notifications (e.g., `enemy_killed` triggers stone drops in Economy AND a sound in AudioManager AND recharge acceleration in SpecialAmmo -- none of these systems need to know about each other).
 3. **No global state**. All shared state flows through Game -> scenes -> systems via explicit parameter passing.
 
+### 5.x Attack Effect Overlay System
+
+The **Attack Effect Overlay** system renders data-driven visual effects on enemies during attack phases (e.g., arm sweep, spear thrust, gladius stab). It is fully decoupled from the enemy's body animation and configured entirely through JSON.
+
+**Core type**: `AttackEffectOverlay` dataclass in `entities/enemy.py`.
+
+**Data flow**:
+
+1. Enemy definitions in `data/enemies/worldN_enemies.json` contain an optional `attack_effect` block specifying sprite name, frame dimensions, offset, FPS, loop mode, and which `AttackState` values trigger the overlay.
+2. During `Enemy.__init__`, `_load_attack_effect()` reads this config and loads frames via `load_frame_strip()` from `assets/sprites/enemies/effects/{sprite_name}.png`.
+3. Each frame, `_update_attack_effect()` checks if the current `AttackState` is in `show_during`. On activation edge (inactive -> active), the animation resets. Frame advancement respects `fps`, `loop`/clamp.
+4. `_render_attack_effect()` blits the current frame at the correct offset, flipping horizontally when the enemy faces left.
+
+**Adding a new attack effect** (zero code changes):
+
+1. Create a horizontal sprite strip: `assets/sprites/enemies/effects/{name}.png`
+2. Add an `attack_effect` block to the enemy's JSON definition
+3. Register in `data/asset_manifest.json`
+
 ---
 
 ## 6. Extension Points

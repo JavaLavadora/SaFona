@@ -16,6 +16,7 @@ from __future__ import annotations
 import pygame
 
 from sa_fona.config.settings import (
+    ASSETS_DIR,
     BASE_HEIGHT,
     BASE_WIDTH,
     CAMERA_ZOOM,
@@ -85,13 +86,28 @@ class BossScene(BaseScene):
         arena_w = arena_data.get("width", 25)
         arena_h = arena_data.get("height", 14)
 
+        # Load tileset surface for the arena (if specified).
+        tileset_id = arena_data.get("tileset", "")
+        tileset_surface = None
+        if tileset_id:
+            tileset_path = ASSETS_DIR / "tilesets" / tileset_id / "tileset.png"
+            if tileset_path.is_file():
+                try:
+                    tileset_surface = pygame.image.load(str(tileset_path)).convert_alpha()
+                except pygame.error:
+                    tileset_surface = None
+
         # Build arena tilemap (procedural if no level_path).
         if level_path is not None:
             loader = LevelLoader()
             level_data = loader.load(level_path)
             self._tilemap = level_data.tilemap
         else:
-            self._tilemap = self._build_arena_tilemap(arena_w, arena_h)
+            self._tilemap = self._build_arena_tilemap(
+                arena_w, arena_h,
+                tileset_id=tileset_id,
+                tileset_surface=tileset_surface,
+            )
 
         # Physics.
         self._physics = PhysicsSystem(self._tilemap, gravity=PLAYER_GRAVITY)
@@ -595,7 +611,13 @@ class BossScene(BaseScene):
 
     # ── Arena generation ───────────────────────────────────────────
 
-    def _build_arena_tilemap(self, width: int, height: int) -> TileMap:
+    def _build_arena_tilemap(
+        self,
+        width: int,
+        height: int,
+        tileset_id: str = "",
+        tileset_surface: pygame.Surface | None = None,
+    ) -> TileMap:
         """Build a procedural boss arena tilemap.
 
         Creates a flat arena with walls on the sides and a floor.
@@ -603,6 +625,8 @@ class BossScene(BaseScene):
         Args:
             width: Arena width in tiles.
             height: Arena height in tiles.
+            tileset_id: Tileset identifier for metadata (e.g. "world1_cave").
+            tileset_surface: Optional tileset image for real rendering.
 
         Returns:
             A TileMap for the boss arena.
@@ -640,9 +664,10 @@ class BossScene(BaseScene):
                 "hazard": [],
                 "breakable_slam": [],
             },
+            "metadata": {"tileset": tileset_id},
         }
 
-        return TileMap(tilemap_data)
+        return TileMap(tilemap_data, tileset_surface=tileset_surface)
 
     # ── Cutscene push ─────────────────────────────────────────────
 

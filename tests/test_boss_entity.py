@@ -981,6 +981,24 @@ class TestBossSceneInit:
         assert scene.boss.state == BossState.INTRO
         assert not scene.fight_started
 
+    def test_scene_loads_cave_tileset(self):
+        """Arena tilemap uses the cave tileset from the boss definition."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        # The tilemap should have a tileset loaded (non-empty tile list).
+        assert scene._tilemap._tileset_surface is not None
+        assert len(scene._tilemap._tileset_tiles) > 0
+
+    def test_scene_tilemap_has_cave_metadata(self):
+        """Arena tilemap metadata identifies the cave tileset."""
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene()
+        # The highlight color should be the cave variant (cool tone).
+        from sa_fona.level.tilemap import HIGHLIGHT_COLOR_CAVE
+        assert scene._tilemap._highlight_color == HIGHLIGHT_COLOR_CAVE
+
 
 class TestBossSceneUpdateLoop:
     """Tests that the BossScene update loop runs without errors."""

@@ -50,7 +50,7 @@
     },
     "attack_effect": {
       "sprite": "rival_warrior_spear_thrust",
-      "frame_w": 24,
+      "frame_w": 20,
       "frame_h": 16,
       "offset_x": 0,
       "offset_y": -8,
@@ -93,7 +93,7 @@
     },
     "attack_effect": {
       "sprite": "stone_guardian_arm_sweep",
-      "frame_w": 48,
+      "frame_w": 36,
       "frame_h": 24,
       "offset_x": 0,
       "offset_y": -4,

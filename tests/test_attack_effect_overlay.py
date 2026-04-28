@@ -315,7 +315,11 @@ class TestAttackEffectOverlay:
             assert overlay.frame_index == 2
 
     def test_render_attack_effect_facing_right(self):
-        """Effect should render at correct position when facing right."""
+        """Effect should render at correct position when facing right.
+
+        The effect is anchored from the collision rect edge (rect.right),
+        not from the visual sprite edge.
+        """
         with tempfile.TemporaryDirectory() as tmp_dir:
             enemy = _create_enemy_with_effect(tmp_dir)
             overlay = enemy.attack_effect
@@ -329,24 +333,27 @@ class TestAttackEffectOverlay:
             enemy.facing_right = True
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
-            shrink = Enemy._HITBOX_SHRINK
-            vis_x = enemy.rect.x - shrink
+            camera_offset = (0, 0)
+            vis_x = enemy.rect.x - Enemy._HITBOX_SHRINK
             vis_y = enemy.rect.bottom - enemy._sprite_h
 
             # Should not crash and should blit to the surface.
-            enemy._render_attack_effect(surface, vis_x, vis_y)
+            enemy._render_attack_effect(surface, camera_offset, vis_x, vis_y)
 
-            # Verify the expected position (anchored from body edge).
-            expected_x = vis_x + enemy._sprite_w + overlay.offset_x
+            # Verify the expected position (anchored from collision rect edge).
+            expected_x = enemy.rect.right - camera_offset[0] + overlay.offset_x
             expected_y = vis_y + overlay.offset_y
 
             # Check that pixels in the expected region are not fully transparent.
-            # (The placeholder sprite has non-transparent pixels.)
             pixel_color = surface.get_at((expected_x + overlay.frame_w // 2, expected_y + overlay.frame_h // 2))
             assert pixel_color.a > 0
 
     def test_render_attack_effect_facing_left(self):
-        """Effect should render flipped at mirrored position when facing left."""
+        """Effect should render flipped at mirrored position when facing left.
+
+        The effect is anchored from the collision rect edge (rect.left),
+        extending leftward.
+        """
         with tempfile.TemporaryDirectory() as tmp_dir:
             enemy = _create_enemy_with_effect(tmp_dir)
             overlay = enemy.attack_effect
@@ -360,14 +367,14 @@ class TestAttackEffectOverlay:
             enemy.facing_right = False
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
-            shrink = Enemy._HITBOX_SHRINK
-            vis_x = enemy.rect.x - shrink
+            camera_offset = (0, 0)
+            vis_x = enemy.rect.x - Enemy._HITBOX_SHRINK
             vis_y = enemy.rect.bottom - enemy._sprite_h
 
-            enemy._render_attack_effect(surface, vis_x, vis_y)
+            enemy._render_attack_effect(surface, camera_offset, vis_x, vis_y)
 
-            # When facing left, effect extends to the left of the body edge.
-            expected_x = vis_x - overlay.frame_w - overlay.offset_x
+            # When facing left, effect is anchored at rect.left extending leftward.
+            expected_x = enemy.rect.left - camera_offset[0] - overlay.frame_w - overlay.offset_x
             expected_y = vis_y + overlay.offset_y
 
             pixel_color = surface.get_at((expected_x + overlay.frame_w // 2, expected_y + overlay.frame_h // 2))
@@ -382,7 +389,7 @@ class TestAttackEffectOverlay:
 
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
             # Should not raise.
-            enemy._render_attack_effect(surface, 100, 180)
+            enemy._render_attack_effect(surface, (0, 0), 100, 180)
 
     def test_render_skipped_when_inactive(self):
         """No blit should happen when overlay exists but is inactive."""
@@ -394,7 +401,7 @@ class TestAttackEffectOverlay:
             surface = pygame.Surface((400, 300), pygame.SRCALPHA)
             surface.fill((0, 0, 0, 0))
 
-            enemy._render_attack_effect(surface, 100, 180)
+            enemy._render_attack_effect(surface, (0, 0), 100, 180)
 
             # Surface should still be fully transparent (no blit occurred).
             # Check a sampling of pixels.

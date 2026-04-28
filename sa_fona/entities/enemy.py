@@ -670,18 +670,21 @@ class Enemy(Entity):
     def _render_attack_effect(
         self,
         surface: pygame.Surface,
+        camera_offset: tuple[int, int],
         vis_x: int,
         vis_y: int,
     ) -> None:
-        """Draw the attack effect overlay relative to the enemy sprite.
+        """Draw the attack effect overlay relative to the enemy collision rect.
 
-        The overlay is positioned using ``offset_x`` (in the facing
-        direction) and ``offset_y`` from the enemy's visual top-left
-        corner.  When facing left the frame is flipped horizontally
-        and the X offset is negated.
+        Anchored at the collision rect edge (``rect.right`` when facing
+        right, ``rect.left`` when facing left).  ``offset_x`` shifts the
+        effect further outward from the rect edge.  ``offset_y`` is
+        applied relative to the visual top-left corner so the effect
+        stays vertically aligned with the enemy sprite.
 
         Args:
             surface: Target pygame Surface.
+            camera_offset: ``(cam_x, cam_y)`` world-pixel camera offset.
             vis_x: Screen X of the enemy's visual top-left corner.
             vis_y: Screen Y of the enemy's visual top-left corner.
         """
@@ -695,12 +698,12 @@ class Enemy(Entity):
         frame = overlay.frames[overlay.frame_index]
 
         if self.facing_right:
-            # Effect starts at the right edge of the enemy visual, offset outward
-            eff_x = vis_x + self._sprite_w + overlay.offset_x
+            # Anchor at the collision rect's right edge (world coords -> screen).
+            eff_x = self.rect.right - camera_offset[0] + overlay.offset_x
             blit_frame = frame
         else:
-            # Effect ends at the left edge of the enemy visual, offset outward
-            eff_x = vis_x - overlay.frame_w - overlay.offset_x
+            # Anchor at the collision rect's left edge, extending leftward.
+            eff_x = self.rect.left - camera_offset[0] - overlay.frame_w - overlay.offset_x
             blit_frame = pygame.transform.flip(frame, True, False)
 
         eff_y = vis_y + overlay.offset_y
@@ -740,7 +743,7 @@ class Enemy(Entity):
             surface.blit(self._sprite, (vis_x, vis_y))
 
         # Render attack effect overlay (data-driven, independent of body).
-        self._render_attack_effect(surface, vis_x, vis_y)
+        self._render_attack_effect(surface, camera_offset, vis_x, vis_y)
 
         # State overlays are only drawn for placeholder enemies (no real
         # sprites).  When real sprites are loaded, the animation frames

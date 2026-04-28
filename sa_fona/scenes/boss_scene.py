@@ -564,7 +564,17 @@ class BossScene(BaseScene):
             if not self._player.rect.colliderect(pillar.rect):
                 continue
             overlap = self._player.rect.clip(pillar.rect)
-            if overlap.width < overlap.height:
+            player_above = self._player.rect.bottom <= pillar.rect.top + overlap.height
+            player_below = self._player.rect.top >= pillar.rect.bottom - overlap.height
+
+            if player_above and overlap.height <= 8 and self._player.velocity.y >= 0:
+                self._player.rect.bottom = pillar.rect.top
+                self._player.velocity.y = 0
+                on_ground = True
+            elif player_below and overlap.height <= 8 and self._player.velocity.y < 0:
+                self._player.rect.top = pillar.rect.bottom
+                self._player.velocity.y = 0
+            elif overlap.width <= overlap.height:
                 if self._player.rect.centerx < pillar.rect.centerx:
                     self._player.rect.right = pillar.rect.left
                 else:

@@ -47,6 +47,16 @@
     "vulnerabilities": {
       "slam_stun_duration": 2.0,
       "fire_dash_kills": false
+    },
+    "attack_effect": {
+      "sprite": "rival_warrior_spear_thrust",
+      "frame_w": 24,
+      "frame_h": 16,
+      "offset_x": 12,
+      "offset_y": -8,
+      "fps": 12.0,
+      "loop": false,
+      "show_during": ["attacking"]
     }
   },
   "stone_guardian": {
@@ -80,6 +90,16 @@
     "vulnerabilities": {
       "slam_stun_duration": 2.5,
       "fire_dash_kills": false
+    },
+    "attack_effect": {
+      "sprite": "stone_guardian_arm_sweep",
+      "frame_w": 48,
+      "frame_h": 24,
+      "offset_x": 16,
+      "offset_y": -4,
+      "fps": 10.0,
+      "loop": false,
+      "show_during": ["tell", "attacking"]
     }
   }
 }

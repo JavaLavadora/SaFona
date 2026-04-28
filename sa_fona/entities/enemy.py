@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import random
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import pygame
@@ -53,6 +54,52 @@ _BLOCK_COLOR: tuple[int, int, int, int] = (100, 100, 255, 120)
 
 # Stun indicator color (yellow tint).
 _STUN_COLOR: tuple[int, int, int, int] = (255, 255, 50, 100)
+
+# Map of string names to AttackState enum values for JSON config.
+_ATTACK_STATE_MAP: dict[str, AttackState] = {
+    "idle": AttackState.IDLE,
+    "tell": AttackState.TELL,
+    "attacking": AttackState.ATTACKING,
+    "recovery": AttackState.RECOVERY,
+    "cooldown": AttackState.COOLDOWN,
+}
+
+
+@dataclass
+class AttackEffectOverlay:
+    """Data-driven overlay animation shown during enemy attack phases.
+
+    Loaded from the ``attack_effect`` block in enemy JSON definitions.
+    The overlay renders independently of the enemy's body sprite and
+    is positioned relative to the enemy's visual center.
+
+    Attributes:
+        frames: List of pre-sliced animation frames.
+        frame_w: Width of a single frame in pixels.
+        frame_h: Height of a single frame in pixels.
+        offset_x: Pixel offset from enemy visual center in facing direction.
+        offset_y: Pixel offset from enemy visual top (negative = above).
+        show_during: Set of AttackState values that activate the overlay.
+        fps: Playback speed in frames per second.
+        loop: Whether the animation loops or clamps at the last frame.
+        timer: Internal animation timer.
+        frame_index: Current frame index.
+        active: Whether the overlay is currently being displayed.
+        _prev_active: Previous frame's active state for edge detection.
+    """
+
+    frames: list[pygame.Surface]
+    frame_w: int
+    frame_h: int
+    offset_x: int
+    offset_y: int
+    show_during: set
+    fps: float
+    loop: bool
+    timer: float = 0.0
+    frame_index: int = 0
+    active: bool = False
+    _prev_active: bool = False
 
 
 class Enemy(Entity):
@@ -146,6 +193,10 @@ class Enemy(Entity):
 
         self._build_sprite()
 
+        # Attack effect overlay (loaded from definition if present).
+        self._attack_effect: AttackEffectOverlay | None = None
+        self._load_attack_effect(definition)
+
         # Font for label (only used when no sprites).
         self._font: pygame.font.Font | None = None
 
@@ -229,6 +280,53 @@ class Enemy(Entity):
                 return scaled
         return None
 
+    def _load_attack_effect(self, definition: dict) -> None:
+        """Load an attack effect overlay from the enemy definition.
+
+        If the definition contains an ``attack_effect`` block, loads
+        the sprite strip from ``assets/sprites/enemies/effects/`` and
+        constructs an :class:`AttackEffectOverlay`. If the sprite file
+        is missing or no config is present, ``_attack_effect`` remains
+        None.
+
+        Args:
+            definition: The full enemy definition dict from JSON.
+        """
+        effect_cfg = definition.get("attack_effect")
+        if effect_cfg is None:
+            return
+
+        sprite_name = effect_cfg.get("sprite", "")
+        frame_w = int(effect_cfg.get("frame_w", 16))
+        frame_h = int(effect_cfg.get("frame_h", 16))
+        sprite_path = f"assets/sprites/enemies/effects/{sprite_name}.png"
+
+        frames = load_frame_strip(sprite_path, frame_w, frame_h)
+        if not frames:
+            return
+
+        # Map string state names to AttackState enum values.
+        show_during_strs = effect_cfg.get("show_during", [])
+        show_during: set[AttackState] = set()
+        for state_str in show_during_strs:
+            state = _ATTACK_STATE_MAP.get(state_str.lower())
+            if state is not None:
+                show_during.add(state)
+
+        if not show_during:
+            return
+
+        self._attack_effect = AttackEffectOverlay(
+            frames=frames,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            offset_x=int(effect_cfg.get("offset_x", 0)),
+            offset_y=int(effect_cfg.get("offset_y", 0)),
+            show_during=show_during,
+            fps=float(effect_cfg.get("fps", 10.0)),
+            loop=bool(effect_cfg.get("loop", False)),
+        )
+
     # ── Properties ─────────────────────────────────────────────────
 
     @property
@@ -270,6 +368,11 @@ class Enemy(Entity):
     def is_stunned(self) -> bool:
         """Whether the enemy is currently stunned."""
         return self._stun_timer > 0
+
+    @property
+    def attack_effect(self) -> AttackEffectOverlay | None:
+        """The attack effect overlay, or None if not configured."""
+        return self._attack_effect
 
     @property
     def attack_hitbox(self) -> pygame.Rect:
@@ -473,6 +576,8 @@ class Enemy(Entity):
     def _update_sprite(self, dt: float) -> None:
         """Select the correct sprite frame based on combat/movement state."""
         if not self._has_sprites:
+            # Still update the attack effect overlay even for placeholder enemies.
+            self._update_attack_effect(dt)
             return
 
         # Determine which frame set to use based on state.
@@ -518,6 +623,95 @@ class Enemy(Entity):
         else:
             self._sprite = base
 
+        # Update attack effect overlay animation.
+        self._update_attack_effect(dt)
+
+    def _update_attack_effect(self, dt: float) -> None:
+        """Advance the attack effect overlay animation state.
+
+        Checks if the current attack state is in the overlay's
+        ``show_during`` set. Handles activation edge (reset timer),
+        frame advancement, and loop/clamp behavior.
+
+        Args:
+            dt: Delta time in seconds.
+        """
+        overlay = self._attack_effect
+        if overlay is None:
+            return
+
+        current_state = self._behavior_result.attack_state
+        should_be_active = current_state in overlay.show_during
+
+        # Edge detection: inactive -> active resets animation.
+        if should_be_active and not overlay.active:
+            overlay.timer = 0.0
+            overlay.frame_index = 0
+
+        overlay._prev_active = overlay.active
+        overlay.active = should_be_active
+
+        if not overlay.active:
+            return
+
+        # Advance timer.
+        if overlay.fps > 0 and len(overlay.frames) > 1:
+            frame_duration = 1.0 / overlay.fps
+            overlay.timer += dt
+            if overlay.timer >= frame_duration:
+                overlay.timer -= frame_duration
+                if overlay.loop:
+                    overlay.frame_index = (overlay.frame_index + 1) % len(
+                        overlay.frames
+                    )
+                else:
+                    overlay.frame_index = min(
+                        overlay.frame_index + 1, len(overlay.frames) - 1
+                    )
+
+    def _render_attack_effect(
+        self,
+        surface: pygame.Surface,
+        camera_offset: tuple[int, int],
+        vis_x: int,
+        vis_y: int,
+    ) -> None:
+        """Draw the attack effect overlay relative to the enemy sprite.
+
+        The overlay is positioned using ``offset_x`` (in the facing
+        direction) and ``offset_y`` from the enemy's visual top-left
+        corner.  When facing left the frame is flipped horizontally
+        and the X offset is negated.
+
+        Args:
+            surface: Target pygame Surface.
+            camera_offset: ``(cam_x, cam_y)`` world-pixel camera offset.
+            vis_x: Screen X of the enemy's visual top-left corner.
+            vis_y: Screen Y of the enemy's visual top-left corner.
+        """
+        overlay = self._attack_effect
+        if overlay is None or not overlay.active:
+            return
+
+        if overlay.frame_index >= len(overlay.frames):
+            return
+
+        frame = overlay.frames[overlay.frame_index]
+
+        # Compute position relative to enemy visual center.
+        enemy_center_x = vis_x + self._sprite_w // 2
+
+        if self.facing_right:
+            eff_x = enemy_center_x + overlay.offset_x - overlay.frame_w // 2
+            blit_frame = frame
+        else:
+            eff_x = enemy_center_x - overlay.offset_x - overlay.frame_w // 2
+            blit_frame = pygame.transform.flip(frame, True, False)
+
+        eff_y = vis_y + overlay.offset_y
+
+        surface.blit(blit_frame, (eff_x, eff_y))
+
     def render(
         self,
         surface: pygame.Surface,
@@ -549,6 +743,9 @@ class Enemy(Entity):
 
         if self._sprite is not None:
             surface.blit(self._sprite, (vis_x, vis_y))
+
+        # Render attack effect overlay (data-driven, independent of body).
+        self._render_attack_effect(surface, camera_offset, vis_x, vis_y)
 
         # State overlays are only drawn for placeholder enemies (no real
         # sprites).  When real sprites are loaded, the animation frames

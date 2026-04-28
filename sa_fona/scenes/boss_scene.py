@@ -380,9 +380,6 @@ class BossScene(BaseScene):
         # 3. Wall contact.
         wall_left, wall_right = self._check_wall_contact(self._player.rect)
 
-        # 3b. Pillar collision (before post_physics so on_ground is correct).
-        on_ground = self._resolve_pillar_collision(on_ground)
-
         # 4. Post-physics.
         self._player.post_physics(on_ground, wall_left, wall_right)
 
@@ -554,41 +551,6 @@ class BossScene(BaseScene):
             and self._player.rect.colliderect(self._boss.rect)
         ):
             self._combat.deal_damage_to_player(self._boss.contact_damage)
-
-    def _resolve_pillar_collision(self, on_ground: bool) -> bool:
-        """Push the player out of active pillars (solid obstacles).
-
-        Returns updated on_ground (True if player landed on a pillar top).
-        """
-        for pillar in self._boss.active_pillars:
-            if not self._player.rect.colliderect(pillar.rect):
-                continue
-            overlap = self._player.rect.clip(pillar.rect)
-            player_above = self._player.rect.bottom <= pillar.rect.top + overlap.height
-            player_below = self._player.rect.top >= pillar.rect.bottom - overlap.height
-
-            if player_above and overlap.height <= 8 and self._player.velocity.y >= 0:
-                self._player.rect.bottom = pillar.rect.top
-                self._player.velocity.y = 0
-                on_ground = True
-            elif player_below and overlap.height <= 8 and self._player.velocity.y < 0:
-                self._player.rect.top = pillar.rect.bottom
-                self._player.velocity.y = 0
-            elif overlap.width <= overlap.height:
-                if self._player.rect.centerx < pillar.rect.centerx:
-                    self._player.rect.right = pillar.rect.left
-                else:
-                    self._player.rect.left = pillar.rect.right
-            else:
-                if self._player.rect.centery < pillar.rect.centery:
-                    self._player.rect.bottom = pillar.rect.top
-                    self._player.velocity.y = 0
-                    on_ground = True
-                else:
-                    self._player.rect.top = pillar.rect.bottom
-                    if self._player.velocity.y < 0:
-                        self._player.velocity.y = 0
-        return on_ground
 
     def _resolve_boss_push(self) -> None:
         """Push the player out of the boss hitbox (physical mass)."""

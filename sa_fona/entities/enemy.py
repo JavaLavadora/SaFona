@@ -431,6 +431,43 @@ class Enemy(Entity):
         self.rect.bottom = bottom
         self._sub_x = float(self.rect.x)
 
+    def adjust_facing_for_walls(self, tilemap: TileMap) -> None:
+        """Set initial facing direction based on adjacent wall proximity.
+
+        If the enemy spawns next to a wall on one side, face away from
+        it so the initial patrol direction looks natural.  Checks 1-2
+        tiles to the left and right of the enemy for solid tiles.
+
+        Args:
+            tilemap: The level tilemap for solid tile queries.
+        """
+        center_tx = self.rect.centerx // TILE_SIZE
+        # Check at the enemy's vertical midpoint (body level).
+        check_ty = self.rect.centery // TILE_SIZE
+
+        wall_right = False
+        wall_left = False
+
+        # Check 1-2 tiles to the right for a wall.
+        for offset in (1, 2):
+            if tilemap.is_solid_at(center_tx + offset, check_ty):
+                wall_right = True
+                break
+
+        # Check 1-2 tiles to the left for a wall.
+        for offset in (1, 2):
+            if tilemap.is_solid_at(center_tx - offset, check_ty):
+                wall_left = True
+                break
+
+        # Only adjust if there is a wall on exactly one side.
+        if wall_right and not wall_left:
+            self.facing_right = False
+            self.behavior.set_initial_direction(-1.0)
+        elif wall_left and not wall_right:
+            self.facing_right = True
+            self.behavior.set_initial_direction(1.0)
+
     # ── Combat ─────────────────────────────────────────────────────
 
     def take_damage(self, amount: float) -> bool:

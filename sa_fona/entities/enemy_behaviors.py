@@ -104,6 +104,17 @@ class EnemyBehavior(ABC):
             player_y: The player's Y position in world pixels.
         """
 
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol/facing direction.
+
+        Called after spawn when wall proximity suggests the enemy should
+        face a particular way.  Default implementation does nothing;
+        subclasses with a ``_direction`` attribute override this.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+
     @abstractmethod
     def reset(self, spawn_x: float) -> None:
         """Reset the behavior to its initial state.
@@ -204,6 +215,14 @@ class PatrolBehavior(EnemyBehavior):
     def aggro_timer(self) -> float:
         """Remaining aggro time in seconds (for testing)."""
         return self._aggro_timer
+
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol direction after spawn.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+        self._direction = direction
 
     def reset(self, spawn_x: float) -> None:
         """Reset patrol to initial state centered on spawn.
@@ -835,6 +854,14 @@ class GuardianBehavior(EnemyBehavior):
     def aggro_timer(self) -> float:
         """Remaining aggro time in seconds (for testing)."""
         return self._aggro_timer
+
+    def set_initial_direction(self, direction: float) -> None:
+        """Set the initial patrol direction after spawn.
+
+        Args:
+            direction: -1.0 for left, 1.0 for right.
+        """
+        self._direction = direction
 
     def reset(self, spawn_x: float) -> None:
         """Reset guardian to initial state centered on spawn.

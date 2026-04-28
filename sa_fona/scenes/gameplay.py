@@ -831,6 +831,7 @@ class GameplayScene(BaseScene):
         try:
             enemy = self._enemy_factory.create_from_entity_def(ent_def)
             self._snap_to_ground(enemy)
+            enemy.adjust_facing_for_walls(self._tilemap)
             self._enemies.append(enemy)
         except ValueError:
             pass  # Skip unknown enemy types gracefully.
@@ -1100,7 +1101,9 @@ class GameplayScene(BaseScene):
         self._spawn_entities()
 
         # Restore player state from the death-rollback snapshot if one
-        # exists, otherwise fall back to defaults.
+        # exists, otherwise fall back to defaults.  Ensure the player
+        # respawns with at least half their max health so they have a
+        # fair chance after dying.
         snap = (
             self._save_system.level_entry_snapshot
             if self._save_system is not None else None
@@ -1108,6 +1111,8 @@ class GameplayScene(BaseScene):
         if snap is not None:
             max_h = snap["max_hearts"]
             cur_h = snap["current_hearts"]
+            half_health = max_h / 2.0
+            cur_h = max(cur_h, half_health)
             stones = snap["stone_count"]
             self._economy.restore({"stone_count": stones})
         else:
@@ -1130,11 +1135,14 @@ class GameplayScene(BaseScene):
         # Reset mask cooldown (keep inventory).
         self._mask_system.update(999.0)  # Clear any remaining cooldown.
 
-        # Reset triggers.
+        # Reset triggers, preserving already-seen dialogue triggers so
+        # they don't re-fire after a same-level respawn.
+        seen_dialogues = self._trigger_system.get_fired_dialogue_ids()
         self._trigger_system.reset()
         self._trigger_system.load_from_list(
             self._level_data.triggers, tile_size=TILE_SIZE
         )
+        self._trigger_system.suppress_dialogue_ids(seen_dialogues)
         self._pending_dialogue_id = None
         self._pending_game_over = False
         self._pending_next_level = None

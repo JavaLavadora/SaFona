@@ -432,41 +432,54 @@ class Enemy(Entity):
         self._sub_x = float(self.rect.x)
 
     def adjust_facing_for_walls(self, tilemap: TileMap) -> None:
-        """Set initial facing direction based on adjacent wall proximity.
+        """Set initial facing direction away from adjacent walls.
 
-        If the enemy spawns next to a wall on one side, face away from
-        it so the initial patrol direction looks natural.  Checks 1-2
-        tiles to the left and right of the enemy for solid tiles.
+        Probes the tile column immediately right of and left of the
+        enemy ABOVE the ground surface to detect walls.  We check the
+        two rows above the ground tile (``ground_row - 1`` and
+        ``ground_row - 2``), which avoids false positives from platform
+        tiles at foot level.
+
+        The previous implementation checked ``rect.centery``, but after
+        snap_to_ground the hitbox sits right on the ground surface, so
+        the center-y row was the platform row itself -- causing platform
+        tiles to the left/right to register as walls.
+
+        Must be called AFTER the enemy has been snapped to the ground
+        so that ``rect.bottom`` is tile-aligned.
 
         Args:
-            tilemap: The level tilemap for solid tile queries.
+            tilemap: The level tilemap used for solid-tile queries.
         """
+        # The ground row is the tile row directly at the enemy's feet.
+        ground_ty = self.rect.bottom // TILE_SIZE
+
+        # Probe rows above ground level: these are where actual walls
+        # would be (not the platform surface which is the ground itself).
+        probe_rows = [ground_ty - 1, ground_ty - 2]
+
+        # The tile column containing the enemy's center.
         center_tx = self.rect.centerx // TILE_SIZE
-        # Check at the enemy's vertical midpoint (body level).
-        check_ty = self.rect.centery // TILE_SIZE
 
-        wall_right = False
-        wall_left = False
+        right_tx = center_tx + 1
+        left_tx = center_tx - 1
 
-        # Check 1-2 tiles to the right for a wall.
-        for offset in (1, 2):
-            if tilemap.is_solid_at(center_tx + offset, check_ty):
-                wall_right = True
-                break
+        wall_right = any(
+            tilemap.is_solid_at(right_tx, row) for row in probe_rows
+        )
+        wall_left = any(
+            tilemap.is_solid_at(left_tx, row) for row in probe_rows
+        )
 
-        # Check 1-2 tiles to the left for a wall.
-        for offset in (1, 2):
-            if tilemap.is_solid_at(center_tx - offset, check_ty):
-                wall_left = True
-                break
-
-        # Only adjust if there is a wall on exactly one side.
         if wall_right and not wall_left:
+            # Wall on right -> face left.
             self.facing_right = False
             self.behavior.set_initial_direction(-1.0)
         elif wall_left and not wall_right:
+            # Wall on left -> face right.
             self.facing_right = True
             self.behavior.set_initial_direction(1.0)
+        # If walls on both sides or no walls, keep default (right).
 
     # ── Combat ─────────────────────────────────────────────────────
 

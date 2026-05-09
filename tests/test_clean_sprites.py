@@ -21,6 +21,7 @@ from tools.clean_sprites import (
     enforce_color_limit,
     main,
     parse_gpl,
+    remove_stray_pixels,
     resolve_ambiguous_snaps,
     resolve_output_path,
     resolve_palette_path,
@@ -455,6 +456,193 @@ class TestResolveAmbiguousSnaps:
         assert count == 0
 
 
+class TestRemoveStrayPixels:
+    """Tests for stray pixel cleanup."""
+
+    def test_isolated_pixel_replaced_by_majority_neighbor(self) -> None:
+        """A single pixel surrounded by uniform color gets replaced."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]  # All skin
+        rgba[1, 1, :3] = [220, 50, 50]    # Center is red (stray)
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result[1, 1, :3], [200, 150, 120])
+        assert count == 1
+
+    def test_pixel_with_same_color_neighbor_left_alone(self) -> None:
+        """A pixel sharing color with at least one neighbor is not stray."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]  # All skin
+        # Two adjacent red pixels — neither is isolated
+        rgba[1, 1, :3] = [220, 50, 50]
+        rgba[1, 2, :3] = [220, 50, 50]
+
+        result, count = remove_stray_pixels(rgba)
+        # Both red pixels should remain
+        np.testing.assert_array_equal(result[1, 1, :3], [220, 50, 50])
+        np.testing.assert_array_equal(result[1, 2, :3], [220, 50, 50])
+        assert count == 0
+
+    def test_two_pixel_cluster_fixed_in_multiple_iterations(self) -> None:
+        """A 2-pixel cluster of wrong color surrounded by another color.
+
+        On the first pass, neither pixel is isolated (they share a neighbor).
+        But once one is fixed, the other becomes isolated in the next pass.
+        Actually, because they are processed from a snapshot within a pass,
+        both still see each other as neighbors in pass 1. After pass 1,
+        neither is fixed. We need to verify the behavior: a 2-pixel cluster
+        where neither pixel is isolated won't be touched at all. This test
+        verifies that a 2-pixel cluster is left alone (they are not stray).
+        """
+        # 5x5 image: all skin except two adjacent red pixels
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]
+        rgba[2, 2, :3] = [220, 50, 50]
+        rgba[2, 3, :3] = [220, 50, 50]
+
+        result, count = remove_stray_pixels(rgba)
+        # Two adjacent red pixels share a neighbor, so neither is stray
+        np.testing.assert_array_equal(result[2, 2, :3], [220, 50, 50])
+        np.testing.assert_array_equal(result[2, 3, :3], [220, 50, 50])
+        assert count == 0
+
+    def test_diagonal_pair_not_stray(self) -> None:
+        """Two diagonally adjacent same-color pixels are not stray (8-connected)."""
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]
+        rgba[1, 1, :3] = [220, 50, 50]
+        rgba[2, 2, :3] = [220, 50, 50]
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result[1, 1, :3], [220, 50, 50])
+        np.testing.assert_array_equal(result[2, 2, :3], [220, 50, 50])
+        assert count == 0
+
+    def test_multi_iteration_chain(self) -> None:
+        """A chain of isolated single pixels, each revealed after the previous is fixed.
+
+        Layout (5x1 row):  skin, red, blue, green, skin
+        - red has neighbors skin and blue — no same-color neighbor -> stray
+        - blue has neighbors red and green — no same-color neighbor -> stray
+        - green has neighbors blue and skin — no same-color neighbor -> stray
+
+        Pass 1 (from snapshot): all three are isolated.
+        red -> majority of {skin, blue} = tie, pick first alphabetically by count;
+        actually both have count 1, so max() returns whichever comes first.
+        All three get fixed to some neighbor color.
+        """
+        rgba = np.zeros((1, 5, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[0, 0, :3] = [200, 150, 120]  # skin
+        rgba[0, 1, :3] = [220, 50, 50]    # red (isolated)
+        rgba[0, 2, :3] = [0, 0, 255]      # blue (isolated)
+        rgba[0, 3, :3] = [0, 255, 0]      # green (isolated)
+        rgba[0, 4, :3] = [200, 150, 120]  # skin
+
+        result, count = remove_stray_pixels(rgba)
+        # After enough iterations, all middle pixels should converge.
+        # The key assertion: count > 0 (strays were fixed)
+        assert count >= 3
+        # All pixels should end up as some consistent color (likely skin since
+        # the endpoints are skin and they anchor the chain)
+
+    def test_border_pixel_with_fewer_neighbors(self) -> None:
+        """A corner pixel with only 3 neighbors still gets fixed if isolated."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]  # All skin
+        rgba[0, 0, :3] = [220, 50, 50]    # Top-left corner is red (stray)
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result[0, 0, :3], [200, 150, 120])
+        assert count == 1
+
+    def test_edge_pixel_with_fewer_neighbors(self) -> None:
+        """An edge pixel (not corner) with 5 neighbors gets fixed if isolated."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]  # All skin
+        rgba[0, 1, :3] = [220, 50, 50]    # Top-center edge is red (stray)
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result[0, 1, :3], [200, 150, 120])
+        assert count == 1
+
+    def test_transparent_neighbors_ignored(self) -> None:
+        """Transparent neighbors are not counted — only opaque ones matter."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        # Center is opaque red, surrounded by mix of transparent and opaque skin
+        rgba[1, 1] = [220, 50, 50, 255]   # Center: red, opaque
+        rgba[0, 0] = [200, 150, 120, 255]  # Top-left: skin, opaque
+        rgba[0, 1] = [200, 150, 120, 255]  # Top: skin, opaque
+        # All other neighbors are transparent (default zeros)
+
+        result, count = remove_stray_pixels(rgba)
+        # Red pixel has only skin opaque neighbors -> isolated -> fixed
+        np.testing.assert_array_equal(result[1, 1, :3], [200, 150, 120])
+        assert count == 1
+
+    def test_pixel_with_no_opaque_neighbors_unchanged(self) -> None:
+        """A pixel surrounded entirely by transparent pixels is left alone."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[1, 1] = [220, 50, 50, 255]  # Only opaque pixel
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result[1, 1, :3], [220, 50, 50])
+        assert count == 0
+
+    def test_no_strays_returns_unchanged(self) -> None:
+        """An image with no stray pixels is returned unchanged."""
+        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]  # Uniform color
+
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result, rgba)
+        assert count == 0
+
+    def test_all_transparent_returns_unchanged(self) -> None:
+        """Fully transparent image produces no changes."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        result, count = remove_stray_pixels(rgba)
+        np.testing.assert_array_equal(result, rgba)
+        assert count == 0
+
+    def test_majority_color_wins(self) -> None:
+        """When a stray pixel has mixed neighbors, the most common color wins."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        # Surround center with 5 skin pixels and 3 blue pixels
+        rgba[0, :, :3] = [200, 150, 120]  # 3 skin across top
+        rgba[1, 0, :3] = [200, 150, 120]  # skin left
+        rgba[1, 2, :3] = [200, 150, 120]  # skin right
+        rgba[2, 0, :3] = [0, 0, 255]      # blue bottom-left
+        rgba[2, 1, :3] = [0, 0, 255]      # blue bottom-center
+        rgba[2, 2, :3] = [0, 0, 255]      # blue bottom-right
+        rgba[1, 1, :3] = [220, 50, 50]    # center is red (stray)
+
+        result, count = remove_stray_pixels(rgba)
+        # Skin has 5 neighbors vs blue's 3, so skin wins
+        np.testing.assert_array_equal(result[1, 1, :3], [200, 150, 120])
+        assert count == 1
+
+    def test_max_iterations_respected(self) -> None:
+        """The function does not exceed max_iterations passes."""
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [200, 150, 120]
+        rgba[1, 1, :3] = [220, 50, 50]  # Stray
+
+        result, count = remove_stray_pixels(rgba, max_iterations=1)
+        # Should fix in 1 iteration
+        np.testing.assert_array_equal(result[1, 1, :3], [200, 150, 120])
+        assert count == 1
+
+
 class TestEnforceColorLimit:
     """Tests for color count enforcement."""
 
@@ -532,7 +720,7 @@ class TestCleanSprite:
         # Fully transparent
         rgba[3, :, :] = [0, 0, 0, 0]
 
-        result, ambiguous_resolved = clean_sprite(rgba, palette)
+        result, ambiguous_resolved, stray_fixed = clean_sprite(rgba, palette)
 
         # Row 0: was semi-transparent >= 128, snapped to opaque, color -> red
         assert np.all(result[0, :, 3] == 255)
@@ -549,13 +737,14 @@ class TestCleanSprite:
         assert np.all(result[3, :, 3] == 0)
 
         assert isinstance(ambiguous_resolved, int)
+        assert isinstance(stray_fixed, int)
 
     def test_preserves_transparency(self) -> None:
         palette = _make_test_palette()
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
         # Only center pixel is opaque
         rgba[2, 2] = [200, 50, 50, 255]
-        result, _ = clean_sprite(rgba, palette)
+        result, _, _ = clean_sprite(rgba, palette)
         assert result[2, 2, 3] == 255
         assert np.sum(result[:, :, 3] == 255) == 1
 

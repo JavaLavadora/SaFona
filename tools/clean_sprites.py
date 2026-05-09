@@ -1,11 +1,13 @@
 """Standalone sprite cleanup CLI — enforce palette compliance on AI-generated PNGs.
 
-Processes an input sprite PNG through four stages:
+Processes an input sprite PNG through five stages:
 1. Alpha cleanup: snap semi-transparent pixels to fully opaque or transparent
 2. Palette snapping: map every opaque pixel to the nearest palette color (CIELAB)
 3. Ambiguous snap resolution: fix pixels where two palette colors were nearly
    equidistant by using neighbor context (e.g. stray red in skin areas)
-4. Color count enforcement: merge excess colors into nearest palette neighbors
+4. Stray pixel cleanup: remove isolated single pixels whose color doesn't match
+   any 8-connected neighbor, replacing them with the local majority color
+5. Color count enforcement: merge excess colors into nearest palette neighbors
 
 Palette files are GIMP .gpl text files stored in assets/palettes/.
 
@@ -427,7 +429,87 @@ def resolve_ambiguous_snaps(
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 4: Color count enforcement
+# Pipeline stage 4: Stray pixel cleanup
+# ---------------------------------------------------------------------------
+
+def remove_stray_pixels(
+    rgba: np.ndarray,
+    max_iterations: int = 3,
+) -> tuple[np.ndarray, int]:
+    """Remove isolated stray pixels by replacing them with the local majority color.
+
+    A pixel is "stray" when its color does not appear in any of its 8-connected
+    opaque neighbors.  Such pixels are replaced with the most common color among
+    those neighbors.  The process iterates because removing one stray pixel may
+    reveal another that was previously not isolated.
+
+    Args:
+        rgba: RGBA image array of shape (H, W, 4), already palette-snapped.
+        max_iterations: Maximum number of passes (convergence usually within 2-3).
+
+    Returns:
+        Tuple of (cleaned_rgba, total_pixels_fixed) across all iterations.
+    """
+    result = rgba.copy()
+    h, w = rgba.shape[:2]
+    total_fixed = 0
+
+    # 8-connected neighbor offsets
+    offsets = [(-1, -1), (-1, 0), (-1, 1),
+               (0, -1),          (0, 1),
+               (1, -1),  (1, 0), (1, 1)]
+
+    for iteration in range(max_iterations):
+        fixed_this_pass = 0
+        opaque_mask = result[:, :, 3] == 255
+
+        # We need to read from a snapshot but write to result, so that
+        # changes within a single pass don't cascade unpredictably.
+        snapshot = result.copy()
+
+        for y in range(h):
+            for x in range(w):
+                if not opaque_mask[y, x]:
+                    continue
+
+                pixel_rgb = tuple(snapshot[y, x, :3])
+
+                # Gather opaque neighbor colors
+                neighbor_colors: list[tuple[int, int, int]] = []
+                for dy, dx in offsets:
+                    ny, nx = y + dy, x + dx
+                    if 0 <= ny < h and 0 <= nx < w and opaque_mask[ny, nx]:
+                        neighbor_colors.append(tuple(snapshot[ny, nx, :3]))
+
+                if not neighbor_colors:
+                    # No opaque neighbors at all — leave pixel as-is
+                    continue
+
+                # Check if the pixel's color appears in any neighbor
+                if pixel_rgb in neighbor_colors:
+                    continue
+
+                # Pixel is isolated — replace with the most common neighbor color
+                color_counts: dict[tuple[int, int, int], int] = {}
+                for c in neighbor_colors:
+                    color_counts[c] = color_counts.get(c, 0) + 1
+
+                majority_color = max(color_counts, key=color_counts.get)  # type: ignore[arg-type]
+                result[y, x, :3] = majority_color
+                fixed_this_pass += 1
+
+        total_fixed += fixed_this_pass
+
+        if fixed_this_pass == 0:
+            break
+
+        log.debug("  Stray pixel pass %d: fixed %d pixels", iteration + 1, fixed_this_pass)
+
+    return result, total_fixed
+
+
+# ---------------------------------------------------------------------------
+# Pipeline stage 5: Color count enforcement
 # ---------------------------------------------------------------------------
 
 def enforce_color_limit(
@@ -582,14 +664,15 @@ def clean_sprite(
     palette_rgb: np.ndarray,
     alpha_threshold: int = 128,
     max_colors: int = 15,
-) -> tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int, int]:
     """Run the full cleanup pipeline on an RGBA sprite array.
 
     Pipeline order:
     1. Alpha cleanup (snap semi-transparent)
     2. Palette snapping (nearest CIELAB color)
     3. Ambiguous snap resolution (neighbor-context tie-breaking)
-    4. Color count enforcement (merge excess)
+    4. Stray pixel cleanup (remove isolated wrong-color pixels)
+    5. Color count enforcement (merge excess)
 
     Args:
         rgba: Input RGBA image array of shape (H, W, 4).
@@ -598,15 +681,17 @@ def clean_sprite(
         max_colors: Maximum allowed unique opaque colors.
 
     Returns:
-        Tuple of (cleaned RGBA array, ambiguous_resolved count).
+        Tuple of (cleaned RGBA array, ambiguous_resolved count,
+        stray_pixels_fixed count).
     """
     result = clean_alpha(rgba, threshold=alpha_threshold)
     result, ambiguity_info = snap_to_palette_with_ambiguity(result, palette_rgb)
     result, ambiguous_resolved = resolve_ambiguous_snaps(
         result, ambiguity_info, palette_rgb,
     )
+    result, stray_fixed = remove_stray_pixels(result)
     result = enforce_color_limit(result, palette_rgb, max_colors=max_colors)
-    return result, ambiguous_resolved
+    return result, ambiguous_resolved, stray_fixed
 
 
 # ---------------------------------------------------------------------------
@@ -718,7 +803,7 @@ def main(argv: list[str] | None = None) -> int:
     original = np.array(img)
 
     # Run pipeline
-    cleaned, ambiguous_resolved = clean_sprite(original, palette_rgb)
+    cleaned, ambiguous_resolved, stray_fixed = clean_sprite(original, palette_rgb)
 
     # Stats
     stats = compute_stats(original, cleaned, palette_rgb)
@@ -730,6 +815,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("  Pixels changed:          %d / %d", stats["pixels_changed"], stats["total_opaque"])
         log.info("  Semi-transparent fixed:  %d", stats["semi_transparent_fixed"])
         log.info("  Ambiguous pixels resolved: %d", ambiguous_resolved)
+        log.info("  Stray pixels fixed:      %d", stray_fixed)
         log.info("  Palette colors used:     %d / %d", stats["palette_colors_used"], stats["palette_total"])
 
     if args.dry_run:

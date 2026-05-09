@@ -7,8 +7,8 @@ Processes an input sprite PNG through six stages:
    equidistant by using neighbor context (e.g. stray red in skin areas)
 4. Stray pixel cleanup: remove isolated single pixels whose color doesn't match
    any 8-connected neighbor, replacing them with the local majority color
-5. Outline: draw a 1-pixel contour around the sprite silhouette using the
-   darkest palette color (lowest L* in CIELAB) for character readability
+5. Outline: draw a 1-pixel contour around the sprite silhouette using pure
+   black RGB(0, 0, 0) for character readability
 6. Color count enforcement: merge excess colors into nearest palette neighbors
 
 Palette files are GIMP .gpl text files stored in assets/palettes/.
@@ -536,12 +536,13 @@ def add_outline(
     """Draw a 1-pixel contour around the sprite silhouette.
 
     Identifies transparent pixels that are 4-connected (up/down/left/right) to
-    at least one opaque pixel and sets them to opaque with the darkest palette
-    color (lowest L* in CIELAB).  Existing opaque pixels are never modified.
+    at least one opaque pixel and sets them to opaque with pure black
+    RGB(0, 0, 0).  Existing opaque pixels are never modified.
 
     Args:
         rgba: RGBA image array of shape (H, W, 4).
-        palette_rgb: Palette colors as (N, 3) uint8 array.
+        palette_rgb: Palette colors as (N, 3) uint8 array (accepted for
+            compatibility but not used for outline color).
 
     Returns:
         New RGBA array with outline pixels added.
@@ -549,7 +550,7 @@ def add_outline(
     result = rgba.copy()
     h, w = rgba.shape[:2]
 
-    darkest_color = _find_darkest_palette_color(palette_rgb)
+    outline_color = np.array([0, 0, 0], dtype=np.uint8)
 
     opaque_mask = rgba[:, :, 3] == 255
 
@@ -569,8 +570,8 @@ def add_outline(
 
     outline_mask = (~opaque_mask) & has_opaque_neighbor
 
-    # Set outline pixels to opaque with the darkest palette color
-    result[outline_mask, :3] = darkest_color
+    # Set outline pixels to opaque with pure black
+    result[outline_mask, :3] = outline_color
     result[outline_mask, 3] = 255
 
     return result

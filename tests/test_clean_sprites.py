@@ -660,20 +660,20 @@ class TestAddOutline:
 
         result = add_outline(rgba, palette)
 
-        # The 4-connected neighbors should now be opaque with the darkest color
+        # The 4-connected neighbors should now be opaque with pure black
         for y, x in [(0, 1), (2, 1), (1, 0), (1, 2)]:
             assert result[y, x, 3] == 255, f"Pixel ({y},{x}) should be opaque"
             np.testing.assert_array_equal(
-                result[y, x, :3], [32, 24, 16],
-                err_msg=f"Pixel ({y},{x}) should be darkest palette color",
+                result[y, x, :3], [0, 0, 0],
+                err_msg=f"Pixel ({y},{x}) should be pure black",
             )
 
         # Diagonal neighbors should remain transparent (4-connected only)
         for y, x in [(0, 0), (0, 2), (2, 0), (2, 2)]:
             assert result[y, x, 3] == 0, f"Diagonal ({y},{x}) should stay transparent"
 
-    def test_outline_uses_darkest_palette_color(self) -> None:
-        """Outline color is the one with lowest L* in CIELAB, not pure black."""
+    def test_outline_uses_pure_black(self) -> None:
+        """Outline color is always pure black, regardless of palette."""
         palette = np.array([
             [255, 255, 255],  # White (high L*)
             [100, 200, 50],   # Green (mid L*)
@@ -685,8 +685,8 @@ class TestAddOutline:
 
         result = add_outline(rgba, palette)
 
-        # Outline should use dark brown, not pure black
-        np.testing.assert_array_equal(result[0, 1, :3], [40, 30, 20])
+        # Outline should use pure black
+        np.testing.assert_array_equal(result[0, 1, :3], [0, 0, 0])
 
     def test_interior_pixels_not_modified(self) -> None:
         """Opaque pixels that are not on the edge are left unchanged."""
@@ -727,9 +727,9 @@ class TestAddOutline:
 
         # Only (1,0) and (0,1) are valid 4-connected transparent neighbors
         assert result[1, 0, 3] == 255
-        np.testing.assert_array_equal(result[1, 0, :3], [32, 24, 16])
+        np.testing.assert_array_equal(result[1, 0, :3], [0, 0, 0])
         assert result[0, 1, 3] == 255
-        np.testing.assert_array_equal(result[0, 1, :3], [32, 24, 16])
+        np.testing.assert_array_equal(result[0, 1, :3], [0, 0, 0])
 
         # Diagonal (1,1) should remain transparent
         assert result[1, 1, 3] == 0
@@ -790,7 +790,7 @@ class TestAddOutline:
         # But above, below, left, and right of the pair should be outlined.
         for y, x in [(1, 1), (1, 2), (3, 1), (3, 2), (2, 0), (2, 3)]:
             assert result[y, x, 3] == 255, f"Pixel ({y},{x}) should be outlined"
-            np.testing.assert_array_equal(result[y, x, :3], [32, 24, 16])
+            np.testing.assert_array_equal(result[y, x, :3], [0, 0, 0])
 
 
 class TestEnforceColorLimit:

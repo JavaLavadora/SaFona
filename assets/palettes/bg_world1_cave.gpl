@@ -1,0 +1,19 @@
+GIMP Palette
+Name: BG World 1 Cave (Sa Fona)
+Columns: 5
+# Sa Fona - World 1 cave system parallax background (SNES 15-bit compliant)
+ 24  16   8	Cave darkness / deep void
+ 24  16  32	Dark void purple tint
+ 48  24  16	Dark rock warm
+ 40  32  56	Dark stalactite cool
+ 48  32  40	Cave rock mid-dark
+ 80  40  16	Rock face shadow
+ 56  56  32	Mossy rock accent
+ 80  48  48	Stone reddish mid
+112  56  24	Rock ochre mid
+120  72  56	Warm stone detail
+ 96  96  32	Cave moss highlight
+144  72  32	Stalactite amber
+176  96  40	Torch glow shadow
+208 128  56	Torch warm light
+240 168  80	Torch bright / water reflect

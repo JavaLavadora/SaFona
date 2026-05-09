@@ -1,0 +1,19 @@
+GIMP Palette
+Name: BG World 1 Outdoor (Sa Fona)
+Columns: 5
+# Sa Fona - World 1 outdoor landscape parallax background (SNES 15-bit compliant)
+ 24  56  32	Dark foliage / deep shadow
+ 80  64  64	Rock shadow / cliff dark
+ 64  96  32	Forest shadow green
+144  96  32	Dirt path mid / rock warm
+136 112  96	Stone mid-tone
+120 128  24	Field green mid
+ 96 160  24	Grass bright green
+176 152  96	Sunlit stone / dry grass
+ 88 160 216	Sky blue base
+176 168  24	Olive canopy highlight
+224 160  40	Sunset horizon glow
+232 176  96	Golden haze / warm highlight
+160 200 200	Atmosphere haze / sky pale
+248 216 120	Horizon light / warm sky
+216 224 176	Sky highlight / bright haze

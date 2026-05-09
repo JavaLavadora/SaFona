@@ -84,6 +84,18 @@ class TestParseGpl:
         with pytest.raises(ValueError, match="No valid color"):
             parse_gpl(gpl)
 
+    def test_raises_on_out_of_range_rgb(self, tmp_path: Path) -> None:
+        gpl = tmp_path / "bad.gpl"
+        gpl.write_text("GIMP Palette\nName: Bad\n256 0 0\tTooHigh\n")
+        with pytest.raises(ValueError, match="out of 0-255 range"):
+            parse_gpl(gpl)
+
+    def test_raises_on_negative_rgb(self, tmp_path: Path) -> None:
+        gpl = tmp_path / "neg.gpl"
+        gpl.write_text("GIMP Palette\nName: Neg\n-1 128 128\tNegative\n")
+        with pytest.raises(ValueError, match="out of 0-255 range"):
+            parse_gpl(gpl)
+
     def test_parses_ramon_palette(self) -> None:
         ramon_gpl = PROJECT_ROOT / "assets" / "palettes" / "ramon.gpl"
         if not ramon_gpl.exists():
@@ -148,6 +160,15 @@ class TestCleanAlpha:
         rgba[:, :, 3] = 50
         result = clean_alpha(rgba, threshold=128)
         assert np.all(result[:, :, 3] == 0)
+
+    def test_zeros_rgb_on_transparent_pixels(self) -> None:
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, :3] = [200, 100, 50]  # Non-zero RGB
+        rgba[:, :, 3] = 50  # Below threshold -> transparent
+        result = clean_alpha(rgba, threshold=128)
+        assert np.all(result[:, :, 3] == 0)
+        # RGB should be zeroed out (no "dirty alpha")
+        assert np.all(result[:, :, :3] == 0)
 
     def test_does_not_modify_original(self) -> None:
         rgba = np.zeros((3, 3, 4), dtype=np.uint8)

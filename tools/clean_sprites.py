@@ -60,7 +60,7 @@ def parse_gpl(path: Path) -> np.ndarray:
 
     colors = []
     with open(path) as f:
-        for line in f:
+        for line_num, line in enumerate(f, start=1):
             line = line.strip()
             # Skip header, metadata, comments, blank lines
             if not line or line.startswith("GIMP Palette"):
@@ -74,9 +74,14 @@ def parse_gpl(path: Path) -> np.ndarray:
             if len(parts) >= 3:
                 try:
                     r, g, b = int(parts[0]), int(parts[1]), int(parts[2])
-                    colors.append((r, g, b))
                 except ValueError:
                     continue
+                if not (0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255):
+                    raise ValueError(
+                        f"RGB values out of 0-255 range at line {line_num} "
+                        f"in {path}: ({r}, {g}, {b})"
+                    )
+                colors.append((r, g, b))
 
     if not colors:
         raise ValueError(f"No valid color entries found in: {path}")
@@ -180,6 +185,9 @@ def clean_alpha(rgba: np.ndarray, threshold: int = 128) -> np.ndarray:
     """
     result = rgba.copy()
     result[:, :, 3] = np.where(result[:, :, 3] >= threshold, 255, 0)
+    # Zero out RGB on fully transparent pixels to avoid "dirty alpha"
+    transparent_mask = result[:, :, 3] == 0
+    result[:, :, :3][transparent_mask] = 0
     return result
 
 
@@ -207,7 +215,6 @@ def snap_to_palette(
     Returns:
         New RGBA array with colors replaced by nearest palette entries.
     """
-    h, w = rgba.shape[:2]
     result = rgba.copy()
 
     # Build palette in LAB space
@@ -217,7 +224,7 @@ def snap_to_palette(
     darkest_idx = int(np.argmin(palette_lab[:, 0]))
     darkest_rgb = palette_rgb[darkest_idx]
 
-    # Build a KD-tree from the non-darkest palette entries for general lookup
+    # Build a KD-tree from all palette entries for nearest-neighbor lookup
     tree = cKDTree(palette_lab)
 
     # Get opaque pixel mask
@@ -308,21 +315,19 @@ def enforce_color_limit(
             kept.add(idx)
 
     # Second pass: map unkept colors to their nearest palette color
+    # Pre-compute LAB for kept colors for CIELAB distance comparison
+    kept_list = sorted(kept)
+    kept_lab = unique_lab[kept_list]
+
     for idx in sort_order:
         if idx not in kept:
             _, nearest = tree.query(unique_lab[idx])
-            # Find the kept color closest to this palette color
-            nearest_palette_rgb = palette_rgb[nearest]
-            # Find which kept color matches or is closest
-            best_kept = None
-            best_dist = float("inf")
-            for k in kept:
-                dist = np.sum((unique_colors[k].astype(float) - nearest_palette_rgb.astype(float)) ** 2)
-                if dist < best_dist:
-                    best_dist = dist
-                    best_kept = k
-            if best_kept is not None:
-                remap[idx] = best_kept
+            # Find which kept color is closest to this palette color in CIELAB
+            nearest_palette_lab = palette_lab[nearest]
+            diffs = kept_lab - nearest_palette_lab
+            dists = np.sum(diffs ** 2, axis=1)
+            best_kept = kept_list[int(np.argmin(dists))]
+            remap[idx] = best_kept
 
     # Apply remapping
     new_rgb = unique_colors[remap[inverse]]

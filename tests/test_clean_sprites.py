@@ -14,16 +14,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from tools.clean_sprites import (
+    _AMBIGUITY_RATIO_THRESHOLD,
     clean_alpha,
     clean_sprite,
     compute_stats,
     enforce_color_limit,
     main,
     parse_gpl,
+    resolve_ambiguous_snaps,
     resolve_output_path,
     resolve_palette_path,
     rgb_to_lab,
     snap_to_palette,
+    snap_to_palette_with_ambiguity,
 )
 
 
@@ -235,6 +238,223 @@ class TestSnapToPalette:
         assert result_colors.issubset(palette_set)
 
 
+class TestSnapToPaletteWithAmbiguity:
+    """Tests for palette snapping with ambiguity data."""
+
+    def test_returns_ambiguity_info_dict(self) -> None:
+        palette = _make_test_palette()
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = [255, 0, 0]
+        result, info = snap_to_palette_with_ambiguity(rgba, palette)
+        assert "is_ambiguous" in info
+        assert "top2_indices" in info
+        assert "top2_distances" in info
+        assert info["is_ambiguous"].shape == (3, 3)
+        assert info["top2_indices"].shape == (3, 3, 2)
+        assert info["top2_distances"].shape == (3, 3, 2)
+
+    def test_exact_palette_match_not_ambiguous(self) -> None:
+        palette = _make_test_palette()
+        rgba = np.zeros((1, 1, 4), dtype=np.uint8)
+        rgba[0, 0] = [255, 0, 0, 255]  # Exact red
+        _, info = snap_to_palette_with_ambiguity(rgba, palette)
+        assert not info["is_ambiguous"][0, 0]
+
+    def test_equidistant_pixel_is_ambiguous(self) -> None:
+        """A pixel equidistant between two palette colors should be ambiguous."""
+        # Two palette colors fairly close, and a pixel between them
+        palette = np.array([
+            [200, 100, 50],   # Color A
+            [180, 110, 60],   # Color B (close to A)
+            [0, 0, 0],        # Black (far away)
+        ], dtype=np.uint8)
+        # A pixel midway between A and B
+        rgba = np.zeros((1, 1, 4), dtype=np.uint8)
+        rgba[0, 0] = [190, 105, 55, 255]
+        _, info = snap_to_palette_with_ambiguity(rgba, palette)
+        # The ratio should be high (close to 1.0) for this midpoint pixel
+        assert info["is_ambiguous"][0, 0]
+
+    def test_transparent_pixels_not_ambiguous(self) -> None:
+        palette = _make_test_palette()
+        rgba = np.zeros((2, 2, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 0  # All transparent
+        _, info = snap_to_palette_with_ambiguity(rgba, palette)
+        assert not np.any(info["is_ambiguous"])
+
+
+class TestResolveAmbiguousSnaps:
+    """Tests for context-aware ambiguous snap resolution."""
+
+    def _make_ambiguity_info(
+        self,
+        shape: tuple[int, int],
+        ambiguous_pixels: list[tuple[int, int, int, int]],
+        palette_idx_map: np.ndarray | None = None,
+    ) -> dict:
+        """Helper to build ambiguity_info dicts for testing.
+
+        Args:
+            shape: (H, W) of the image.
+            ambiguous_pixels: list of (y, x, idx_1st, idx_2nd) tuples.
+            palette_idx_map: optional full palette index map for top2_indices[:,:,0].
+        """
+        h, w = shape
+        is_ambiguous = np.zeros((h, w), dtype=bool)
+        top2_indices = np.zeros((h, w, 2), dtype=np.intp)
+        top2_distances = np.zeros((h, w, 2), dtype=np.float64)
+
+        if palette_idx_map is not None:
+            top2_indices[:, :, 0] = palette_idx_map
+
+        for y, x, idx1, idx2 in ambiguous_pixels:
+            is_ambiguous[y, x] = True
+            top2_indices[y, x, 0] = idx1
+            top2_indices[y, x, 1] = idx2
+
+        return {
+            "is_ambiguous": is_ambiguous,
+            "top2_indices": top2_indices,
+            "top2_distances": top2_distances,
+        }
+
+    def test_ambiguous_pixel_resolves_to_majority_neighbor(self) -> None:
+        """An ambiguous pixel surrounded by one color gets resolved to it."""
+        palette = np.array([
+            [200, 150, 120],  # 0: skin
+            [220, 50, 50],    # 1: red sash
+            [0, 0, 0],        # 2: black
+        ], dtype=np.uint8)
+
+        # 3x3 image: center pixel is ambiguous between skin(0) and red(1),
+        # all 8 neighbors are skin(0).
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = palette[0]          # All skin
+        rgba[1, 1, :3] = palette[1]          # Center snapped to red (wrong)
+
+        # palette_idx_map: all are 0 (skin), center is 1 (red)
+        idx_map = np.zeros((3, 3), dtype=np.intp)
+        idx_map[1, 1] = 1
+
+        info = self._make_ambiguity_info(
+            (3, 3),
+            ambiguous_pixels=[(1, 1, 1, 0)],  # snapped to red, 2nd choice=skin
+            palette_idx_map=idx_map,
+        )
+
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        # Should have been resolved to skin
+        np.testing.assert_array_equal(result[1, 1, :3], palette[0])
+        assert count == 1
+
+    def test_non_ambiguous_pixels_never_changed(self) -> None:
+        """Pixels not marked ambiguous must remain untouched."""
+        palette = np.array([
+            [200, 150, 120],  # 0: skin
+            [220, 50, 50],    # 1: red
+            [0, 0, 0],        # 2: black
+        ], dtype=np.uint8)
+
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = palette[0]
+        rgba[1, 1, :3] = palette[1]  # This pixel is red but NOT ambiguous
+
+        idx_map = np.zeros((3, 3), dtype=np.intp)
+        idx_map[1, 1] = 1
+
+        info = self._make_ambiguity_info(
+            (3, 3),
+            ambiguous_pixels=[],  # No ambiguous pixels
+            palette_idx_map=idx_map,
+        )
+
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        # Red pixel stays red — not ambiguous, so never touched
+        np.testing.assert_array_equal(result[1, 1, :3], palette[1])
+        assert count == 0
+
+    def test_edge_pixel_fewer_neighbors(self) -> None:
+        """Corner pixel with only 3 neighbors still resolves correctly."""
+        palette = np.array([
+            [200, 150, 120],  # 0: skin
+            [220, 50, 50],    # 1: red
+        ], dtype=np.uint8)
+
+        # 2x2 image: top-left is ambiguous, other 3 are skin
+        rgba = np.zeros((2, 2, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = palette[0]
+        rgba[0, 0, :3] = palette[1]  # Snapped to red
+
+        idx_map = np.zeros((2, 2), dtype=np.intp)
+        idx_map[0, 0] = 1
+
+        info = self._make_ambiguity_info(
+            (2, 2),
+            ambiguous_pixels=[(0, 0, 1, 0)],
+            palette_idx_map=idx_map,
+        )
+
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        # 3 neighbors are all skin(0), so should resolve to skin
+        np.testing.assert_array_equal(result[0, 0, :3], palette[0])
+        assert count == 1
+
+    def test_ambiguous_pixel_keeps_current_on_tie(self) -> None:
+        """When neighbor votes are tied, the current (1st-nearest) wins."""
+        palette = np.array([
+            [200, 150, 120],  # 0: skin
+            [220, 50, 50],    # 1: red
+            [0, 0, 0],        # 2: black (filler)
+        ], dtype=np.uint8)
+
+        # 1x3 row: left=skin, center=red(ambiguous), right=skin
+        # But only 2 neighbors (left, right) — one skin, but let's make it
+        # a true tie: left=red, right=skin
+        rgba = np.zeros((1, 3, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[0, 0, :3] = palette[1]  # red
+        rgba[0, 1, :3] = palette[1]  # red (ambiguous)
+        rgba[0, 2, :3] = palette[0]  # skin
+
+        idx_map = np.array([[1, 1, 0]], dtype=np.intp)
+
+        info = self._make_ambiguity_info(
+            (1, 3),
+            ambiguous_pixels=[(0, 1, 1, 0)],  # 1st=red, 2nd=skin
+            palette_idx_map=idx_map,
+        )
+
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        # 1 neighbor is red, 1 is skin -> tie -> keep current (red)
+        np.testing.assert_array_equal(result[0, 1, :3], palette[1])
+        assert count == 0
+
+    def test_no_ambiguous_pixels_returns_unchanged(self) -> None:
+        """When no pixels are ambiguous, result is identical and count is 0."""
+        palette = _make_test_palette()
+        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        rgba[:, :, :3] = palette[0]
+
+        info = self._make_ambiguity_info((4, 4), ambiguous_pixels=[])
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        np.testing.assert_array_equal(result, rgba)
+        assert count == 0
+
+    def test_all_transparent_returns_unchanged(self) -> None:
+        """Fully transparent image produces no changes."""
+        palette = _make_test_palette()
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        info = self._make_ambiguity_info((3, 3), ambiguous_pixels=[])
+        result, count = resolve_ambiguous_snaps(rgba, info, palette)
+        np.testing.assert_array_equal(result, rgba)
+        assert count == 0
+
+
 class TestEnforceColorLimit:
     """Tests for color count enforcement."""
 
@@ -312,7 +532,7 @@ class TestCleanSprite:
         # Fully transparent
         rgba[3, :, :] = [0, 0, 0, 0]
 
-        result = clean_sprite(rgba, palette)
+        result, ambiguous_resolved = clean_sprite(rgba, palette)
 
         # Row 0: was semi-transparent >= 128, snapped to opaque, color -> red
         assert np.all(result[0, :, 3] == 255)
@@ -328,12 +548,14 @@ class TestCleanSprite:
         # Row 3: stays transparent
         assert np.all(result[3, :, 3] == 0)
 
+        assert isinstance(ambiguous_resolved, int)
+
     def test_preserves_transparency(self) -> None:
         palette = _make_test_palette()
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
         # Only center pixel is opaque
         rgba[2, 2] = [200, 50, 50, 255]
-        result = clean_sprite(rgba, palette)
+        result, _ = clean_sprite(rgba, palette)
         assert result[2, 2, 3] == 255
         assert np.sum(result[:, :, 3] == 255) == 1
 

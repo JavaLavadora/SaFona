@@ -1,9 +1,11 @@
 """Standalone sprite cleanup CLI — enforce palette compliance on AI-generated PNGs.
 
-Processes an input sprite PNG through three stages:
+Processes an input sprite PNG through four stages:
 1. Alpha cleanup: snap semi-transparent pixels to fully opaque or transparent
 2. Palette snapping: map every opaque pixel to the nearest palette color (CIELAB)
-3. Color count enforcement: merge excess colors into nearest palette neighbors
+3. Ambiguous snap resolution: fix pixels where two palette colors were nearly
+   equidistant by using neighbor context (e.g. stray red in skin areas)
+4. Color count enforcement: merge excess colors into nearest palette neighbors
 
 Palette files are GIMP .gpl text files stored in assets/palettes/.
 
@@ -197,6 +199,12 @@ def clean_alpha(rgba: np.ndarray, threshold: int = 128) -> np.ndarray:
 
 _OUTLINE_LUMINANCE_THRESHOLD = 30.0
 
+# Ratio threshold for ambiguous palette snaps.  A pixel is "ambiguous" when
+# dist_to_1st / dist_to_2nd >= this value, meaning the two closest palette
+# colors were nearly equidistant.  Tune between 0.65 (aggressive) and 0.90
+# (conservative).
+_AMBIGUITY_RATIO_THRESHOLD = 0.75
+
 
 def snap_to_palette(
     rgba: np.ndarray,
@@ -204,9 +212,8 @@ def snap_to_palette(
 ) -> np.ndarray:
     """Map every opaque pixel to the nearest palette color in CIELAB space.
 
-    Outline pixels (very dark, L* < threshold) are snapped directly to the
-    darkest palette color to avoid CIELAB nonlinearity near black pulling
-    dark browns into the outline color.
+    Wrapper that discards ambiguity info — use ``snap_to_palette_with_ambiguity``
+    if you need that data for the resolve step.
 
     Args:
         rgba: RGBA image array of shape (H, W, 4), alpha already cleaned.
@@ -215,7 +222,43 @@ def snap_to_palette(
     Returns:
         New RGBA array with colors replaced by nearest palette entries.
     """
+    result, _ = snap_to_palette_with_ambiguity(rgba, palette_rgb)
+    return result
+
+
+def snap_to_palette_with_ambiguity(
+    rgba: np.ndarray,
+    palette_rgb: np.ndarray,
+) -> tuple[np.ndarray, dict]:
+    """Map every opaque pixel to the nearest palette color in CIELAB space,
+    and return ambiguity information for each pixel.
+
+    Outline pixels (very dark, L* < threshold) are snapped directly to the
+    darkest palette color to avoid CIELAB nonlinearity near black pulling
+    dark browns into the outline color.  Outline pixels are never marked
+    ambiguous.
+
+    Args:
+        rgba: RGBA image array of shape (H, W, 4), alpha already cleaned.
+        palette_rgb: Palette colors as (N, 3) uint8 array.
+
+    Returns:
+        Tuple of (snapped_rgba, ambiguity_info) where ambiguity_info is a dict:
+            - "is_ambiguous": bool array of shape (H, W), True for ambiguous
+              opaque pixels.
+            - "top2_indices": int array of shape (H, W, 2), the indices into
+              palette_rgb of the 1st and 2nd nearest colors for each opaque
+              pixel.  Non-opaque pixels are filled with 0.
+            - "top2_distances": float array of shape (H, W, 2), the CIELAB
+              distances to the 1st and 2nd nearest palette colors.
+    """
     result = rgba.copy()
+    h, w = rgba.shape[:2]
+
+    # Prepare ambiguity output arrays
+    is_ambiguous = np.zeros((h, w), dtype=bool)
+    top2_indices = np.zeros((h, w, 2), dtype=np.intp)
+    top2_distances = np.zeros((h, w, 2), dtype=np.float64)
 
     # Build palette in LAB space
     palette_lab = rgb_to_lab(palette_rgb)
@@ -230,7 +273,12 @@ def snap_to_palette(
     # Get opaque pixel mask
     opaque_mask = rgba[:, :, 3] == 255
     if not np.any(opaque_mask):
-        return result
+        ambiguity_info = {
+            "is_ambiguous": is_ambiguous,
+            "top2_indices": top2_indices,
+            "top2_distances": top2_distances,
+        }
+        return result, ambiguity_info
 
     # Extract opaque pixel RGB values
     opaque_rgb = rgba[:, :, :3][opaque_mask]  # (K, 3)
@@ -241,22 +289,145 @@ def snap_to_palette(
     # Identify outline pixels: very dark (low L*)
     is_outline = opaque_lab[:, 0] < _OUTLINE_LUMINANCE_THRESHOLD
 
-    # Query KD-tree for all pixels
-    _, indices = tree.query(opaque_lab)
+    # Query KD-tree for top-2 nearest neighbors
+    k = min(2, len(palette_rgb))
+    distances, indices = tree.query(opaque_lab, k=k)
+
+    if k == 1:
+        # Only one palette color — reshape to (K, 1) for consistent handling
+        distances = distances[:, np.newaxis]
+        indices = indices[:, np.newaxis]
 
     # Build result RGB: general pixels get tree result, outlines get darkest
-    mapped_rgb = palette_rgb[indices]
+    mapped_rgb = palette_rgb[indices[:, 0]]
     mapped_rgb[is_outline] = darkest_rgb
 
-    # Write back
+    # Compute ambiguity: ratio of 1st / 2nd distance
+    # Avoid division by zero when 2nd distance is 0 (exact match on two colors)
+    if k >= 2:
+        dist_1st = distances[:, 0]
+        dist_2nd = distances[:, 1]
+        # If dist_2nd is 0, both distances are 0 (exact match) — not ambiguous
+        with np.errstate(divide="ignore", invalid="ignore"):
+            ratio = np.where(
+                dist_2nd > 0,
+                dist_1st / dist_2nd,
+                0.0,
+            )
+        pixel_ambiguous = (ratio >= _AMBIGUITY_RATIO_THRESHOLD) & (~is_outline)
+    else:
+        pixel_ambiguous = np.zeros(len(opaque_lab), dtype=bool)
+
+    # Write ambiguity info back into 2D arrays
+    is_ambiguous[opaque_mask] = pixel_ambiguous
+    top2_indices[opaque_mask, 0] = indices[:, 0]
+    if k >= 2:
+        top2_indices[opaque_mask, 1] = indices[:, 1]
+    top2_distances[opaque_mask, 0] = distances[:, 0]
+    if k >= 2:
+        top2_distances[opaque_mask, 1] = distances[:, 1]
+
+    # For outline pixels, override the top-1 index to darkest
+    outline_2d = np.zeros((h, w), dtype=bool)
+    outline_2d[opaque_mask] = is_outline
+    top2_indices[outline_2d, 0] = darkest_idx
+
+    # Write back mapped colors
     result_rgb = result[:, :, :3]
     result_rgb[opaque_mask] = mapped_rgb
 
-    return result
+    ambiguity_info = {
+        "is_ambiguous": is_ambiguous,
+        "top2_indices": top2_indices,
+        "top2_distances": top2_distances,
+    }
+    return result, ambiguity_info
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 3: Color count enforcement
+# Pipeline stage 3: Resolve ambiguous palette snaps
+# ---------------------------------------------------------------------------
+
+def resolve_ambiguous_snaps(
+    rgba: np.ndarray,
+    ambiguity_info: dict,
+    palette_rgb: np.ndarray,
+) -> tuple[np.ndarray, int]:
+    """Fix ambiguously-snapped pixels by choosing the palette color that
+    matches most of the pixel's neighbors.
+
+    For each ambiguous pixel, examine its 8-connected neighbors' palette
+    assignments.  Among the pixel's two candidate palette colors (1st and
+    2nd nearest), pick whichever appears more frequently among those
+    neighbors.  Ties are broken in favour of the current (1st-nearest)
+    assignment.  Non-ambiguous pixels are never modified.
+
+    Args:
+        rgba: RGBA image array of shape (H, W, 4), already palette-snapped.
+        ambiguity_info: Dict produced by ``snap_to_palette_with_ambiguity``.
+        palette_rgb: Palette colors as (N, 3) uint8 array.
+
+    Returns:
+        Tuple of (resolved_rgba, resolved_count) where resolved_count is
+        the number of pixels whose color was changed.
+    """
+    result = rgba.copy()
+    is_ambiguous = ambiguity_info["is_ambiguous"]
+    top2_indices = ambiguity_info["top2_indices"]
+
+    h, w = rgba.shape[:2]
+    resolved_count = 0
+
+    # Get coordinates of all ambiguous pixels
+    amb_ys, amb_xs = np.nonzero(is_ambiguous)
+    if len(amb_ys) == 0:
+        return result, 0
+
+    # Precompute a full palette-index map for the image so we can quickly
+    # look up each pixel's palette assignment.
+    # For opaque pixels, find which palette color they currently match.
+    opaque_mask = rgba[:, :, 3] == 255
+
+    # Build an index map: for each pixel, the palette index it maps to.
+    # Use top2_indices[:, :, 0] — this was set during snap_to_palette.
+    # Non-opaque pixels get -1.
+    palette_idx_map = np.full((h, w), -1, dtype=np.intp)
+    palette_idx_map[opaque_mask] = top2_indices[opaque_mask, 0]
+
+    # 8-connected neighbor offsets
+    offsets = [(-1, -1), (-1, 0), (-1, 1),
+               (0, -1),          (0, 1),
+               (1, -1),  (1, 0), (1, 1)]
+
+    for y, x in zip(amb_ys, amb_xs):
+        cand_1st = int(top2_indices[y, x, 0])
+        cand_2nd = int(top2_indices[y, x, 1])
+
+        count_1st = 0
+        count_2nd = 0
+
+        for dy, dx in offsets:
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w:
+                neighbor_idx = palette_idx_map[ny, nx]
+                if neighbor_idx == cand_1st:
+                    count_1st += 1
+                elif neighbor_idx == cand_2nd:
+                    count_2nd += 1
+
+        # Pick the candidate with more neighbor votes.
+        # Ties (including 0 == 0) keep current assignment (cand_1st).
+        if count_2nd > count_1st:
+            result[y, x, :3] = palette_rgb[cand_2nd]
+            # Update palette_idx_map so subsequent pixels see the change
+            palette_idx_map[y, x] = cand_2nd
+            resolved_count += 1
+
+    return result, resolved_count
+
+
+# ---------------------------------------------------------------------------
+# Pipeline stage 4: Color count enforcement
 # ---------------------------------------------------------------------------
 
 def enforce_color_limit(
@@ -411,13 +582,14 @@ def clean_sprite(
     palette_rgb: np.ndarray,
     alpha_threshold: int = 128,
     max_colors: int = 15,
-) -> np.ndarray:
+) -> tuple[np.ndarray, int]:
     """Run the full cleanup pipeline on an RGBA sprite array.
 
     Pipeline order:
     1. Alpha cleanup (snap semi-transparent)
     2. Palette snapping (nearest CIELAB color)
-    3. Color count enforcement (merge excess)
+    3. Ambiguous snap resolution (neighbor-context tie-breaking)
+    4. Color count enforcement (merge excess)
 
     Args:
         rgba: Input RGBA image array of shape (H, W, 4).
@@ -426,12 +598,15 @@ def clean_sprite(
         max_colors: Maximum allowed unique opaque colors.
 
     Returns:
-        Cleaned RGBA array.
+        Tuple of (cleaned RGBA array, ambiguous_resolved count).
     """
     result = clean_alpha(rgba, threshold=alpha_threshold)
-    result = snap_to_palette(result, palette_rgb)
+    result, ambiguity_info = snap_to_palette_with_ambiguity(result, palette_rgb)
+    result, ambiguous_resolved = resolve_ambiguous_snaps(
+        result, ambiguity_info, palette_rgb,
+    )
     result = enforce_color_limit(result, palette_rgb, max_colors=max_colors)
-    return result
+    return result, ambiguous_resolved
 
 
 # ---------------------------------------------------------------------------
@@ -543,7 +718,7 @@ def main(argv: list[str] | None = None) -> int:
     original = np.array(img)
 
     # Run pipeline
-    cleaned = clean_sprite(original, palette_rgb)
+    cleaned, ambiguous_resolved = clean_sprite(original, palette_rgb)
 
     # Stats
     stats = compute_stats(original, cleaned, palette_rgb)
@@ -554,6 +729,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("  Unique colors after:     %d", stats["colors_after"])
         log.info("  Pixels changed:          %d / %d", stats["pixels_changed"], stats["total_opaque"])
         log.info("  Semi-transparent fixed:  %d", stats["semi_transparent_fixed"])
+        log.info("  Ambiguous pixels resolved: %d", ambiguous_resolved)
         log.info("  Palette colors used:     %d / %d", stats["palette_colors_used"], stats["palette_total"])
 
     if args.dry_run:

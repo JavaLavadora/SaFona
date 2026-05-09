@@ -1,13 +1,15 @@
 """Standalone sprite cleanup CLI — enforce palette compliance on AI-generated PNGs.
 
-Processes an input sprite PNG through five stages:
+Processes an input sprite PNG through six stages:
 1. Alpha cleanup: snap semi-transparent pixels to fully opaque or transparent
 2. Palette snapping: map every opaque pixel to the nearest palette color (CIELAB)
 3. Ambiguous snap resolution: fix pixels where two palette colors were nearly
    equidistant by using neighbor context (e.g. stray red in skin areas)
 4. Stray pixel cleanup: remove isolated single pixels whose color doesn't match
    any 8-connected neighbor, replacing them with the local majority color
-5. Color count enforcement: merge excess colors into nearest palette neighbors
+5. Outline: draw a 1-pixel contour around the sprite silhouette using the
+   darkest palette color (lowest L* in CIELAB) for character readability
+6. Color count enforcement: merge excess colors into nearest palette neighbors
 
 Palette files are GIMP .gpl text files stored in assets/palettes/.
 
@@ -15,6 +17,7 @@ Usage:
     conda activate safona
     python tools/clean_sprites.py assets/sprites/ramon/idle.png --palette ramon
     python tools/clean_sprites.py idle.png --palette ramon --verbose --dry-run
+    python tools/clean_sprites.py tile.png --palette world1 --no-outline
 """
 
 from __future__ import annotations
@@ -509,7 +512,72 @@ def remove_stray_pixels(
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 5: Color count enforcement
+# Pipeline stage 5: Outline
+# ---------------------------------------------------------------------------
+
+def _find_darkest_palette_color(palette_rgb: np.ndarray) -> np.ndarray:
+    """Return the palette color with the lowest L* (lightness) in CIELAB.
+
+    Args:
+        palette_rgb: Palette colors as (N, 3) uint8 array.
+
+    Returns:
+        The darkest palette color as a (3,) uint8 array.
+    """
+    palette_lab = rgb_to_lab(palette_rgb)
+    darkest_idx = int(np.argmin(palette_lab[:, 0]))
+    return palette_rgb[darkest_idx].copy()
+
+
+def add_outline(
+    rgba: np.ndarray,
+    palette_rgb: np.ndarray,
+) -> np.ndarray:
+    """Draw a 1-pixel contour around the sprite silhouette.
+
+    Identifies transparent pixels that are 4-connected (up/down/left/right) to
+    at least one opaque pixel and sets them to opaque with the darkest palette
+    color (lowest L* in CIELAB).  Existing opaque pixels are never modified.
+
+    Args:
+        rgba: RGBA image array of shape (H, W, 4).
+        palette_rgb: Palette colors as (N, 3) uint8 array.
+
+    Returns:
+        New RGBA array with outline pixels added.
+    """
+    result = rgba.copy()
+    h, w = rgba.shape[:2]
+
+    darkest_color = _find_darkest_palette_color(palette_rgb)
+
+    opaque_mask = rgba[:, :, 3] == 255
+
+    # Pad the opaque mask with False on all sides so neighbor lookups
+    # don't need bounds checking.
+    padded = np.pad(opaque_mask, pad_width=1, mode="constant", constant_values=False)
+
+    # A pixel is an outline candidate if it is transparent AND at least one
+    # of its 4-connected neighbors (up/down/left/right) is opaque.
+    # padded[1:-1, 1:-1] is the original mask; shifted slices give neighbors.
+    has_opaque_neighbor = (
+        padded[0:-2, 1:-1]  # up
+        | padded[2:, 1:-1]  # down
+        | padded[1:-1, 0:-2]  # left
+        | padded[1:-1, 2:]  # right
+    )
+
+    outline_mask = (~opaque_mask) & has_opaque_neighbor
+
+    # Set outline pixels to opaque with the darkest palette color
+    result[outline_mask, :3] = darkest_color
+    result[outline_mask, 3] = 255
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Pipeline stage 6: Color count enforcement
 # ---------------------------------------------------------------------------
 
 def enforce_color_limit(
@@ -664,6 +732,7 @@ def clean_sprite(
     palette_rgb: np.ndarray,
     alpha_threshold: int = 128,
     max_colors: int = 15,
+    outline: bool = True,
 ) -> tuple[np.ndarray, int, int]:
     """Run the full cleanup pipeline on an RGBA sprite array.
 
@@ -672,13 +741,15 @@ def clean_sprite(
     2. Palette snapping (nearest CIELAB color)
     3. Ambiguous snap resolution (neighbor-context tie-breaking)
     4. Stray pixel cleanup (remove isolated wrong-color pixels)
-    5. Color count enforcement (merge excess)
+    5. Outline (1px contour with darkest palette color)
+    6. Color count enforcement (merge excess)
 
     Args:
         rgba: Input RGBA image array of shape (H, W, 4).
         palette_rgb: Palette colors as (N, 3) uint8 array.
         alpha_threshold: Cutoff for alpha snapping.
         max_colors: Maximum allowed unique opaque colors.
+        outline: Whether to add a 1px outline around the sprite silhouette.
 
     Returns:
         Tuple of (cleaned RGBA array, ambiguous_resolved count,
@@ -690,6 +761,8 @@ def clean_sprite(
         result, ambiguity_info, palette_rgb,
     )
     result, stray_fixed = remove_stray_pixels(result)
+    if outline:
+        result = add_outline(result, palette_rgb)
     result = enforce_color_limit(result, palette_rgb, max_colors=max_colors)
     return result, ambiguous_resolved, stray_fixed
 
@@ -734,6 +807,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Show stats without writing output file.",
+    )
+    parser.add_argument(
+        "--no-outline",
+        action="store_true",
+        help="Disable 1px outline around the sprite silhouette.",
     )
     return parser
 
@@ -803,7 +881,10 @@ def main(argv: list[str] | None = None) -> int:
     original = np.array(img)
 
     # Run pipeline
-    cleaned, ambiguous_resolved, stray_fixed = clean_sprite(original, palette_rgb)
+    use_outline = not args.no_outline
+    cleaned, ambiguous_resolved, stray_fixed = clean_sprite(
+        original, palette_rgb, outline=use_outline,
+    )
 
     # Stats
     stats = compute_stats(original, cleaned, palette_rgb)

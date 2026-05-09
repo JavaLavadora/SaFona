@@ -15,6 +15,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from tools.clean_sprites import (
     _AMBIGUITY_RATIO_THRESHOLD,
+    add_outline,
     clean_alpha,
     clean_sprite,
     compute_stats,
@@ -643,6 +644,155 @@ class TestRemoveStrayPixels:
         assert count == 1
 
 
+class TestAddOutline:
+    """Tests for the outline (contour) step."""
+
+    def test_small_sprite_gets_outline(self) -> None:
+        """A single opaque pixel gets outlined on all 4 sides."""
+        palette = np.array([
+            [200, 150, 120],  # Skin
+            [32, 24, 16],     # Darkest
+        ], dtype=np.uint8)
+
+        # 3x3 image: only center pixel is opaque
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[1, 1] = [200, 150, 120, 255]
+
+        result = add_outline(rgba, palette)
+
+        # The 4-connected neighbors should now be opaque with the darkest color
+        for y, x in [(0, 1), (2, 1), (1, 0), (1, 2)]:
+            assert result[y, x, 3] == 255, f"Pixel ({y},{x}) should be opaque"
+            np.testing.assert_array_equal(
+                result[y, x, :3], [32, 24, 16],
+                err_msg=f"Pixel ({y},{x}) should be darkest palette color",
+            )
+
+        # Diagonal neighbors should remain transparent (4-connected only)
+        for y, x in [(0, 0), (0, 2), (2, 0), (2, 2)]:
+            assert result[y, x, 3] == 0, f"Diagonal ({y},{x}) should stay transparent"
+
+    def test_outline_uses_darkest_palette_color(self) -> None:
+        """Outline color is the one with lowest L* in CIELAB, not pure black."""
+        palette = np.array([
+            [255, 255, 255],  # White (high L*)
+            [100, 200, 50],   # Green (mid L*)
+            [40, 30, 20],     # Dark brown (lowest L*)
+        ], dtype=np.uint8)
+
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[1, 1] = [255, 255, 255, 255]
+
+        result = add_outline(rgba, palette)
+
+        # Outline should use dark brown, not pure black
+        np.testing.assert_array_equal(result[0, 1, :3], [40, 30, 20])
+
+    def test_interior_pixels_not_modified(self) -> None:
+        """Opaque pixels that are not on the edge are left unchanged."""
+        palette = np.array([
+            [200, 150, 120],  # Skin
+            [32, 24, 16],     # Darkest
+        ], dtype=np.uint8)
+
+        # 5x5 image: 3x3 block of opaque skin pixels in the center
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        for y in range(1, 4):
+            for x in range(1, 4):
+                rgba[y, x] = [200, 150, 120, 255]
+
+        result = add_outline(rgba, palette)
+
+        # Interior pixel (2,2) should still be skin
+        np.testing.assert_array_equal(result[2, 2, :3], [200, 150, 120])
+        assert result[2, 2, 3] == 255
+
+        # All original opaque pixels should still be skin
+        for y in range(1, 4):
+            for x in range(1, 4):
+                np.testing.assert_array_equal(result[y, x, :3], [200, 150, 120])
+
+    def test_edge_of_image_pixels_outlined(self) -> None:
+        """A sprite touching the image edge still gets outlined on available sides."""
+        palette = np.array([
+            [200, 150, 120],  # Skin
+            [32, 24, 16],     # Darkest
+        ], dtype=np.uint8)
+
+        # 3x3 image: top-left pixel is opaque
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[0, 0] = [200, 150, 120, 255]
+
+        result = add_outline(rgba, palette)
+
+        # Only (1,0) and (0,1) are valid 4-connected transparent neighbors
+        assert result[1, 0, 3] == 255
+        np.testing.assert_array_equal(result[1, 0, :3], [32, 24, 16])
+        assert result[0, 1, 3] == 255
+        np.testing.assert_array_equal(result[0, 1, :3], [32, 24, 16])
+
+        # Diagonal (1,1) should remain transparent
+        assert result[1, 1, 3] == 0
+
+    def test_no_outline_flag_disables_outline(self) -> None:
+        """clean_sprite with outline=False produces no outline pixels."""
+        palette = np.array([
+            [200, 150, 120],  # Skin
+            [32, 24, 16],     # Darkest
+        ], dtype=np.uint8)
+
+        # 5x5 image: center pixel is opaque
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[2, 2] = [200, 150, 120, 255]
+
+        result_with, _, _ = clean_sprite(rgba, palette, outline=True)
+        result_without, _, _ = clean_sprite(rgba, palette, outline=False)
+
+        # With outline: should have more opaque pixels
+        opaque_with = np.sum(result_with[:, :, 3] == 255)
+        opaque_without = np.sum(result_without[:, :, 3] == 255)
+        assert opaque_with > opaque_without
+        assert opaque_without == 1  # Only the original pixel
+
+    def test_fully_transparent_image_unchanged(self) -> None:
+        """Outlining a fully transparent image produces no changes."""
+        palette = np.array([[32, 24, 16], [200, 150, 120]], dtype=np.uint8)
+        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+
+        result = add_outline(rgba, palette)
+        np.testing.assert_array_equal(result, rgba)
+
+    def test_does_not_modify_original(self) -> None:
+        """add_outline returns a new array; input is not mutated."""
+        palette = np.array([[200, 150, 120], [32, 24, 16]], dtype=np.uint8)
+        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
+        rgba[1, 1] = [200, 150, 120, 255]
+        original_copy = rgba.copy()
+
+        add_outline(rgba, palette)
+        np.testing.assert_array_equal(rgba, original_copy)
+
+    def test_adjacent_opaque_pixels_share_outline(self) -> None:
+        """Two adjacent opaque pixels share outline pixels between them."""
+        palette = np.array([
+            [200, 150, 120],  # Skin
+            [32, 24, 16],     # Darkest
+        ], dtype=np.uint8)
+
+        # 5x5 image: two horizontally adjacent opaque pixels
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[2, 1] = [200, 150, 120, 255]
+        rgba[2, 2] = [200, 150, 120, 255]
+
+        result = add_outline(rgba, palette)
+
+        # The pixel between them (2,1)-(2,2) is opaque already, not outline.
+        # But above, below, left, and right of the pair should be outlined.
+        for y, x in [(1, 1), (1, 2), (3, 1), (3, 2), (2, 0), (2, 3)]:
+            assert result[y, x, 3] == 255, f"Pixel ({y},{x}) should be outlined"
+            np.testing.assert_array_equal(result[y, x, :3], [32, 24, 16])
+
+
 class TestEnforceColorLimit:
     """Tests for color count enforcement."""
 
@@ -720,7 +870,10 @@ class TestCleanSprite:
         # Row 3: fully transparent
         rgba[3, :, :] = [0, 0, 0, 0]
 
-        result, ambiguous_resolved, stray_fixed = clean_sprite(rgba, palette)
+        # Test with outline disabled to verify core pipeline
+        result, ambiguous_resolved, stray_fixed = clean_sprite(
+            rgba, palette, outline=False,
+        )
 
         # Row 0: was semi-transparent >= 128, snapped to opaque, color -> red
         assert np.all(result[0, :, 3] == 255)
@@ -739,14 +892,48 @@ class TestCleanSprite:
         assert isinstance(ambiguous_resolved, int)
         assert isinstance(stray_fixed, int)
 
+    def test_full_pipeline_with_outline(self) -> None:
+        """Full pipeline with outline enabled adds contour around opaque areas."""
+        palette = np.array([
+            [255, 0, 0],
+            [0, 0, 255],
+            [0, 0, 0],   # Darkest
+        ], dtype=np.uint8)
+        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+        rgba[0, :, :] = [240, 10, 10, 200]   # -> opaque red
+        rgba[1, :, :] = [10, 10, 240, 255]   # -> opaque blue
+        rgba[2, :, :] = [100, 100, 100, 50]  # -> transparent
+        rgba[3, :, :] = [0, 0, 0, 0]
+
+        result, _, _ = clean_sprite(rgba, palette, outline=True)
+
+        # Rows 0-1 are opaque; row 2 gets outline (adjacent to row 1)
+        assert np.all(result[2, :, 3] == 255)
+        np.testing.assert_array_equal(result[2, 0, :3], [0, 0, 0])
+
+        # Row 3 stays transparent (not adjacent to opaque after outline)
+        assert np.all(result[3, :, 3] == 0)
+
     def test_preserves_transparency(self) -> None:
         palette = _make_test_palette()
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
         # Only center pixel is opaque
         rgba[2, 2] = [200, 50, 50, 255]
-        result, _, _ = clean_sprite(rgba, palette)
+
+        # With outline disabled, only the original pixel remains opaque
+        result, _, _ = clean_sprite(rgba, palette, outline=False)
         assert result[2, 2, 3] == 255
         assert np.sum(result[:, :, 3] == 255) == 1
+
+    def test_preserves_transparency_with_outline(self) -> None:
+        """With outline enabled, a single pixel gets 4 outline neighbors."""
+        palette = _make_test_palette()
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[2, 2] = [200, 50, 50, 255]
+        result, _, _ = clean_sprite(rgba, palette, outline=True)
+        assert result[2, 2, 3] == 255
+        # 1 original + 4 outline pixels (4-connected)
+        assert np.sum(result[:, :, 3] == 255) == 5
 
 
 class TestResolveOutputPath:
@@ -833,3 +1020,38 @@ class TestCli:
         assert out_path.exists()
         result = np.array(Image.open(out_path))
         np.testing.assert_array_equal(result[0, 0, :3], [255, 0, 0])
+
+    def test_no_outline_flag(self, tmp_path: Path) -> None:
+        """--no-outline flag disables outline in CLI output."""
+        # 5x5 image: single opaque pixel in the center
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[2, 2] = [200, 50, 50, 255]
+        img_path = tmp_path / "test.png"
+        Image.fromarray(rgba, "RGBA").save(str(img_path))
+
+        gpl_dir = tmp_path / "assets" / "palettes"
+        gpl_dir.mkdir(parents=True)
+        _make_gpl_file(gpl_dir / "test.gpl", [(255, 0, 0), (0, 0, 0)])
+
+        import tools.clean_sprites as mod
+        original_root = mod.PROJECT_ROOT
+        mod.PROJECT_ROOT = tmp_path
+        try:
+            # With outline (default)
+            out_with = tmp_path / "with_outline.png"
+            main([str(img_path), "--palette", "test", "--output", str(out_with)])
+
+            # Without outline
+            out_without = tmp_path / "no_outline.png"
+            main([str(img_path), "--palette", "test", "--no-outline",
+                  "--output", str(out_without)])
+        finally:
+            mod.PROJECT_ROOT = original_root
+
+        result_with = np.array(Image.open(out_with))
+        result_without = np.array(Image.open(out_without))
+
+        opaque_with = np.sum(result_with[:, :, 3] == 255)
+        opaque_without = np.sum(result_without[:, :, 3] == 255)
+        # With outline should have more opaque pixels (the outline)
+        assert opaque_with > opaque_without

@@ -18,7 +18,6 @@ from tools.clean_sprites import (
     clean_alpha,
     clean_sprite,
     compute_stats,
-    denoise_opaque,
     enforce_color_limit,
     main,
     parse_gpl,
@@ -181,129 +180,6 @@ class TestCleanAlpha:
         original_copy = rgba.copy()
         clean_alpha(rgba)
         np.testing.assert_array_equal(rgba, original_copy)
-
-
-class TestDenoiseOpaque:
-    """Tests for pre-snap median filter on opaque pixels."""
-
-    def test_single_red_spike_in_skin_area_smoothed(self) -> None:
-        """A single bright red pixel surrounded by skin-colored pixels becomes skin-toned."""
-        skin = [200, 150, 120]
-        red_spike = [229, 5, 7]
-
-        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 255
-        rgba[:, :, :3] = skin
-        rgba[1, 1, :3] = red_spike  # Center is a red spike
-
-        result = denoise_opaque(rgba)
-
-        # The median of 8 skin pixels + 1 red pixel per channel should be skin
-        np.testing.assert_array_equal(result[1, 1, :3], skin)
-        # Alpha must be unchanged
-        assert np.all(result[:, :, 3] == 255)
-
-    def test_edge_pixels_next_to_transparency_only_use_opaque_neighbors(self) -> None:
-        """Edge pixels next to transparent areas only consider opaque neighbors."""
-        skin = [200, 150, 120]
-        red_spike = [229, 5, 7]
-
-        # 3x3 image: top row transparent, bottom-left transparent
-        # Only opaque pixels: (1,0)=skin, (1,1)=red, (1,2)=skin,
-        #                     (2,1)=skin, (2,2)=skin
-        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[1, 0] = [*skin, 255]
-        rgba[1, 1] = [*red_spike, 255]
-        rgba[1, 2] = [*skin, 255]
-        rgba[2, 1] = [*skin, 255]
-        rgba[2, 2] = [*skin, 255]
-
-        result = denoise_opaque(rgba)
-
-        # The red pixel at (1,1) has opaque neighbors: (1,0)=skin, (1,2)=skin,
-        # (2,1)=skin, (2,2)=skin. Median of skin+skin+skin+skin+red = skin.
-        np.testing.assert_array_equal(result[1, 1, :3], skin)
-        # Alpha for transparent pixels must remain 0
-        assert result[0, 0, 3] == 0
-        assert result[0, 1, 3] == 0
-        assert result[0, 2, 3] == 0
-        assert result[2, 0, 3] == 0
-
-    def test_uniform_area_unchanged(self) -> None:
-        """A uniform color area is not modified by the median filter."""
-        skin = [200, 150, 120]
-        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 255
-        rgba[:, :, :3] = skin
-
-        result = denoise_opaque(rgba)
-
-        np.testing.assert_array_equal(result[:, :, :3], rgba[:, :, :3])
-        np.testing.assert_array_equal(result[:, :, 3], rgba[:, :, 3])
-
-    def test_isolated_single_pixel_unchanged(self) -> None:
-        """A single opaque pixel surrounded by transparency is left as-is."""
-        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[1, 1] = [229, 5, 7, 255]  # Only opaque pixel
-
-        result = denoise_opaque(rgba)
-
-        np.testing.assert_array_equal(result[1, 1, :3], [229, 5, 7])
-        assert result[1, 1, 3] == 255
-        # All other pixels remain transparent
-        assert np.sum(result[:, :, 3] == 255) == 1
-
-    def test_alpha_channel_never_modified(self) -> None:
-        """The alpha channel must be identical to the input regardless of filter."""
-        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
-        # Mixed alpha: some opaque, some transparent, some semi-transparent
-        # (semi-transparent shouldn't exist after clean_alpha, but test robustness)
-        rgba[:, :, 3] = 0
-        rgba[1, 1, :] = [200, 150, 120, 255]
-        rgba[1, 2, :] = [229, 5, 7, 255]
-        rgba[2, 1, :] = [200, 150, 120, 255]
-        rgba[2, 2, :] = [200, 150, 120, 255]
-        rgba[3, 3, :] = [100, 100, 100, 128]  # Semi-transparent edge case
-
-        original_alpha = rgba[:, :, 3].copy()
-        result = denoise_opaque(rgba)
-
-        np.testing.assert_array_equal(result[:, :, 3], original_alpha)
-
-    def test_does_not_modify_original(self) -> None:
-        """The function returns a new array without modifying the input."""
-        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 255
-        rgba[:, :, :3] = [200, 150, 120]
-        rgba[1, 1, :3] = [229, 5, 7]
-        original_copy = rgba.copy()
-
-        denoise_opaque(rgba)
-
-        np.testing.assert_array_equal(rgba, original_copy)
-
-    def test_all_transparent_returns_unchanged(self) -> None:
-        """Fully transparent image is returned unchanged."""
-        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
-        result = denoise_opaque(rgba)
-        np.testing.assert_array_equal(result, rgba)
-
-    def test_two_opaque_neighbors_still_filters(self) -> None:
-        """A pixel with only two opaque neighbors (including itself) still applies median."""
-        rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[1, 0] = [200, 150, 120, 255]  # skin
-        rgba[1, 1] = [229, 5, 7, 255]      # red spike
-        # Only 2 opaque pixels in the 3x3 window of (1,1): itself + (1,0)
-        # Median of [200, 229] = 214 (per channel)
-
-        result = denoise_opaque(rgba)
-
-        # With 2 values, median of [200, 229] = 214.5 -> 214 (uint8 truncation)
-        # For G: median of [150, 5] = 77.5 -> 77
-        # For B: median of [120, 7] = 63.5 -> 63
-        assert result[1, 1, 0] == 214
-        assert result[1, 1, 1] == 77
-        assert result[1, 1, 2] == 63
 
 
 class TestSnapToPalette:
@@ -834,33 +710,31 @@ class TestCleanSprite:
             [0, 0, 255],
             [0, 0, 0],
         ], dtype=np.uint8)
-        # Use larger regions so the median filter (3x3 kernel) doesn't
-        # blur the boundary between red and blue areas.
-        rgba = np.zeros((8, 4, 4), dtype=np.uint8)
-        # Rows 0-2: semi-transparent near-red (3 rows = safe interior)
-        rgba[0:3, :, :] = [240, 10, 10, 200]
-        # Rows 3-5: opaque near-blue (3 rows = safe interior)
-        rgba[3:6, :, :] = [10, 10, 240, 255]
-        # Row 6: semi-transparent below threshold
-        rgba[6, :, :] = [100, 100, 100, 50]
-        # Row 7: fully transparent
-        rgba[7, :, :] = [0, 0, 0, 0]
+        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+        # Row 0: semi-transparent near-red (alpha >= 128 -> opaque, color -> red)
+        rgba[0, :, :] = [240, 10, 10, 200]
+        # Row 1: opaque near-blue (color -> blue)
+        rgba[1, :, :] = [10, 10, 240, 255]
+        # Row 2: semi-transparent below threshold (alpha < 128 -> transparent)
+        rgba[2, :, :] = [100, 100, 100, 50]
+        # Row 3: fully transparent
+        rgba[3, :, :] = [0, 0, 0, 0]
 
         result, ambiguous_resolved, stray_fixed = clean_sprite(rgba, palette)
 
-        # Row 0 (interior red): was semi-transparent >= 128, snapped to opaque, color -> red
+        # Row 0: was semi-transparent >= 128, snapped to opaque, color -> red
         assert np.all(result[0, :, 3] == 255)
         np.testing.assert_array_equal(result[0, 0, :3], [255, 0, 0])
 
-        # Row 4 (interior blue): was opaque, color -> blue
-        assert np.all(result[4, :, 3] == 255)
-        np.testing.assert_array_equal(result[4, 0, :3], [0, 0, 255])
+        # Row 1: was opaque, color -> blue
+        assert np.all(result[1, :, 3] == 255)
+        np.testing.assert_array_equal(result[1, 0, :3], [0, 0, 255])
 
-        # Row 6: was semi-transparent < 128, snapped to transparent
-        assert np.all(result[6, :, 3] == 0)
+        # Row 2: was semi-transparent < 128, snapped to transparent
+        assert np.all(result[2, :, 3] == 0)
 
-        # Row 7: stays transparent
-        assert np.all(result[7, :, 3] == 0)
+        # Row 3: stays transparent
+        assert np.all(result[3, :, 3] == 0)
 
         assert isinstance(ambiguous_resolved, int)
         assert isinstance(stray_fixed, int)

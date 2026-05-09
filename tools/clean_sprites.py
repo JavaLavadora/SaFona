@@ -1,16 +1,13 @@
 """Standalone sprite cleanup CLI — enforce palette compliance on AI-generated PNGs.
 
-Processes an input sprite PNG through six stages:
+Processes an input sprite PNG through five stages:
 1. Alpha cleanup: snap semi-transparent pixels to fully opaque or transparent
-2. Denoise opaque pixels: apply a median filter to RGB channels of opaque pixels
-   to smooth out isolated color spikes (e.g. bright red AI artifacts in skin areas)
-   without modifying transparency or bleeding across transparent boundaries
-3. Palette snapping: map every opaque pixel to the nearest palette color (CIELAB)
-4. Ambiguous snap resolution: fix pixels where two palette colors were nearly
+2. Palette snapping: map every opaque pixel to the nearest palette color (CIELAB)
+3. Ambiguous snap resolution: fix pixels where two palette colors were nearly
    equidistant by using neighbor context (e.g. stray red in skin areas)
-5. Stray pixel cleanup: remove isolated single pixels whose color doesn't match
+4. Stray pixel cleanup: remove isolated single pixels whose color doesn't match
    any 8-connected neighbor, replacing them with the local majority color
-6. Color count enforcement: merge excess colors into nearest palette neighbors
+5. Color count enforcement: merge excess colors into nearest palette neighbors
 
 Palette files are GIMP .gpl text files stored in assets/palettes/.
 
@@ -199,81 +196,7 @@ def clean_alpha(rgba: np.ndarray, threshold: int = 128) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 2: Denoise opaque pixels (pre-snap median filter)
-# ---------------------------------------------------------------------------
-
-def denoise_opaque(rgba: np.ndarray, kernel_size: int = 3) -> np.ndarray:
-    """Apply a median filter to RGB channels of opaque pixels.
-
-    Smooths out isolated color spikes (e.g. bright red AI artifacts in
-    skin-colored areas) before palette snapping, so that the wrong source
-    color doesn't get locked in as the wrong palette color.
-
-    The alpha channel is never modified. Transparent boundaries are respected:
-    for each opaque pixel, only opaque neighbors within the kernel window
-    contribute to the median. If a pixel has no opaque neighbors (isolated
-    single pixel), it is left unchanged.
-
-    Args:
-        rgba: RGBA image array of shape (H, W, 4), alpha already cleaned.
-        kernel_size: Size of the square median kernel (must be odd, >= 3).
-
-    Returns:
-        New RGBA array with denoised RGB on opaque pixels.
-    """
-    result = rgba.copy()
-    h, w = rgba.shape[:2]
-    opaque_mask = rgba[:, :, 3] == 255
-    pad = kernel_size // 2
-
-    if not np.any(opaque_mask):
-        return result
-
-    # Pad the image and opaque mask to avoid boundary checks in the inner loop
-    padded_rgb = np.pad(
-        rgba[:, :, :3],
-        ((pad, pad), (pad, pad), (0, 0)),
-        mode="constant",
-        constant_values=0,
-    )
-    padded_opaque = np.pad(
-        opaque_mask,
-        ((pad, pad), (pad, pad)),
-        mode="constant",
-        constant_values=False,
-    )
-
-    # Get coordinates of all opaque pixels
-    ys, xs = np.nonzero(opaque_mask)
-
-    for y, x in zip(ys, xs):
-        # Extract the kernel window from padded arrays (no boundary checks needed)
-        py, px = y + pad, x + pad
-        window_opaque = padded_opaque[
-            py - pad : py + pad + 1,
-            px - pad : px + pad + 1,
-        ]
-        opaque_count = np.sum(window_opaque)
-
-        # If the pixel is the only opaque one in the window, leave it as-is
-        if opaque_count <= 1:
-            continue
-
-        # Gather RGB values of opaque pixels in the window
-        window_rgb = padded_rgb[
-            py - pad : py + pad + 1,
-            px - pad : px + pad + 1,
-        ]
-        opaque_rgb = window_rgb[window_opaque]  # (K, 3)
-
-        # Per-channel median
-        result[y, x, :3] = np.median(opaque_rgb, axis=0).astype(np.uint8)
-
-    return result
-
-
-# ---------------------------------------------------------------------------
-# Pipeline stage 3: Palette snapping
+# Pipeline stage 2: Palette snapping
 # ---------------------------------------------------------------------------
 
 _OUTLINE_LUMINANCE_THRESHOLD = 30.0
@@ -424,7 +347,7 @@ def snap_to_palette_with_ambiguity(
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 4: Resolve ambiguous palette snaps
+# Pipeline stage 3: Resolve ambiguous palette snaps
 # ---------------------------------------------------------------------------
 
 def resolve_ambiguous_snaps(
@@ -506,7 +429,7 @@ def resolve_ambiguous_snaps(
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 5: Stray pixel cleanup
+# Pipeline stage 4: Stray pixel cleanup
 # ---------------------------------------------------------------------------
 
 def remove_stray_pixels(
@@ -586,7 +509,7 @@ def remove_stray_pixels(
 
 
 # ---------------------------------------------------------------------------
-# Pipeline stage 6: Color count enforcement
+# Pipeline stage 5: Color count enforcement
 # ---------------------------------------------------------------------------
 
 def enforce_color_limit(
@@ -746,11 +669,10 @@ def clean_sprite(
 
     Pipeline order:
     1. Alpha cleanup (snap semi-transparent)
-    2. Denoise opaque pixels (median filter to smooth color spikes)
-    3. Palette snapping (nearest CIELAB color)
-    4. Ambiguous snap resolution (neighbor-context tie-breaking)
-    5. Stray pixel cleanup (remove isolated wrong-color pixels)
-    6. Color count enforcement (merge excess)
+    2. Palette snapping (nearest CIELAB color)
+    3. Ambiguous snap resolution (neighbor-context tie-breaking)
+    4. Stray pixel cleanup (remove isolated wrong-color pixels)
+    5. Color count enforcement (merge excess)
 
     Args:
         rgba: Input RGBA image array of shape (H, W, 4).
@@ -763,7 +685,6 @@ def clean_sprite(
         stray_pixels_fixed count).
     """
     result = clean_alpha(rgba, threshold=alpha_threshold)
-    result = denoise_opaque(result)
     result, ambiguity_info = snap_to_palette_with_ambiguity(result, palette_rgb)
     result, ambiguous_resolved = resolve_ambiguous_snaps(
         result, ambiguity_info, palette_rgb,

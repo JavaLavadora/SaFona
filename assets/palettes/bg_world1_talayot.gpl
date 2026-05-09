@@ -1,0 +1,19 @@
+GIMP Palette
+Name: BG World 1 Talayot (Sa Fona)
+Columns: 5
+# Sa Fona - World 1 talayotic tower interior parallax background (SNES 15-bit compliant)
+ 24   8  24	Deep shadow / void
+ 48  32  40	Dark wall purple tint
+ 64  32  24	Dark stone warm
+ 88  40  24	Wall shadow ochre
+ 88  56  64	Stone purple accent
+120  56  24	Sandstone shadow
+120  64  48	Wall mid warm
+152  72  24	Brick base ochre
+112  96 120	Cool stone accent / archway shadow
+176  80  16	Warm brick mid
+184 112  56	Lit stone highlight
+216 104  16	Torch glow warm
+240 144  16	Firelight bright
+176 192 192	Ceiling light / skylight pale
+248 200  32	Brightest torch / skylight warm

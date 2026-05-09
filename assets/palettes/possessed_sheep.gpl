@@ -1,0 +1,12 @@
+GIMP Palette
+Name: Possessed Sheep (Sa Fona)
+Columns: 4
+# Sa Fona - Possessed Sheep enemy palette (SNES 15-bit compliant)
+232 232 224	Wool light
+208 208 192	Wool mid
+184 184 168	Wool dark
+184 160 144	Face / body
+224  48  48	Eye (possessed red)
+248  96  80	Eye glow
+ 88  64  48	Hoof
+184 168 144	Horn

@@ -1,0 +1,10 @@
+GIMP Palette
+Name: Breakable Pot (Sa Fona)
+Columns: 3
+# Sa Fona - Breakable pot palette (SNES 15-bit compliant)
+184 120  56	Clay body
+200 144  72	Clay light
+152  96  48	Clay dark
+128  80  32	Clay shadow
+168 112  56	Rim
+192 136  72	Rim light

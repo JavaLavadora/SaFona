@@ -1,0 +1,19 @@
+GIMP Palette
+Name: Ramon (Sa Fona)
+Columns: 5
+# Sa Fona - Ramon player palette (SNES 15-bit compliant)
+248 248 240	Tunic highlight
+240 232 216	Headwrap / eye white / tunic base
+208 200 192	Headwrap shadow / tunic mid-shadow
+192 192 176	Tunic deep crease
+200 136  72	Skin base
+176 112  56	Skin shadow / bracers / mouth
+152  96  48	Skin dark / boot mid
+ 32  24  16	Pupil / dark outline
+224  56  48	Red sash bright
+192  40  32	Red sash base
+152  32  24	Red sash dark
+136  88  48	Leather dark / sling cord light
+ 96  72  48	Pants mid / boot dark
+ 88  64  40	Pants base / sling cord
+ 64  48  32	Pants / boots darkest

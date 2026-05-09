@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Heart Pickup (Sa Fona)
+Columns: 4
+# Sa Fona - Heart pickup palette (SNES 15-bit compliant)
+224  40  40	Heart red
+248  80  80	Heart light
+176  32  32	Heart dark
+248 184 184	Highlight

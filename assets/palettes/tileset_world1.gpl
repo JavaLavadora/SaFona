@@ -1,0 +1,19 @@
+GIMP Palette
+Name: World 1 Tileset (Sa Fona)
+Columns: 5
+# Sa Fona - Outdoor limestone terrain tileset (SNES 15-bit compliant)
+ 32  24  16	Dark outline
+ 32  72   8	Dark moss
+ 48  96  16	Grass shadow
+ 64  96  32	Moss mid
+ 80 128  40	Grass base
+104 152  56	Grass highlight
+ 96  80  48	Earth dark
+120  96  56	Limestone deep shadow
+144 120  80	Limestone shadow
+168 144  96	Limestone base
+176 152 104	Limestone warm
+192 160 112	Limestone mid
+208 176 120	Limestone highlight
+224 192 120	Sandstone bright
+240 208 152	Sunlit edge

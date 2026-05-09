@@ -1,0 +1,19 @@
+GIMP Palette
+Name: World 1 Talayot Tileset (Sa Fona)
+Columns: 5
+# Sa Fona - Ancient talayotic tower interior tileset (SNES 15-bit compliant)
+ 32  24  16	Dark outline
+ 32  72  16	Dark moss
+ 48  96  16	Moss shadow
+ 80 128  40	Moss base
+ 96 152  56	Moss highlight
+ 96  80  48	Earth dark
+120  96  56	Stone deep shadow
+144 120  80	Stone shadow
+168 144  96	Stone base
+184 152  96	Stone warm
+192 160 104	Stone mid
+200 168 112	Stone light
+208 176 112	Stone bright
+224 192 136	Stone highlight
+240 200 128	Sunlit stone

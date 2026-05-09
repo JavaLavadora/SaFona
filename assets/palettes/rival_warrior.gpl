@@ -1,0 +1,16 @@
+GIMP Palette
+Name: Rival Warrior (Sa Fona)
+Columns: 4
+# Sa Fona - Rival Warrior enemy palette (SNES 15-bit compliant)
+112  72  40	Skin
+ 88  56  32	Skin shadow / legs shadow
+224 208 200	Eye white
+ 32  24  16	Pupil
+ 48  32  24	Hair dark
+ 72  48  32	Hair highlight
+144  96  56	Hide armor
+120  88  48	Armor shadow
+ 96  72  40	Leather strap / legs
+160 152 128	Weapon stone
+136 128 112	Weapon shadow
+ 80  56  32	Feet

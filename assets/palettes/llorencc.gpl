@@ -1,0 +1,16 @@
+GIMP Palette
+Name: Llorencc - Shopkeeper (Sa Fona)
+Columns: 4
+# Sa Fona - Llorencc NPC palette (SNES 15-bit compliant)
+192 136  80	Skin base
+168 112  64	Skin shadow
+ 64  40  24	Hair / beard
+ 32  24  16	Eyes
+240 232 208	Shirt (cream linen)
+216 208 184	Shirt shadow
+ 56 104  72	Vest (olive green)
+ 40  80  56	Vest shadow
+184  56  40	Apron (terracotta)
+152  40  32	Apron shadow
+ 88  64  40	Pants (brown)
+112  80  48	Boots

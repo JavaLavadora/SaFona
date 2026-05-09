@@ -1,0 +1,19 @@
+GIMP Palette
+Name: World 1 Cave Tileset (Sa Fona)
+Columns: 5
+# Sa Fona - Cave interior tileset (SNES 15-bit compliant)
+ 24  16  16	Dark outline
+ 24  56  32	Deep cave moss
+ 32  72  40	Cave moss shadow
+ 40  88  48	Cave moss base
+ 48  96  56	Cave moss light
+ 56  64  72	Cave rock deep
+ 64  72  80	Cave rock dark
+ 72  80  96	Cave rock shadow
+ 80  88 104	Cave stone shadow
+ 88  96 112	Cave stone base
+ 96 104 120	Cave stone mid
+104 112 128	Cave stone light
+120 128 136	Cave rock bright
+136 144 152	Cave highlight
+160 168 176	Cave rim light

@@ -54,8 +54,8 @@ _SHAKE_DURATION = 0.3
 # ── Parallax and background visual constants ──────────────────
 # Parallax scroll factor: how fast the background moves relative to the camera.
 # Outdoor levels scroll faster (more depth); interior levels are subtler.
-PARALLAX_FACTOR_OUTDOOR: float = 0.3
-PARALLAX_FACTOR_INTERIOR: float = 0.15
+PARALLAX_FACTOR_OUTDOOR: float = 0.05
+PARALLAX_FACTOR_INTERIOR: float = 0.05
 
 # Background dimming overlay alpha (0=fully transparent, 255=fully opaque).
 # At alpha 102 the background is ~60% brightness, making tiles pop.

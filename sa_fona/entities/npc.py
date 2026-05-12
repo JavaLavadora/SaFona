@@ -18,13 +18,13 @@ from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 # NPC placeholder dimensions (slightly taller than the player).
-_NPC_WIDTH: int = 20
-_NPC_HEIGHT: int = 36
+_NPC_WIDTH: int = 30
+_NPC_HEIGHT: int = 54
 
 # Interaction zone extends beyond the NPC's visual rect so the player
 # does not need pixel-perfect overlap to trigger interaction.
-_INTERACT_MARGIN_X: int = 12
-_INTERACT_MARGIN_Y: int = 4
+_INTERACT_MARGIN_X: int = 18
+_INTERACT_MARGIN_Y: int = 6
 
 
 class NPC(Entity):
@@ -55,8 +55,8 @@ class NPC(Entity):
 
     # Sprite dimensions per NPC type.
     _NPC_SPRITE_SIZES: dict[str, tuple[int, int]] = {
-        "llorencc": (20, 36),
-        "dimoni": (24, 40),
+        "llorencc": (30, 54),
+        "dimoni": (36, 60),
     }
 
     def __init__(

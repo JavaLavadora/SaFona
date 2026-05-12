@@ -2,23 +2,43 @@
   "version": "1.0",
   "sling": {
     "charge_thresholds": {
-      "tier_1": { "min_hold": 0.3, "max_hold": 0.8, "damage_multiplier": 1.0, "range_tiles": 8 },
-      "tier_2": { "min_hold": 0.8, "max_hold": 1.5, "damage_multiplier": 2.0, "range_tiles": 15 },
-      "tier_3": { "min_hold": 1.5, "damage_multiplier": 3.0, "range_tiles": 24 }
+      "tier_1": {
+        "min_hold": 0.3,
+        "max_hold": 0.8,
+        "damage_multiplier": 1.0,
+        "range_tiles": 8
+      },
+      "tier_2": {
+        "min_hold": 0.8,
+        "max_hold": 1.5,
+        "damage_multiplier": 2.0,
+        "range_tiles": 15
+      },
+      "tier_3": {
+        "min_hold": 1.5,
+        "damage_multiplier": 3.0,
+        "range_tiles": 24
+      }
     },
     "tap_damage": 1.0,
     "tap_range_tiles": 1.5,
-    "projectile_speed": 250.0,
-    "tap_hitbox_width": 20,
-    "tap_hitbox_height": 20,
+    "projectile_speed": 375.0,
+    "tap_hitbox_width": 30,
+    "tap_hitbox_height": 30,
     "tap_duration": 0.1,
-    "projectile_width": 8,
-    "projectile_height": 8
+    "projectile_width": 12,
+    "projectile_height": 12
   },
   "health": {
     "starting_hearts": 3,
     "max_hearts_cap": 8,
-    "heart_upgrade_costs": [40, 75, 120, 175, 240],
+    "heart_upgrade_costs": [
+      40,
+      75,
+      120,
+      175,
+      240
+    ],
     "half_heart_value": 0.5
   },
   "consumables": {
@@ -31,16 +51,44 @@
     }
   },
   "stone_drops": {
-    "breakable_pot": { "min": 1, "max": 3 },
-    "breakable_crate": { "min": 2, "max": 4 },
-    "grass_tuft": { "min": 0, "max": 2 },
-    "furniture": { "min": 1, "max": 3 }
+    "breakable_pot": {
+      "min": 1,
+      "max": 3
+    },
+    "breakable_crate": {
+      "min": 2,
+      "max": 4
+    },
+    "grass_tuft": {
+      "min": 0,
+      "max": 2
+    },
+    "furniture": {
+      "min": 1,
+      "max": 3
+    }
   },
   "enemy_drops": {
-    "default": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.1 },
-    "possessed_sheep": { "stones_min": 1, "stones_max": 2, "heart_chance": 0.1 },
-    "rival_warrior": { "stones_min": 1, "stones_max": 3, "heart_chance": 0.15 },
-    "stone_guardian": { "stones_min": 2, "stones_max": 4, "heart_chance": 0.2 }
+    "default": {
+      "stones_min": 1,
+      "stones_max": 3,
+      "heart_chance": 0.1
+    },
+    "possessed_sheep": {
+      "stones_min": 1,
+      "stones_max": 2,
+      "heart_chance": 0.1
+    },
+    "rival_warrior": {
+      "stones_min": 1,
+      "stones_max": 3,
+      "heart_chance": 0.15
+    },
+    "stone_guardian": {
+      "stones_min": 2,
+      "stones_max": 4,
+      "heart_chance": 0.2
+    }
   },
   "prices": {
     "ensaimada": 10,

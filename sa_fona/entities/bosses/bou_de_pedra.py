@@ -46,27 +46,27 @@ def _load_boss_sub_sprites() -> None:
         return
     _boss_sprites_loaded = True
 
-    frames = load_frame_strip("assets/sprites/boss/boss_rock.png", 8, 8)
+    frames = load_frame_strip("assets/sprites/boss/boss_rock.png", 12, 12)
     if frames:
         _boss_rock_sprite = frames[0]
 
-    frames = load_frame_strip("assets/sprites/boss/boss_shockwave.png", 16, 8)
+    frames = load_frame_strip("assets/sprites/boss/boss_shockwave.png", 24, 12)
     if frames:
         _boss_shockwave_sprite = frames[0]
 
-    frames = load_frame_strip("assets/sprites/boss/boss_pulse.png", 24, 16)
+    frames = load_frame_strip("assets/sprites/boss/boss_pulse.png", 36, 24)
     if frames:
         _boss_pulse_sprite = frames[0]
 
-    frames = load_frame_strip("assets/sprites/boss/boss_shadow.png", 16, 6)
+    frames = load_frame_strip("assets/sprites/boss/boss_shadow.png", 24, 9)
     if frames:
         _boss_shadow_sprite = frames[0]
 
-    frames = load_frame_strip("assets/sprites/boss/pillar_intact.png", 16, 48)
+    frames = load_frame_strip("assets/sprites/boss/pillar_intact.png", 24, 72)
     if frames:
         _pillar_intact_sprite = frames[0]
 
-    frames = load_frame_strip("assets/sprites/boss/pillar_destroyed.png", 16, 48)
+    frames = load_frame_strip("assets/sprites/boss/pillar_destroyed.png", 24, 72)
     if frames:
         _pillar_destroyed_sprite = frames[0]
 
@@ -239,11 +239,11 @@ class ShadowMarker:
         sy = int(self.y) - camera_offset[1]
 
         if _boss_shadow_sprite is not None:
-            surface.blit(_boss_shadow_sprite, (sx - 8, sy - 3))
+            surface.blit(_boss_shadow_sprite, (sx - 12, sy - 5))
         else:
-            marker_surf = pygame.Surface((16, 6), pygame.SRCALPHA)
-            pygame.draw.ellipse(marker_surf, (40, 40, 40, 140), (0, 0, 16, 6))
-            surface.blit(marker_surf, (sx - 8, sy - 3))
+            marker_surf = pygame.Surface((24, 9), pygame.SRCALPHA)
+            pygame.draw.ellipse(marker_surf, (40, 40, 40, 140), (0, 0, 24, 9))
+            surface.blit(marker_surf, (sx - 12, sy - 5))
 
 
 class DestructiblePillar:
@@ -655,15 +655,15 @@ class BouDePedra(BossEntity):
         self._event_bus.publish("screen_shake", intensity=5.0, duration=0.3)
 
         # Spawn shockwaves going left and right along the ground.
-        ground_y = self.rect.bottom - 8
-        speed = 180.0
+        ground_y = self.rect.bottom - 12
+        speed = 270.0
 
         # Right shockwave.
         self.projectiles.append(BossProjectile(
             x=self.rect.right,
             y=ground_y,
-            width=16,
-            height=8,
+            width=24,
+            height=12,
             vx=speed,
             vy=0,
             damage=damage,
@@ -673,10 +673,10 @@ class BouDePedra(BossEntity):
 
         # Left shockwave.
         self.projectiles.append(BossProjectile(
-            x=self.rect.left - 16,
+            x=self.rect.left - 24,
             y=ground_y,
-            width=16,
-            height=8,
+            width=24,
+            height=12,
             vx=-speed,
             vy=0,
             damage=damage,
@@ -700,7 +700,7 @@ class BouDePedra(BossEntity):
 
         # Predict landing positions around the player.
         player_cx = self._player_rect.centerx
-        spread = 32  # Pixels between landing points.
+        spread = 48  # Pixels between landing points.
 
         for i in range(rock_count):
             offset = (i - rock_count // 2) * spread
@@ -720,13 +720,13 @@ class BouDePedra(BossEntity):
             travel_time = 0.7
             vx = dx / travel_time
             # Arc: goes up then comes down.
-            vy = -200.0  # Initial upward velocity.
+            vy = -300.0  # Initial upward velocity.
 
             self.projectiles.append(BossProjectile(
                 x=start_x,
                 y=start_y,
-                width=8,
-                height=8,
+                width=12,
+                height=12,
                 vx=vx,
                 vy=vy,
                 damage=damage,
@@ -750,7 +750,7 @@ class BouDePedra(BossEntity):
         self._event_bus.publish("screen_shake", intensity=4.0, duration=0.3)
 
         # Create expanding pulse projectiles in 4 cardinal directions.
-        pulse_speed = 150.0
+        pulse_speed = 225.0
         radius_px = radius_tiles * TILE_SIZE
         lifetime = radius_px / pulse_speed
 
@@ -762,9 +762,9 @@ class BouDePedra(BossEntity):
         for direction in [-1.0, 1.0]:
             self.projectiles.append(BossProjectile(
                 x=cx,
-                y=self.rect.bottom - 16,
-                width=24,
-                height=16,
+                y=self.rect.bottom - 24,
+                width=36,
+                height=24,
                 vx=direction * pulse_speed,
                 vy=0,
                 damage=damage,

@@ -742,8 +742,8 @@ class TestDestructiblePillar:
 
     def test_pillar_has_rect(self):
         pillar = DestructiblePillar(100, 100)
-        assert pillar.rect.width == 16
-        assert pillar.rect.height == 48  # 3 tiles tall.
+        assert pillar.rect.width == 24
+        assert pillar.rect.height == 72  # 3 tiles tall.
 
 
 # ── BossHealthBar tests ──────────────────────────────────────────

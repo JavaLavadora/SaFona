@@ -337,18 +337,20 @@ class TestStoneSlamTileBreaking:
         mask_sys.unlock_mask("stone_slam")
         mask_sys.equip_mask("stone_slam")
 
-        # Ground is at row 11 (height-1). Place breakable_slam at row 11,
-        # col 12 (near the player's feet, within 3-tile range).
-        # Player bottom is at pixel 192 (row 12 boundary); row 11 = 176..192.
-        tilemap = _make_tilemap(breakable_positions=[(12, 11)])
-        assert tilemap.get_tile_at(12, 11, "midground") == 20
+        # Place breakable_slam at row 10, col 12.
+        # Player stands with feet at row 11 boundary (y = 11 * TILE_SIZE).
+        # Shock rect covers from y = (11*TILE_SIZE - TILE_SIZE) to
+        # y = 11*TILE_SIZE, i.e. row 10.  The breakable at row 10 is in range.
+        tilemap = _make_tilemap(breakable_positions=[(12, 10)])
+        assert tilemap.get_tile_at(12, 10, "midground") == 20
 
-        # Player at col 10, feet on ground (bottom=192).
-        player_rect = pygame.Rect(10 * TILE_SIZE, 10 * TILE_SIZE, 24, 32)
+        # Player bottom at row 11 boundary.
+        player_y = 11 * TILE_SIZE - 32  # 32 = player height
+        player_rect = pygame.Rect(10 * TILE_SIZE, player_y, 24, 32)
         mask_sys.activate_power(player_rect, tilemap, [], mask_sys._event_bus)
 
         # Tile should be removed (set to 0).
-        assert tilemap.get_tile_at(12, 11, "midground") == 0
+        assert tilemap.get_tile_at(12, 10, "midground") == 0
 
     def test_does_not_break_tiles_beyond_range(self, mask_sys):
         mask_sys.unlock_mask("stone_slam")
@@ -370,8 +372,9 @@ class TestStoneSlamTileBreaking:
         mask_sys.unlock_mask("stone_slam")
         mask_sys.equip_mask("stone_slam")
 
-        tilemap = _make_tilemap(breakable_positions=[(12, 11)])
-        player_rect = pygame.Rect(10 * TILE_SIZE, 10 * TILE_SIZE, 24, 32)
+        tilemap = _make_tilemap(breakable_positions=[(12, 10)])
+        player_y = 11 * TILE_SIZE - 32
+        player_rect = pygame.Rect(10 * TILE_SIZE, player_y, 24, 32)
 
         events = []
         bus.subscribe("tile_broken", lambda **kw: events.append(kw))
@@ -380,7 +383,7 @@ class TestStoneSlamTileBreaking:
         assert len(events) == 1
         assert events[0]["tile_type"] == "breakable_slam"
         assert events[0]["tile_x"] == 12
-        assert events[0]["tile_y"] == 11
+        assert events[0]["tile_y"] == 10
 
 
 # ── Stun application ─────────────────────────────────────────────

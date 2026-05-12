@@ -9,8 +9,8 @@ horns, and glowing red eyes from the possession curse.
 from tools.sprite_defs.palettes import POSSESSED_SHEEP_PALETTE
 
 PALETTE = POSSESSED_SHEEP_PALETTE
-WIDTH = 16
-HEIGHT = 16
+WIDTH = 24
+HEIGHT = 24
 
 # fmt: off
 

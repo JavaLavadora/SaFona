@@ -219,22 +219,22 @@ class PatrolBehavior(EnemyBehavior):
 
     _AGGRO_DURATION: float = 3.0
     _AGGRO_SPEED_MULTIPLIER: float = 2.0
-    _AGGRO_MIN_SPEED: float = 50.0
+    _AGGRO_MIN_SPEED: float = 75.0
     _LEDGE_HESITATION: float = 0.6
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
-        self._patrol_range: float = params.get("patrol_range", 5) * 16  # tiles to px
+        self._patrol_range: float = params.get("patrol_range", 5) * 24  # tiles to px
         self._speed: float = params.get("speed", 40)
         self._charge_speed: float = params.get("charge_speed", 0)
         self._charge_tell_time: float = params.get("charge_tell_time", 0)
-        self._charge_distance: float = params.get("charge_distance", 0) * 16
-        self._attack_range: float = params.get("attack_range", 2.0) * 16
+        self._charge_distance: float = params.get("charge_distance", 0) * 24
+        self._attack_range: float = params.get("attack_range", 2.0) * 24
         self._attack_cooldown: float = params.get("attack_cooldown", 2.0)
         self._attack_tell_time: float = params.get(
             "attack_tell_time", self._charge_tell_time
         )
-        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 24
 
         # State.
         self._direction: float = 1.0  # 1 = right, -1 = left
@@ -527,15 +527,15 @@ class ChaseBehavior(EnemyBehavior):
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
-        self._chase_range: float = params.get("chase_range", 6) * 16
+        self._chase_range: float = params.get("chase_range", 6) * 24
         self._speed: float = params.get("speed", 50)
-        self._attack_range: float = params.get("attack_range", 1.5) * 16
+        self._attack_range: float = params.get("attack_range", 1.5) * 24
         self._attack_cooldown: float = params.get("attack_cooldown", 1.0)
         self._attack_windup: float = params.get("attack_windup", 0.0)
         self._attack_strike: float = params.get("attack_strike", 0.3)
         self._block_chance: float = params.get("block_chance", 0.0)
         self._block_duration: float = params.get("block_duration", 0.5)
-        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 24
 
         # State.
         self._attack_state: AttackState = AttackState.IDLE
@@ -877,19 +877,19 @@ class GuardianBehavior(EnemyBehavior):
 
     _AGGRO_DURATION: float = 3.0
     _AGGRO_SPEED_MULTIPLIER: float = 1.5
-    _AGGRO_MIN_SPEED: float = 30.0
+    _AGGRO_MIN_SPEED: float = 45.0
     _LEDGE_HESITATION: float = 0.6
 
     def __init__(self, params: dict) -> None:
         super().__init__(params)
-        self._patrol_range: float = params.get("patrol_range", 3) * 16
+        self._patrol_range: float = params.get("patrol_range", 3) * 24
         self._speed: float = params.get("speed", 20)
         self._attack_range: float = float(params.get("attack_range", 40))
         self._attack_windup: float = params.get("attack_windup", 0.8)
         self._attack_strike: float = params.get("attack_strike", 0.3)
         self._attack_recovery: float = params.get("attack_recovery", 0.6)
         self._attack_cooldown: float = params.get("attack_cooldown", 2.0)
-        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 16
+        self._vertical_detection: float = params.get("vertical_detection", 3.0) * 24
 
         # State.
         self._direction: float = 1.0

@@ -7,8 +7,8 @@ from tools.sprite_defs.palettes import HEART_PALETTE, STONE_PICKUP_PALETTE
 
 # ── Heart Pickup ─────────────────────────────────────────────
 
-HEART_W = 12
-HEART_H = 12
+HEART_W = 18
+HEART_H = 18
 
 HEART_PALETTE_MAP = HEART_PALETTE
 
@@ -31,8 +31,8 @@ HEART = [
 
 # ── Stone Pickup ─────────────────────────────────────────────
 
-STONE_W = 12
-STONE_H = 12
+STONE_W = 18
+STONE_H = 18
 
 STONE_PALETTE_MAP = STONE_PICKUP_PALETTE
 

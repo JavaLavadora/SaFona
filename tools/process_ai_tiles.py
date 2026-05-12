@@ -24,7 +24,7 @@ from scipy import ndimage
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-TILE_SIZE = 16
+TILE_SIZE = 24
 NUM_TILES = 16
 
 UP = 1

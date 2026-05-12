@@ -400,11 +400,11 @@ class TestPatrolWallReversal:
         tilemap = _make_corridor_tilemap(width=8, height=6)
 
         # Place enemy so its rect.right is right next to the wall at col 7.
-        # Wall starts at pixel 7*16=112.  With HITBOX_SHRINK=2 the rect
-        # is 12px wide.  We need rect.right close to 112 so probe hits
-        # tile 7.  rect.right = rect.x + 12.  If rect.x = 99 then
-        # right = 111, probe = 112, tile = 7.  spawn_x = 99 - 2 = 97.
-        enemy = _make_enemy(97, 3 * TILE_SIZE)
+        # Wall starts at pixel 7*TILE_SIZE.  With HITBOX_SHRINK=2 the rect
+        # is 12px wide.  We need rect.right close to 7*TILE_SIZE so probe
+        # hits tile 7.  rect.x = 7*TILE_SIZE - 12 = spawn_x + 2.
+        spawn_x = 7 * TILE_SIZE - 12 - 2  # rect.right = 7*TILE_SIZE
+        enemy = _make_enemy(spawn_x, 3 * TILE_SIZE)
         _snap_enemy(enemy, 5)
 
         assert enemy.behavior._direction == 1.0  # default: right
@@ -423,9 +423,10 @@ class TestPatrolWallReversal:
         tilemap = _make_corridor_tilemap(width=8, height=6)
 
         # Place enemy so its rect.left is right next to the wall at col 0.
-        # Wall ends at pixel 1*16=16.  With HITBOX_SHRINK=2, rect.x = 16
-        # (spawn_x=14), rect.left = 16, probe = 15, tile = 0 (wall).
-        enemy = _make_enemy(14, 3 * TILE_SIZE)
+        # Wall ends at pixel 1*TILE_SIZE.  With HITBOX_SHRINK=2,
+        # rect.x = spawn_x + 2 = TILE_SIZE, so spawn_x = TILE_SIZE - 2.
+        spawn_x = TILE_SIZE - 2  # rect.x = TILE_SIZE, probe = TILE_SIZE - 1, tile = 0
+        enemy = _make_enemy(spawn_x, 3 * TILE_SIZE)
         _snap_enemy(enemy, 5)
         enemy.behavior.set_initial_direction(-1.0)
 

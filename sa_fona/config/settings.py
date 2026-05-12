@@ -31,20 +31,20 @@ PLAYER_WIDTH: int = 20
 PLAYER_SPRITE_WIDTH: int = 48   # sprite sheet frame width (wider than hitbox)
 PLAYER_SPRITE_HEIGHT: int = 64  # sprite sheet frame height (includes headroom)
 PLAYER_HEIGHT: int = 42         # hitbox height (body only, no headroom)
-PLAYER_MOVE_SPEED: float = 120.0          # px/s horizontal
-PLAYER_JUMP_FORCE: float = -330.0         # px/s upward impulse
+PLAYER_MOVE_SPEED: float = 180.0          # px/s horizontal
+PLAYER_JUMP_FORCE: float = -495.0         # px/s upward impulse
 PLAYER_VARIABLE_JUMP_CUTOFF: float = 0.5  # multiply vy when jump released early
-PLAYER_WALL_SLIDE_SPEED: float = 40.0     # px/s max downward speed on wall
-PLAYER_WALL_JUMP_FORCE_X: float = 160.0   # px/s horizontal push off wall
-PLAYER_WALL_JUMP_FORCE_Y: float = -310.0  # px/s upward impulse on wall jump
+PLAYER_WALL_SLIDE_SPEED: float = 60.0     # px/s max downward speed on wall
+PLAYER_WALL_JUMP_FORCE_X: float = 240.0   # px/s horizontal push off wall
+PLAYER_WALL_JUMP_FORCE_Y: float = -465.0  # px/s upward impulse on wall jump
 PLAYER_WALL_JUMP_LOCKOUT: float = 0.40    # seconds of input lockout after wall jump
 PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
-PLAYER_GRAVITY: float = 800.0             # px/s^2
-PLAYER_WALL_CHECK_MARGIN: int = 2         # pixels to probe for wall contact
+PLAYER_GRAVITY: float = 1200.0            # px/s^2
+PLAYER_WALL_CHECK_MARGIN: int = 3         # pixels to probe for wall contact
 PLAYER_CROUCH_HEIGHT: int = 21            # crouching hitbox height (half of 42)
 PLAYER_CRAWL_SPEED_FACTOR: float = 0.55   # crawl speed = 55% of normal walk
-PLAYER_CROUCH_JUMP_FORCE: float = -200.0  # shorter jump while crouching
+PLAYER_CROUCH_JUMP_FORCE: float = -300.0  # shorter jump while crouching
 
 # ── Player State Colors (placeholder rendering) ────────────────
 PLAYER_STATE_COLORS: dict[str, tuple[int, int, int]] = {

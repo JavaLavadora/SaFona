@@ -20,8 +20,8 @@ from sa_fona.entities.pickup import Pickup, PickupType
 from sa_fona.rendering.asset_loader import load_frame_strip
 
 # Breakable dimensions (pixels).
-BREAKABLE_WIDTH: int = 16
-BREAKABLE_HEIGHT: int = 16
+BREAKABLE_WIDTH: int = 24
+BREAKABLE_HEIGHT: int = 24
 
 # Colors per breakable type.
 _BREAKABLE_COLORS: dict[str, tuple[int, int, int]] = {

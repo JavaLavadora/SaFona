@@ -11,6 +11,7 @@ import pytest
 
 from sa_fona.entities.enemy import Enemy, EnemyFactory
 from sa_fona.entities.enemy_behaviors import PatrolBehavior, ChaseBehavior
+from sa_fona.level.tilemap import TILE_SIZE
 
 
 @pytest.fixture(autouse=True)
@@ -110,8 +111,8 @@ class TestEnemyFactory:
 
         assert enemy.enemy_type == "test_sheep"
         shrink = Enemy._HITBOX_SHRINK
-        assert enemy.rect.x == 10 * 16 + shrink
-        assert enemy.rect.y == 5 * 16 + shrink
+        assert enemy.rect.x == 10 * TILE_SIZE + shrink
+        assert enemy.rect.y == 5 * TILE_SIZE + shrink
 
     def test_missing_file_creates_empty_factory(self):
         """Factory with missing file should have no definitions."""

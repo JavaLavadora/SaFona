@@ -100,12 +100,18 @@ PALETTE (use ONLY these 15 colors):
 
 SPRITE CONSTRAINTS:
   - Sprite sheet: 4 frames in horizontal row
-  - Total size:   96x32
-  - Frame size:   24x32 each
+  - Total size:   128x48
+  - Frame size:   32x48 each
   - Facing:       RIGHT
   - Animation:    Idle breathing — subtle chest rise/fall, sling sways slightly
 
 BACKGROUND: Solid green (#00FF00)
+
+BODY SIZE RULE:
+The character body occupies the lower 2/3 of the frame height.
+The upper 1/3 is intentional headroom for animations that extend above
+the head (sling overhead, raised arms, jump poses). Do NOT scale the body
+to fill the entire frame — leave headroom.
 
 IMPORTANT:
 This sprite is the MASTER reference for all of Ramon's animations.
@@ -116,11 +122,12 @@ this exact design — proportions, face, clothing, colors.
 **Sprite Anatomy Map — Ramon:**
 
 ```
-- Head:          Y 0-10 (fixed)
-- Torso:         Y 10-20 (fixed vertical)
-- Belt/sash:     Absolute Y = 18
-- Feet baseline: Absolute Y = 31
-- Width:         ~14px body core within 24px frame
+- Headroom:      Y 0-10 reserved for overhead content in other animations
+- Head:          Y 10-20 (fixed)
+- Torso:         Y 20-32 (fixed vertical)
+- Belt/sash:     Absolute Y = 30
+- Feet baseline: Absolute Y = 47
+- Width:         ~14px body core within 32px frame
 
 Allowed to move: arms, sling, torso rotation, cloth sway
 Forbidden: head position, leg length, belt height, palette changes
@@ -137,7 +144,7 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
   - Same palette (15 colors), no new colors
-  - Same head position (Y 0-10), belt height (Y 18), feet baseline (Y 31)
+  - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
 REFERENCE: Use the provided MASTER idle sprite as visual authority
@@ -145,10 +152,12 @@ REFERENCE: Use the provided MASTER idle sprite as visual authority
 PALETTE: (same 15 colors as idle — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  144x32 (6 frames)
+  - Sheet size:  192x48 (6 frames)
   - Frame count: 6
-  - Frame size:  24x32 each
+  - Frame size:  32x48 each
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
 
 ANIMATION DESCRIPTION:
   Frame 1: Contact — right foot forward, left foot back, slight lean forward
@@ -181,10 +190,13 @@ CRITICAL IDENTITY LOCK:
 PALETTE: (same 15 colors as idle — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  48x32 (2 frames)
+  - Sheet size:  64x48 (2 frames)
   - Frame count: 2
-  - Frame size:  24x32 each
+  - Frame size:  32x48 each
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Extended limbs may use the full frame height including headroom.
 
 ANIMATION DESCRIPTION:
   Frame 1: Rising — legs tucked slightly, arms up, sling trailing behind,
@@ -208,10 +220,12 @@ CRITICAL IDENTITY LOCK (same as all Ramon animations).
 PALETTE: (same 15 colors — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  48x32 (2 frames)
+  - Sheet size:  64x48 (2 frames)
   - Frame count: 2
-  - Frame size:  24x32 each
+  - Frame size:  32x48 each
   - Facing:      RIGHT (body pressed against wall to the right)
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
 
 ANIMATION DESCRIPTION:
   Frame 1: Sliding down — body pressed flat against wall (right side),
@@ -235,10 +249,13 @@ CRITICAL IDENTITY LOCK (same as all Ramon animations).
 PALETTE: (same 15 colors — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  48x32 (2 frames)
+  - Sheet size:  64x48 (2 frames)
   - Frame count: 2
-  - Frame size:  24x32 each
+  - Frame size:  32x48 each
   - Facing:      RIGHT (jumping away from wall to the left)
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Dynamic pose may use full frame including headroom.
 
 ANIMATION DESCRIPTION:
   Frame 1: Push-off — legs coiled against wall, body leaning away,
@@ -262,10 +279,13 @@ CRITICAL IDENTITY LOCK (same as all Ramon animations).
 PALETTE: (same 15 colors — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  72x32 (3 frames)
+  - Sheet size:  96x48 (3 frames)
   - Frame count: 3
-  - Frame size:  24x32 each
+  - Frame size:  32x48 each
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+The sling cord extends above the head into the headroom area. The CHARACTER BODY stays the same size as idle — only the sling uses the extra space.
 
 ANIMATION DESCRIPTION:
   Frame 1: Wind-up — right arm pulled back with sling extended behind,
@@ -294,9 +314,12 @@ CRITICAL IDENTITY LOCK (same as all Ramon animations).
 PALETTE: (same 15 colors — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x32 (1 frame)
-  - Frame size:  24x32
+  - Sheet size:  32x48 (1 frame)
+  - Frame size:  32x48
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Recoil pose may use headroom. Body proportions stay identical to idle.
 
 ANIMATION DESCRIPTION:
   Single frame: Recoil — body bent backward from impact,
@@ -319,9 +342,12 @@ CRITICAL IDENTITY LOCK (same as all Ramon animations).
 PALETTE: (same 15 colors — see Ramon palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x32 (1 frame)
-  - Frame size:  24x32
+  - Sheet size:  32x48 (1 frame)
+  - Frame size:  32x48
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Horizontal pose uses width, not headroom.
 
 ANIMATION DESCRIPTION:
   Single frame: Collapsed — body slumped on the ground,

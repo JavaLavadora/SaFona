@@ -1,11 +1,11 @@
 # 14 — Bou de Pedra: Master Idle (Phase 1)
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as world-style reference. The boss must belong to the same visual world as Ramon.
+> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
 
 ---
 
 ```
-Create a SNES-style 16-bit pixel art sprite.
+Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Style:         Authentic SNES-era 16-bit pixel art
@@ -61,9 +61,34 @@ PALETTE (use ONLY these 12 colors — RGB values):
   DO NOT USE orange (224,144,40) or red (224,40,40) in Phase 1.
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  40x36 (1 frame)
-  - Frame size:  40x36
+  - Sheet size:  160x36 (4 frames in a row)
+  - Frame count: 4
+  - Frame size:  40x36 each
   - Facing:      RIGHT (facing the player)
+
+ANIMATION FRAMES:
+  Frame 1: Neutral stance — bull standing solid and imposing.
+           Rune cracks glow at baseline amber brightness.
+           Weight centered, all four legs planted.
+
+  Frame 2: Slow inhale — chest/barrel area rises subtly (1-2px).
+           Rune cracks glow slightly brighter as energy pulses inward.
+           Head stays in same position.
+
+  Frame 3: Peak inhale — chest at maximum rise.
+           Rune cracks at brightest glow (use 248,240,120 for highlights).
+           Slight forward lean of the head/horns (1px), as if alert.
+
+  Frame 4: Exhale — chest lowers back toward neutral.
+           Rune glow dims back toward baseline.
+           Head returns to neutral. Subtle weight shift to rear legs.
+
+IMPORTANT ANIMATION NOTES:
+  - Changes between frames must be SUBTLE — 1-2 pixel shifts maximum
+  - The bull is made of stone; it should feel heavy and slow-breathing
+  - Rune glow pulsing is the main visual change (brightness cycling)
+  - Body silhouette stays nearly identical across all frames
+  - This is a slow, menacing idle — not fidgety or quick
 
 BACKGROUND: Solid green (#00FF00)
 

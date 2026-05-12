@@ -1,44 +1,31 @@
 """Generic sprite processor for AI-generated source images.
 
-Takes AI source images on green (#00FF00) backgrounds and produces
-game-ready sprite sheets. Works from a JSON configuration that
-specifies input paths, pose indices, output paths, and target
-frame dimensions.
+Takes AI source images on green backgrounds and produces
+game-ready sprite sheets. Supports two modes of operation:
 
-The pipeline:
-1. Remove green chroma-key background
-2. Detect pose regions via scipy.ndimage.label (filter < 500px area)
-3. Crop each pose with inset to remove green fringe
-4. Replace remaining green pixels with neighbor-averaged colors
-5. Scale: LANCZOS to intermediate -> NEAREST to final size
-6. Center horizontally, bottom-align (feet anchored) in target frame
-7. Hard-threshold alpha (< 100 = transparent, >= 100 = opaque)
-8. Check facing direction (sprites should face RIGHT by default)
-9. Assemble poses into horizontal sprite sheets
+**Directory mode** (recommended for batch processing a character):
+    python tools/process_ai_sprites.py <source_dir> <output_dir> \\
+        --frame-width 48 --frame-height 64 \\
+        --mapping idle:4 walk:6 jump:2 wall_slide:2 wall_jump:2 \\
+                 "sling_attack>sling:3" hit:1 death:1
 
-Usage:
-    conda activate safona
+    Mapping format: ``source_name:frame_count`` or
+    ``source_name>output_name:frame_count`` for renaming.
+
+**Config mode** (legacy, for complex multi-source pipelines):
     python tools/process_ai_sprites.py [config.json]
     python tools/process_ai_sprites.py --config-inline '{"sources": [...]}'
 
-Config format:
-    {
-      "sources": [
-        {
-          "input": "assets/ai_sources/bep/image.png",
-          "outputs": [
-            {
-              "file": "assets/sprites/bep/idle.png",
-              "poses": [1, 2, 3, 4],
-              "frame_width": 16,
-              "frame_height": 16
-            }
-          ]
-        }
-      ]
-    }
-
-Pose indices are 1-based (pose 1 = first detected region).
+The pipeline:
+1. Remove green chroma-key background (heuristic: G > 80, G-R > 40, G-B > 40)
+2. Remove small connected components (< 5000px area: number labels, artifacts)
+3. Detect sprite regions via scipy.ndimage.label
+4. Crop each frame to bounding box content
+5. Clean green fringe pixels via neighbor averaging
+6. Scale to target frame size using NEAREST interpolation (pixel art)
+7. Center horizontally, bottom-align (feet anchored); death poses centered vertically
+8. Assemble frames into a horizontal sprite sheet
+9. Save as RGBA PNG
 """
 
 from __future__ import annotations
@@ -631,13 +618,617 @@ def load_config(config_path: str | Path | None = None, inline: str | None = None
     raise ValueError("Either config_path or inline JSON required")
 
 
+# ---------------------------------------------------------------------------
+# Directory-mode processing (--mapping CLI)
+# ---------------------------------------------------------------------------
+
+def _remove_small_components(
+    rgba: np.ndarray,
+    min_area: int = 5000,
+) -> np.ndarray:
+    """Remove small connected components (labels/artifacts) from RGBA image.
+
+    Makes components below min_area fully transparent so they don't
+    interfere with bounding box detection.
+
+    Args:
+        rgba: RGBA image array.
+        min_area: Components below this pixel area become transparent.
+
+    Returns:
+        Cleaned RGBA array.
+    """
+    mask = rgba[:, :, 3] > 0
+    labeled, n_features = ndimage.label(mask)
+
+    cleaned = rgba.copy()
+    for region_id in range(1, n_features + 1):
+        region_mask = labeled == region_id
+        area = int(np.sum(region_mask))
+        if area < min_area:
+            cleaned[region_mask, 3] = 0
+
+    return cleaned
+
+
+def _crop_region(rgba: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
+    """Crop a region and tight-crop to non-transparent content.
+
+    Args:
+        rgba: Full RGBA image array.
+        bbox: (x0, y0, x1, y1) bounding box.
+
+    Returns:
+        Tightly cropped RGBA array.
+    """
+    x0, y0, x1, y1 = bbox
+    crop = rgba[y0:y1, x0:x1].copy()
+
+    alpha = crop[:, :, 3]
+    rows = np.any(alpha > 0, axis=1)
+    cols = np.any(alpha > 0, axis=0)
+
+    if not np.any(rows):
+        return crop
+
+    r0, r1 = np.where(rows)[0][[0, -1]]
+    c0, c1 = np.where(cols)[0][[0, -1]]
+
+    return crop[r0:r1 + 1, c0:c1 + 1]
+
+
+def _clean_green_fringe(crop: np.ndarray) -> np.ndarray:
+    """Remove green fringe pixels via neighbor averaging.
+
+    After chroma removal, edge pixels may retain green tint. This
+    replaces them with the average of non-green neighbors.
+
+    Args:
+        crop: Cropped RGBA numpy array.
+
+    Returns:
+        Cleaned RGBA array.
+    """
+    result = crop.copy()
+    r = result[:, :, 0].astype(np.int32)
+    g = result[:, :, 1].astype(np.int32)
+    b = result[:, :, 2].astype(np.int32)
+    a = result[:, :, 3]
+
+    green_mask = (g - r > 30) & (g - b > 30) & (g > 100) & (a > 0)
+
+    if not np.any(green_mask):
+        return result
+
+    h, w = result.shape[:2]
+    gy, gx = np.where(green_mask)
+
+    for cy, cx in zip(gy, gx):
+        neighbors = []
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dy == 0 and dx == 0:
+                    continue
+                ny, nx = cy + dy, cx + dx
+                if 0 <= ny < h and 0 <= nx < w:
+                    if not green_mask[ny, nx] and result[ny, nx, 3] > 0:
+                        neighbors.append(result[ny, nx, :3].astype(np.float32))
+        if neighbors:
+            avg = np.mean(neighbors, axis=0).astype(np.uint8)
+            result[cy, cx, :3] = avg
+        else:
+            result[cy, cx, 3] = 0
+
+    return result
+
+
+def _scale_to_frame(
+    sprite: np.ndarray,
+    frame_w: int,
+    frame_h: int,
+    is_death: bool = False,
+) -> np.ndarray:
+    """Scale a sprite into target frame using NEAREST interpolation.
+
+    Centers horizontally, bottom-aligns (feet anchored) for normal
+    poses. Death poses are centered vertically.
+
+    Args:
+        sprite: Tightly cropped RGBA array.
+        frame_w: Target frame width.
+        frame_h: Target frame height.
+        is_death: If True, center vertically instead of bottom-aligning.
+
+    Returns:
+        RGBA array of exactly (frame_h, frame_w, 4).
+    """
+    if sprite.size == 0:
+        return np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+
+    sh, sw = sprite.shape[:2]
+
+    usable_w = max(1, frame_w - 2)
+    usable_h = max(1, frame_h - 2)
+    scale = min(usable_w / sw, usable_h / sh)
+
+    new_w = max(1, int(sw * scale))
+    new_h = max(1, int(sh * scale))
+
+    pil = Image.fromarray(sprite, "RGBA")
+    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    scaled_arr = np.array(pil_scaled)
+
+    frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+    ph, pw = scaled_arr.shape[:2]
+
+    if ph > frame_h:
+        scaled_arr = scaled_arr[ph - frame_h:]
+        ph = frame_h
+    if pw > frame_w:
+        offset = (pw - frame_w) // 2
+        scaled_arr = scaled_arr[:, offset:offset + frame_w]
+        pw = frame_w
+
+    x_offset = (frame_w - pw) // 2
+
+    if is_death:
+        y_offset = (frame_h - ph) // 2
+    else:
+        y_offset = frame_h - ph
+
+    frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled_arr
+    return frame
+
+
+def _scale_to_frame_uniform(
+    sprite: np.ndarray,
+    frame_w: int,
+    frame_h: int,
+    scale: float,
+    is_death: bool = False,
+) -> np.ndarray:
+    """Scale a sprite using a pre-computed uniform scale factor.
+
+    All frames in an animation share the same scale so characters
+    stay the same size across poses.
+
+    Args:
+        sprite: Tightly cropped RGBA array.
+        frame_w: Target frame width.
+        frame_h: Target frame height.
+        scale: Uniform scale factor (computed from the largest frame).
+        is_death: If True, center vertically instead of bottom-aligning.
+
+    Returns:
+        RGBA array of exactly (frame_h, frame_w, 4).
+    """
+    if sprite.size == 0:
+        return np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+
+    sh, sw = sprite.shape[:2]
+    new_w = max(1, int(sw * scale))
+    new_h = max(1, int(sh * scale))
+
+    pil = Image.fromarray(sprite, "RGBA")
+    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    scaled_arr = np.array(pil_scaled)
+
+    frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+    ph, pw = scaled_arr.shape[:2]
+
+    if ph > frame_h:
+        scaled_arr = scaled_arr[ph - frame_h:]
+        ph = frame_h
+    if pw > frame_w:
+        offset = (pw - frame_w) // 2
+        scaled_arr = scaled_arr[:, offset:offset + frame_w]
+        pw = frame_w
+
+    x_offset = (frame_w - pw) // 2
+
+    if is_death:
+        y_offset = (frame_h - ph) // 2
+    else:
+        y_offset = frame_h - ph
+
+    frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled_arr
+    return frame
+
+
+def parse_mapping(mapping_strs: list[str]) -> list[dict[str, Any]]:
+    """Parse CLI mapping arguments into structured entries.
+
+    Each mapping string is ``source_name:frame_count`` or
+    ``source_name>output_name:frame_count``.
+
+    Args:
+        mapping_strs: List of mapping strings from the CLI.
+
+    Returns:
+        List of dicts with 'source', 'target', 'frames' keys.
+    """
+    entries = []
+    for s in mapping_strs:
+        # Split on last colon to get frame count
+        if ":" not in s:
+            log.error("Invalid mapping format: %s (expected name:count)", s)
+            continue
+
+        name_part, count_str = s.rsplit(":", 1)
+        try:
+            frame_count = int(count_str)
+        except ValueError:
+            log.error("Invalid frame count in mapping: %s", s)
+            continue
+
+        # Check for rename: source_name>output_name
+        if ">" in name_part:
+            source_name, output_name = name_part.split(">", 1)
+        else:
+            source_name = name_part
+            output_name = name_part
+
+        entries.append({
+            "source": f"{source_name}.png",
+            "target": f"{output_name}.png",
+            "frames": frame_count,
+        })
+
+    return entries
+
+
+def process_directory(
+    source_dir: Path,
+    output_dir: Path,
+    frame_w: int,
+    frame_h: int,
+    mapping: list[dict[str, Any]],
+    scale_from: set[str] | None = None,
+    overhead: set[str] | None = None,
+) -> tuple[int, int]:
+    """Process all source images in directory mode.
+
+    Two-pass approach:
+      Pass 1 — Load every animation, crop frames, record dimensions.
+      Pass 2 — Compute ONE global scale from the largest non-death
+               crop, then apply it to every animation. The tallest
+               animation fills the frame; shorter ones get natural
+               headroom. Death is scaled independently.
+
+    Args:
+        source_dir: Directory containing AI source PNGs.
+        output_dir: Directory for output sprite sheets.
+        frame_w: Width of each frame.
+        frame_h: Height of each frame.
+        mapping: List of dicts with 'source', 'target', 'frames' keys.
+
+    Returns:
+        Tuple of (successes, failures).
+    """
+    # ------------------------------------------------------------------
+    # Pass 1: load, chroma-remove, detect, crop
+    # ------------------------------------------------------------------
+    animations: list[dict[str, Any]] = []
+    failures = 0
+
+    for entry in mapping:
+        source_path = source_dir / entry["source"]
+        output_path = output_dir / entry["target"]
+        expected_frames = entry["frames"]
+        is_death = "death" in entry["source"].lower()
+
+        if not source_path.exists():
+            log.error("Source not found: %s", source_path)
+            failures += 1
+            continue
+
+        log.info(
+            "Loading: %s (%d frames expected)",
+            source_path.name, expected_frames,
+        )
+
+        img = np.array(Image.open(source_path))
+        rgba = remove_green_background(img)
+        cleaned = _remove_small_components(rgba, min_area=5000)
+
+        mask = cleaned[:, :, 3] > 0
+        labeled, n_features = ndimage.label(mask)
+
+        regions: list[tuple[int, int, int, int, int]] = []
+        for region_id in range(1, n_features + 1):
+            ys, xs = np.where(labeled == region_id)
+            area = len(ys)
+            if area < 5000:
+                continue
+            x0 = int(xs.min())
+            x1 = int(xs.max()) + 1
+            y0 = int(ys.min())
+            y1 = int(ys.max()) + 1
+            regions.append((x0, y0, x1, y1, area))
+
+        regions.sort(key=lambda r: r[0])
+        bboxes = [(x0, y0, x1, y1) for x0, y0, x1, y1, _ in regions]
+
+        log.info("  Detected %d sprite regions", len(bboxes))
+
+        if len(bboxes) == 0:
+            log.error("  No sprite regions found in %s", source_path.name)
+            failures += 1
+            continue
+
+        frame_count = min(len(bboxes), expected_frames)
+
+        cropped_frames = []
+        for i in range(frame_count):
+            cropped = _crop_region(cleaned, bboxes[i])
+            cropped = _clean_green_fringe(cropped)
+            cropped_frames.append(cropped)
+
+        while len(cropped_frames) < expected_frames:
+            cropped_frames.append(cropped_frames[-1].copy())
+
+        animations.append({
+            "entry": entry,
+            "output_path": output_path,
+            "is_death": is_death,
+            "cropped_frames": cropped_frames,
+        })
+
+    # ------------------------------------------------------------------
+    # Normalize body heights: idle defines the reference body size.
+    # Animations shorter than idle get scaled UP to match.
+    # Animations taller (overhead content) keep their size.
+    # ------------------------------------------------------------------
+    reference_h = 0
+    reference_w = 0
+    for anim in animations:
+        if anim["is_death"]:
+            continue
+        if "idle" in anim["entry"]["source"].lower():
+            reference_h = max(c.shape[0] for c in anim["cropped_frames"])
+            reference_w = max(c.shape[1] for c in anim["cropped_frames"])
+            break
+
+    if reference_h == 0:
+        for anim in animations:
+            if not anim["is_death"]:
+                reference_h = max(c.shape[0] for c in anim["cropped_frames"])
+                reference_w = max(c.shape[1] for c in anim["cropped_frames"])
+                break
+
+    log.info("")
+    log.info("Reference body: %dx%d (from idle)", reference_w, reference_h)
+
+    for anim in animations:
+        is_crouch = "crouch" in anim["entry"]["source"].lower()
+        if anim["is_death"]:
+            anim["pre_scale"] = 1.0
+            continue
+        if is_crouch:
+            max_w = max(c.shape[1] for c in anim["cropped_frames"])
+            anim["pre_scale"] = reference_w / max_w
+            log.info(
+                "  %s: crouch width-normalize %.4f (width %d -> %d to match idle)",
+                anim["entry"]["source"], anim["pre_scale"], max_w, reference_w,
+            )
+            continue
+        src_name = anim["entry"]["source"]
+        max_h = max(c.shape[0] for c in anim["cropped_frames"])
+        has_overhead = overhead and src_name in overhead
+        if max_h < reference_h:
+            anim["pre_scale"] = reference_h / max_h
+            log.info(
+                "  %s: pre-scale %.4f (crop %d -> %d to match idle)",
+                src_name, anim["pre_scale"], max_h, reference_h,
+            )
+        elif max_h > reference_h and not has_overhead:
+            anim["pre_scale"] = reference_h / max_h
+            log.info(
+                "  %s: pre-scale %.4f (crop %d -> %d to match idle)",
+                src_name, anim["pre_scale"], max_h, reference_h,
+            )
+        else:
+            anim["pre_scale"] = 1.0
+            if has_overhead:
+                log.info("  %s: overhead, keeping original size", src_name)
+
+    # ------------------------------------------------------------------
+    # Compute global scale from normalized dimensions
+    # ------------------------------------------------------------------
+    global_max_w = 0.0
+    global_max_h = 0.0
+    for anim in animations:
+        if anim["is_death"]:
+            continue
+        src_name = anim["entry"]["source"]
+        if scale_from and src_name not in scale_from:
+            continue
+        ps = anim["pre_scale"]
+        for crop in anim["cropped_frames"]:
+            global_max_w = max(global_max_w, crop.shape[1] * ps)
+            global_max_h = max(global_max_h, crop.shape[0] * ps)
+
+    usable_w = max(1, frame_w - 2)
+    usable_h = max(1, frame_h - 2)
+
+    if global_max_w > 0 and global_max_h > 0:
+        global_scale = min(usable_w / global_max_w, usable_h / global_max_h)
+    else:
+        global_scale = 1.0
+
+    log.info(
+        "Global scale: %.4f (from normalized max %.0fx%.0f into %dx%d)",
+        global_scale, global_max_w, global_max_h, frame_w, frame_h,
+    )
+    log.info("")
+
+    # ------------------------------------------------------------------
+    # Pass 2: scale (pre_scale * global_scale) and save
+    # ------------------------------------------------------------------
+    successes = 0
+
+    for anim in animations:
+        entry = anim["entry"]
+        output_path = anim["output_path"]
+        is_death = anim["is_death"]
+        cropped_frames = anim["cropped_frames"]
+
+        if is_death:
+            max_w = max(c.shape[1] for c in cropped_frames)
+            max_h = max(c.shape[0] for c in cropped_frames)
+            scale = min(usable_w / max_w, usable_h / max_h)
+            log.info(
+                "Saving: %s (death, own scale %.4f)",
+                output_path.name, scale,
+            )
+        else:
+            scale = anim["pre_scale"] * global_scale
+            log.info(
+                "Saving: %s (scale %.4f = pre %.4f * global %.4f)",
+                output_path.name, scale, anim["pre_scale"], global_scale,
+            )
+
+        frames = []
+        for i, cropped in enumerate(cropped_frames):
+            framed = _scale_to_frame_uniform(
+                cropped, frame_w, frame_h, scale, is_death=is_death,
+            )
+            frames.append(framed)
+            sh, sw = cropped.shape[:2]
+            log.info(
+                "    Frame %d: %dx%d -> %dx%d in %dx%d",
+                i + 1, sw, sh,
+                max(1, int(sw * scale)), max(1, int(sh * scale)),
+                frame_w, frame_h,
+            )
+
+        total_w = frame_w * len(frames)
+        sheet = np.zeros((frame_h, total_w, 4), dtype=np.uint8)
+        for i, frame in enumerate(frames):
+            sheet[:, i * frame_w:(i + 1) * frame_w] = frame
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        out_img = Image.fromarray(sheet, "RGBA")
+        out_img.save(str(output_path))
+
+        log.info("  Saved: %s (%dx%d)", output_path.name, total_w, frame_h)
+        successes += 1
+
+    return successes, failures
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
 def main() -> None:
-    """Process all AI source images according to config."""
-    # Parse CLI args
+    """Process AI source images via directory+mapping or config mode."""
+    args = sys.argv[1:]
+
+    # Detect directory mode: first arg is a path (not --flag or .json config)
+    is_dir_mode = (
+        len(args) >= 2
+        and not args[0].startswith("--")
+        and not args[0].endswith(".json")
+    )
+
+    if is_dir_mode:
+        _main_directory_mode(args)
+    else:
+        _main_config_mode(args)
+
+
+def _main_directory_mode(args: list[str]) -> None:
+    """Handle directory mode: <source_dir> <output_dir> --mapping ..."""
+    source_dir = Path(args[0])
+    output_dir = Path(args[1])
+    frame_w = 48
+    frame_h = 64
+    mapping_strs: list[str] = []
+    scale_from_strs: list[str] = []
+    overhead_strs: list[str] = []
+
+    i = 2
+    while i < len(args):
+        if args[i] == "--frame-width":
+            frame_w = int(args[i + 1])
+            i += 2
+        elif args[i] == "--frame-height":
+            frame_h = int(args[i + 1])
+            i += 2
+        elif args[i] == "--mapping":
+            i += 1
+            while i < len(args) and not args[i].startswith("--"):
+                mapping_strs.append(args[i])
+                i += 1
+        elif args[i] == "--scale-from":
+            i += 1
+            while i < len(args) and not args[i].startswith("--"):
+                scale_from_strs.append(args[i])
+                i += 1
+        elif args[i] == "--overhead":
+            i += 1
+            while i < len(args) and not args[i].startswith("--"):
+                overhead_strs.append(args[i])
+                i += 1
+        else:
+            i += 1
+
+    if not mapping_strs:
+        log.error("No --mapping provided. Usage:")
+        log.error(
+            "  process_ai_sprites.py <src_dir> <out_dir> "
+            "--frame-width 48 --frame-height 64 "
+            "--mapping idle:4 walk:6 ..."
+        )
+        sys.exit(1)
+
+    mapping = parse_mapping(mapping_strs)
+
+    if not source_dir.is_absolute():
+        source_dir = PROJECT_ROOT / source_dir
+    if not output_dir.is_absolute():
+        output_dir = PROJECT_ROOT / output_dir
+
+    log.info("AI Sprite Processor (directory mode)")
+    log.info("  Source: %s", source_dir)
+    log.info("  Output: %s", output_dir)
+    log.info("  Frame size: %dx%d", frame_w, frame_h)
+    log.info("  Mapping: %d entries", len(mapping))
+    log.info("")
+
+    scale_from: set[str] | None = None
+    if scale_from_strs:
+        scale_from = {f"{s}.png" for s in scale_from_strs}
+        log.info("  Scale from: %s", ", ".join(sorted(scale_from)))
+
+    overhead_set: set[str] | None = None
+    if overhead_strs:
+        overhead_set = {f"{s}.png" for s in overhead_strs}
+        log.info("  Overhead: %s", ", ".join(sorted(overhead_set)))
+
+    successes, failures = process_directory(
+        source_dir=source_dir,
+        output_dir=output_dir,
+        frame_w=frame_w,
+        frame_h=frame_h,
+        mapping=mapping,
+        scale_from=scale_from,
+        overhead=overhead_set,
+    )
+
+    log.info("")
+    log.info("Done: %d succeeded, %d failed", successes, failures)
+
+    if failures:
+        sys.exit(1)
+
+
+def _main_config_mode(args: list[str]) -> None:
+    """Handle config mode: <config.json> or --config-inline."""
     config_path = None
     inline = None
 
-    args = sys.argv[1:]
     i = 0
     while i < len(args):
         if args[i] == "--config-inline":
@@ -648,13 +1239,14 @@ def main() -> None:
             i += 1
 
     if not config_path and not inline:
-        # Default: look for process_all_sprites_config.json
         default_config = PROJECT_ROOT / "tools" / "process_all_sprites_config.json"
         if default_config.exists():
             config_path = str(default_config)
         else:
-            log.error("No config specified. Usage: process_ai_sprites.py <config.json>")
-            log.error("  or: process_ai_sprites.py --config-inline '{\"sources\": [...]}'")
+            log.error("No config specified. Usage:")
+            log.error("  process_ai_sprites.py <config.json>")
+            log.error("  process_ai_sprites.py --config-inline '{\"sources\": [...]}'")
+            log.error("  process_ai_sprites.py <src_dir> <out_dir> --mapping idle:4 ...")
             sys.exit(1)
 
     config = load_config(config_path, inline)

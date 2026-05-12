@@ -27,9 +27,10 @@ COLORS: dict[str, tuple[int, int, int]] = {
 }
 
 # ── Player Movement ─────────────────────────────────────────────
-PLAYER_WIDTH: int = 16
-PLAYER_SPRITE_WIDTH: int = 24  # sprite sheet frame width (wider than hitbox)
-PLAYER_HEIGHT: int = 32
+PLAYER_WIDTH: int = 20
+PLAYER_SPRITE_WIDTH: int = 48   # sprite sheet frame width (wider than hitbox)
+PLAYER_SPRITE_HEIGHT: int = 64  # sprite sheet frame height (includes headroom)
+PLAYER_HEIGHT: int = 42         # hitbox height (body only, no headroom)
 PLAYER_MOVE_SPEED: float = 120.0          # px/s horizontal
 PLAYER_JUMP_FORCE: float = -330.0         # px/s upward impulse
 PLAYER_VARIABLE_JUMP_CUTOFF: float = 0.5  # multiply vy when jump released early
@@ -41,7 +42,7 @@ PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
 PLAYER_GRAVITY: float = 800.0             # px/s^2
 PLAYER_WALL_CHECK_MARGIN: int = 2         # pixels to probe for wall contact
-PLAYER_CROUCH_HEIGHT: int = 16            # crouching hitbox height (half of 32)
+PLAYER_CROUCH_HEIGHT: int = 21            # crouching hitbox height (half of 42)
 PLAYER_CRAWL_SPEED_FACTOR: float = 0.55   # crawl speed = 55% of normal walk
 PLAYER_CROUCH_JUMP_FORCE: float = -200.0  # shorter jump while crouching
 

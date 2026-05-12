@@ -112,6 +112,12 @@ class TestGameplaySceneReset:
         """After reset, the player should have zero velocity."""
         scene.on_enter()
 
+        # Let the player settle onto the ground before jumping.
+        empty = InputState()
+        for _ in range(5):
+            scene.handle_input(empty)
+            scene.update(1.0 / 60.0)
+
         # Give the player some velocity.
         scene.handle_input(InputState(jump_pressed=True, jump_held=True))
         scene.update(1.0 / 60.0)

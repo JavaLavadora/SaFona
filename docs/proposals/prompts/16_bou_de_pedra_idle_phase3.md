@@ -5,7 +5,7 @@
 ---
 
 ```
-Create a SNES-style 16-bit pixel art sprite.
+Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Style:         Authentic SNES-era 16-bit pixel art
@@ -42,13 +42,45 @@ PALETTE (use ONLY these 12 colors — RGB values):
   64,88,48     Moss accent
 
   Phase 3 change: Rune cracks glow red (224,40,40). Exposed glowing red
-  core visible in chest area. Stone surface shows more cracks.
+  core visible in chest area. Stone surface shows more cracks and damage.
   Most aggressive appearance. Maximum energy discharge look.
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  40x36 (1 frame)
-  - Frame size:  40x36
+  - Sheet size:  160x36 (4 frames in a row)
+  - Frame count: 4
+  - Frame size:  40x36 each
   - Facing:      RIGHT
+
+ANIMATION FRAMES:
+  Frame 1: Enraged stance — same base pose, but rune cracks glow deep red.
+           Large crack in chest exposes glowing red core (3-4px bright area).
+           Stone surface visibly damaged with more crack lines.
+           Heavy forward lean, head low, horns thrust forward.
+
+  Frame 2: Violent heave — chest surges upward (2px), core pulses bright
+           (use 248,240,120 for core highlight, 224,40,40 for surrounding).
+           Red energy flares out from cracks. Head lifts aggressively.
+           Whole body shifts forward (1px) as if about to charge.
+
+  Frame 3: Core pulse peak — chest at maximum, core at maximum brightness.
+           Red glow bleeds through multiple crack lines across the body.
+           Head drops and horns angle down — full threat display.
+           Stone fragments appear to separate slightly at major cracks.
+
+  Frame 4: Recoil — chest drops back (2px), core dims slightly but stays
+           visible. Energy recedes into cracks. Body settles back but
+           remains tense. Front legs stamp (1px) with restless energy.
+           The exposed core never fully dims — it stays visible as the
+           weak point the player needs to target.
+
+IMPORTANT ANIMATION NOTES:
+  - Most aggressive idle of all three phases — this bull is FURIOUS
+  - The exposed chest core is the KEY visual feature of Phase 3
+  - Core must be clearly visible in ALL 4 frames (it's the weak point)
+  - Red glow pulsing is dramatic — more contrast between dim and bright
+  - Motion is heavier than Phase 2: bigger heaves, more stamp energy
+  - Stone structure is IDENTICAL to Phase 1 — only damage, color, and core change
+  - Body silhouette stays nearly identical across all 4 frames
 
 BACKGROUND: Solid green (#00FF00)
 ```

@@ -93,6 +93,11 @@ class BossEntity(Entity):
         self._idle_duration: float = 1.0  # Brief pause between attacks.
         self._last_pattern_id: str = ""
 
+        # Idle animation cycling.
+        self._idle_anim_timer: float = 0.0
+        self._idle_anim_frame: int = 0
+        self._idle_anim_speed: float = 0.25
+
         # Invincibility.
         self._invincible: bool = False
         self._invincibility_timer: float = 0.0
@@ -358,6 +363,12 @@ class BossEntity(Entity):
         if self._hit_flash_timer > 0:
             self._hit_flash_timer -= dt
 
+        # Tick idle animation (runs in all states for smooth cycling).
+        self._idle_anim_timer += dt
+        if self._idle_anim_timer >= self._idle_anim_speed:
+            self._idle_anim_timer -= self._idle_anim_speed
+            self._idle_anim_frame += 1
+
         if self._state == BossState.DEFEATED:
             return
 
@@ -566,17 +577,19 @@ class BossEntity(Entity):
                     if frames:
                         return frames[0]
 
-        # Phase-specific idle sprite.
+        # Phase-specific idle sprite with animation cycling.
         phase_key = f"idle_p{self.current_phase}"
         frames = self._boss_sprites.get(phase_key)
         if frames:
-            return frames[0]
+            idx = self._idle_anim_frame % len(frames)
+            return frames[idx]
 
         # Any available idle sprite.
         for key in ("idle_p1", "idle_p2", "idle_p3"):
             frames = self._boss_sprites.get(key)
             if frames:
-                return frames[0]
+                idx = self._idle_anim_frame % len(frames)
+                return frames[idx]
 
         return None
 

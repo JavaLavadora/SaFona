@@ -21,6 +21,7 @@ from sa_fona.config.settings import (
     PLAYER_JUMP_BUFFER,
     PLAYER_JUMP_FORCE,
     PLAYER_MOVE_SPEED,
+    PLAYER_SPRITE_HEIGHT,
     PLAYER_SPRITE_WIDTH,
     PLAYER_STATE_COLORS,
     PLAYER_VARIABLE_JUMP_CUTOFF,
@@ -163,11 +164,12 @@ class Player(Entity):
             "_sling_frames": "sling",
             "_hit_frames": "hit",
             "_death_frames": "death",
+            "_crouch_idle_frames": "crouch",
         }
         for attr, name in anim_paths.items():
             frames = load_frame_strip(
                 f"assets/sprites/ramon/{name}.png",
-                PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT,
+                PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT,
             )
             if frames:
                 setattr(self, attr, frames)
@@ -178,20 +180,9 @@ class Player(Entity):
             or self._sling_frames
         )
 
-        # Generate crouch frames by cropping the top portion of
-        # idle/walk frames (head + torso visible, legs hidden).
-        crop_rect = pygame.Rect(
-            0, 0,
-            PLAYER_SPRITE_WIDTH, PLAYER_CROUCH_HEIGHT,
-        )
-        if self._idle_frames:
-            self._crouch_idle_frames = [
-                f.subsurface(crop_rect).copy() for f in self._idle_frames
-            ]
-        if self._walk_frames:
-            self._crouch_walk_frames = [
-                f.subsurface(crop_rect).copy() for f in self._walk_frames
-            ]
+        # Use crouch frames for crawling too (no separate crawl animation yet).
+        if self._crouch_idle_frames:
+            self._crouch_walk_frames = list(self._crouch_idle_frames)
 
         for state, key in _STATE_KEY.items():
             # Crouch/crawl states use the shorter hitbox height.
@@ -303,9 +294,9 @@ class Player(Entity):
         """
         if self._sprite is None:
             return
-        sprite_offset = (PLAYER_SPRITE_WIDTH - PLAYER_WIDTH) // 2
-        screen_x = self.rect.x - camera_offset[0] - sprite_offset
-        screen_y = self.rect.y - camera_offset[1]
+        sprite_offset_x = (PLAYER_SPRITE_WIDTH - PLAYER_WIDTH) // 2
+        screen_x = self.rect.x - camera_offset[0] - sprite_offset_x
+        screen_y = (self.rect.bottom - camera_offset[1]) - PLAYER_SPRITE_HEIGHT
         surface.blit(self._sprite, (screen_x, screen_y))
 
     def handle_input(self, input_state: InputState) -> None:

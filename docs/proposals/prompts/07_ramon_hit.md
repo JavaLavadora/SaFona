@@ -24,7 +24,7 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
   - Same palette (15 colors), no new colors
-  - Same head position (Y 0-10), belt height (Y 18), feet baseline (Y 31)
+  - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
 REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
@@ -47,9 +47,12 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x32 (1 frame)
-  - Frame size:  24x32
+  - Sheet size:  32x48 (1 frame)
+  - Frame size:  32x48
   - Facing:      RIGHT
+
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Recoil pose may use headroom. Body proportions stay identical to idle.
 
 ANIMATION DESCRIPTION:
   Single frame: Recoil — body bent backward from impact,

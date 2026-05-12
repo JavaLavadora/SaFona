@@ -55,12 +55,18 @@ PALETTE (use ONLY these 15 colors — RGB values):
 
 SPRITE CONSTRAINTS:
   - Sprite sheet: 4 frames in horizontal row
-  - Total size:   96x32
-  - Frame size:   24x32 each
+  - Total size:   128x48
+  - Frame size:   32x48 each
   - Facing:       RIGHT
   - Animation:    Idle breathing — subtle chest rise/fall, sling sways slightly
 
 BACKGROUND: Solid green (#00FF00)
+
+BODY SIZE RULE:
+The character body occupies the lower 2/3 of the frame height.
+The upper 1/3 is intentional headroom for animations that extend above
+the head (sling overhead, raised arms, jump poses). Do NOT scale the body
+to fill the entire frame — leave headroom.
 
 IMPORTANT:
 This sprite is the MASTER reference for all of Ramon's animations.
@@ -71,11 +77,12 @@ All future poses must match this exact design — proportions, face, clothing, c
 **Sprite Anatomy Map (save this for all future Ramon prompts):**
 
 ```
-- Head:          Y 0-10 (fixed)
-- Torso:         Y 10-20 (fixed vertical)
-- Belt/sash:     Absolute Y = 18
-- Feet baseline: Absolute Y = 31
-- Width:         ~14px body core within 24px frame
+- Headroom:      Y 0-10 reserved for overhead content in other animations
+- Head:          Y 10-20 (fixed)
+- Torso:         Y 20-32 (fixed vertical)
+- Belt/sash:     Absolute Y = 30
+- Feet baseline: Absolute Y = 47
+- Width:         ~14px body core within 32px frame
 
 Allowed to move: arms, sling, torso rotation, cloth sway
 Forbidden: head position, leg length, belt height, palette changes

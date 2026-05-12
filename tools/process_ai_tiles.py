@@ -129,12 +129,9 @@ def warm_correct_grass(tile_arr: np.ndarray) -> np.ndarray:
 
 
 def downscale_tile(tile_arr: np.ndarray, target: int = TILE_SIZE) -> Image.Image:
-    """Multi-step downscale preserving pixel art quality."""
+    """Single high-quality LANCZOS downscale to target size."""
     pil = Image.fromarray(tile_arr)
-    pil = pil.resize((48, 48), Image.LANCZOS)
-    pil = ImageEnhance.Contrast(pil).enhance(1.4)
-    pil = ImageEnhance.Sharpness(pil).enhance(1.5)
-    return pil.resize((target, target), Image.NEAREST)
+    return pil.resize((target, target), Image.LANCZOS)
 
 
 def build_autotile_strip(
@@ -173,11 +170,12 @@ def build_autotile_strip(
             for x in range(TILE_SIZE):
                 r, g, b, a = px[x, y]
                 darken = False
-                if not has_left and x < 2:
+                edge_w = max(1, TILE_SIZE // 12)
+                if not has_left and x < edge_w:
                     darken = True
-                if not has_right and x >= TILE_SIZE - 2:
+                if not has_right and x >= TILE_SIZE - edge_w:
                     darken = True
-                if not has_down and y >= TILE_SIZE - 2:
+                if not has_down and y >= TILE_SIZE - edge_w:
                     darken = True
                 if darken:
                     f = 0.75
@@ -201,14 +199,14 @@ def main() -> None:
         print(f"Error: need 4 tiles, found {len(tiles)}")
         sys.exit(1)
 
-    corrected = [
-        warm_correct_grass(tiles[0]),
-        warm_correct(tiles[1]),
-        np.clip(warm_correct(tiles[2]).astype(np.float32) * 0.7, 0, 255).astype(np.uint8),
-        warm_correct(tiles[3]),
+    processed = [
+        tiles[0],                                                       # top_grass (raw)
+        tiles[1],                                                       # inner_stone (raw)
+        np.clip(tiles[2].astype(np.float32) * 0.7, 0, 255).astype(np.uint8),  # underground (darkened)
+        tiles[3],                                                       # wall_edge (raw)
     ]
 
-    small = [downscale_tile(t) for t in corrected]
+    small = [downscale_tile(t) for t in processed]
     strip = build_autotile_strip(*small)
     strip.save(str(output_path))
     print(f"Saved: {output_path} ({strip.size[0]}x{strip.size[1]})")

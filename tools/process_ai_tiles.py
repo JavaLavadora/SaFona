@@ -1,8 +1,9 @@
 """Process AI-generated tile images into auto-tile strips for Sa Fona.
 
 Takes a single AI-generated image with 4 tiles on green background
-(top_grass, inner_stone, underground, wall_edge) and produces a
-256x16 auto-tile strip with 16 bitmask variants.
+(top_grass, inner_stone, underground, wall_edge) and produces an
+auto-tile strip ({NUM_TILES}*{TILE_SIZE} x {TILE_SIZE} px) with 16
+bitmask variants.
 
 Usage:
     conda activate safona
@@ -19,7 +20,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageEnhance
+from PIL import Image
 from scipy import ndimage
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -31,11 +32,6 @@ UP = 1
 DOWN = 2
 LEFT = 4
 RIGHT = 8
-
-WARM_DARK = np.array([130, 112, 82], dtype=np.float32)
-WARM_LIGHT = np.array([215, 195, 155], dtype=np.float32)
-GRASS_DARK = np.array([72, 108, 50], dtype=np.float32)
-GRASS_LIGHT = np.array([120, 155, 85], dtype=np.float32)
 
 
 def extract_tiles(image_path: Path) -> list[np.ndarray]:
@@ -88,46 +84,6 @@ def extract_tiles(image_path: Path) -> list[np.ndarray]:
     return tiles
 
 
-def _luminance(arr: np.ndarray) -> np.ndarray:
-    return 0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
-
-
-def _normalize(lum: np.ndarray) -> np.ndarray:
-    lo, hi = lum.min(), lum.max()
-    if hi > lo:
-        return (lum - lo) / (hi - lo)
-    return np.full_like(lum, 0.5)
-
-
-def warm_correct(tile_arr: np.ndarray) -> np.ndarray:
-    """Remap blue-grey AI pixels onto warm stone palette."""
-    out = tile_arr.astype(np.float32)
-    lum_norm = _normalize(_luminance(out))
-
-    for c in range(3):
-        out[:, :, c] = WARM_DARK[c] + lum_norm * (WARM_LIGHT[c] - WARM_DARK[c])
-
-    original_variation = tile_arr.astype(np.float32) - _luminance(tile_arr)[:, :, np.newaxis]
-    out += original_variation * 0.08
-    return np.clip(out, 0, 255).astype(np.uint8)
-
-
-def warm_correct_grass(tile_arr: np.ndarray) -> np.ndarray:
-    """Warm green top, warm stone bottom."""
-    h = tile_arr.shape[0]
-    grass_end = int(h * 0.4)
-
-    stone = warm_correct(tile_arr[grass_end:])
-
-    grass = tile_arr[:grass_end].astype(np.float32)
-    lum_norm = _normalize(_luminance(grass))
-    grass_out = np.zeros_like(grass)
-    for c in range(3):
-        grass_out[:, :, c] = GRASS_DARK[c] + lum_norm * (GRASS_LIGHT[c] - GRASS_DARK[c])
-
-    return np.vstack([np.clip(grass_out, 0, 255).astype(np.uint8), stone])
-
-
 def downscale_tile(tile_arr: np.ndarray, target: int = TILE_SIZE) -> Image.Image:
     """Single high-quality LANCZOS downscale to target size."""
     pil = Image.fromarray(tile_arr)
@@ -140,8 +96,9 @@ def build_autotile_strip(
     underground: Image.Image,
     wall_edge: Image.Image,
 ) -> Image.Image:
-    """Build a 256x16 auto-tile strip from 4 base tiles."""
+    """Build an auto-tile strip from 4 base tiles."""
     strip = Image.new("RGBA", (NUM_TILES * TILE_SIZE, TILE_SIZE), (0, 0, 0, 0))
+    edge_w = max(1, TILE_SIZE // 12)
 
     bases = {
         "top_grass": top_grass.convert("RGBA"),
@@ -170,7 +127,6 @@ def build_autotile_strip(
             for x in range(TILE_SIZE):
                 r, g, b, a = px[x, y]
                 darken = False
-                edge_w = max(1, TILE_SIZE // 12)
                 if not has_left and x < edge_w:
                     darken = True
                 if not has_right and x >= TILE_SIZE - edge_w:

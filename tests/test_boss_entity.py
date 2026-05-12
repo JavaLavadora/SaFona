@@ -106,7 +106,7 @@ def boss_definition() -> dict:
                         "tell_time": 0.8,
                         "damage": 1.5,
                         "punish_window": 2.5,
-                        "weight": 0.35,
+                        "weight": 0.5,
                         "params": {"speed": 250},
                     },
                     {
@@ -114,16 +114,8 @@ def boss_definition() -> dict:
                         "tell_time": 1.2,
                         "damage": 1.0,
                         "punish_window": 2.0,
-                        "weight": 0.35,
+                        "weight": 0.5,
                         "params": {"shockwave_range": 6, "direct_damage": 1.5},
-                    },
-                    {
-                        "id": "rock_hurl",
-                        "tell_time": 0.8,
-                        "damage": 1.0,
-                        "punish_window": 1.5,
-                        "weight": 0.3,
-                        "params": {"rock_count": 3},
                     },
                 ],
                 "transition_effect": "core_reveal",
@@ -579,26 +571,6 @@ class TestBouDePedraAttacks:
         # Two shockwaves (left and right).
         shockwaves = [p for p in boss.projectiles if p.proj_type == "shockwave"]
         assert len(shockwaves) == 2
-
-    def test_rock_hurl_creates_rocks_and_markers(self, boss, player_rect):
-        boss.start_fight()
-        boss._player_rect = player_rect
-
-        hurl = {
-            "id": "rock_hurl",
-            "tell_time": 0.8,
-            "damage": 1.0,
-            "punish_window": 1.5,
-            "params": {"rock_count": 3},
-        }
-        boss._current_pattern = hurl
-        boss._state = BossState.TELL
-        boss._state_timer = 0.01
-
-        boss.update_with_player(player_rect, 0.02)
-        rocks = [p for p in boss.projectiles if p.proj_type == "rock"]
-        assert len(rocks) == 3
-        assert len(boss.shadow_markers) == 3
 
     def test_core_pulse_creates_pulse_projectiles(self, boss, player_rect):
         boss.start_fight()

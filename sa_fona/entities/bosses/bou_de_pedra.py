@@ -6,7 +6,7 @@ jumping, wall jumping, and sling combat.
 
 Three phases:
   Phase 1 (100-66% HP): Bull Rush, Headbutt
-  Phase 2 (66-33% HP): Faster Bull Rush, Ground Stomp, Rock Hurl
+  Phase 2 (66-33% HP): Faster Bull Rush, Ground Stomp
   Phase 3 (33-0% HP): Frenzy Rush, Core Pulse, Exposed Core
 """
 
@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
 
 # Pre-load boss sub-element sprites (cached at module level).
-_boss_rock_sprite: pygame.Surface | None = None
 _boss_shockwave_sprite: pygame.Surface | None = None
 _boss_pulse_sprite: pygame.Surface | None = None
 _boss_shadow_sprite: pygame.Surface | None = None
@@ -38,17 +37,13 @@ _boss_sprites_loaded: bool = False
 
 def _load_boss_sub_sprites() -> None:
     """Load boss sub-element sprites once."""
-    global _boss_rock_sprite, _boss_shockwave_sprite, _boss_pulse_sprite
+    global _boss_shockwave_sprite, _boss_pulse_sprite
     global _boss_shadow_sprite, _pillar_intact_sprite, _pillar_destroyed_sprite
     global _boss_sprites_loaded
 
     if _boss_sprites_loaded:
         return
     _boss_sprites_loaded = True
-
-    frames = load_frame_strip("assets/sprites/boss/boss_rock.png", 12, 12)
-    if frames:
-        _boss_rock_sprite = frames[0]
 
     frames = load_frame_strip("assets/sprites/boss/boss_shockwave.png", 24, 12)
     if frames:
@@ -73,10 +68,9 @@ def _load_boss_sub_sprites() -> None:
 
 def clear_caches() -> None:
     """Reset module-level boss sub-element sprite caches."""
-    global _boss_rock_sprite, _boss_shockwave_sprite, _boss_pulse_sprite
+    global _boss_shockwave_sprite, _boss_pulse_sprite
     global _boss_shadow_sprite, _pillar_intact_sprite, _pillar_destroyed_sprite
     global _boss_sprites_loaded
-    _boss_rock_sprite = None
     _boss_shockwave_sprite = None
     _boss_pulse_sprite = None
     _boss_shadow_sprite = None
@@ -86,7 +80,7 @@ def clear_caches() -> None:
 
 
 class BossProjectile:
-    """A simple projectile spawned by boss attacks (rocks, shockwaves).
+    """A simple projectile spawned by boss attacks (shockwaves, pulses).
 
     Args:
         x: X position in world pixels.
@@ -110,7 +104,7 @@ class BossProjectile:
         vy: float,
         damage: float,
         lifetime: float,
-        proj_type: str = "rock",
+        proj_type: str = "shockwave",
     ) -> None:
         self.rect = pygame.Rect(int(x), int(y), width, height)
         self.vx = vx
@@ -153,24 +147,7 @@ class BossProjectile:
         sx = self.rect.x - camera_offset[0]
         sy = self.rect.y - camera_offset[1]
 
-        if self.proj_type == "rock":
-            if _boss_rock_sprite is not None:
-                # Scale to match projectile rect if needed.
-                if (_boss_rock_sprite.get_width() != self.rect.width
-                        or _boss_rock_sprite.get_height() != self.rect.height):
-                    scaled = pygame.transform.scale(
-                        _boss_rock_sprite, (self.rect.width, self.rect.height),
-                    )
-                    surface.blit(scaled, (sx, sy))
-                else:
-                    surface.blit(_boss_rock_sprite, (sx, sy))
-            else:
-                pygame.draw.circle(
-                    surface, (120, 100, 80),
-                    (sx + self.rect.width // 2, sy + self.rect.height // 2),
-                    self.rect.width // 2,
-                )
-        elif self.proj_type == "shockwave":
+        if self.proj_type == "shockwave":
             if _boss_shockwave_sprite is not None:
                 scaled = pygame.transform.scale(
                     _boss_shockwave_sprite, (self.rect.width, self.rect.height),
@@ -292,7 +269,7 @@ class DestructiblePillar:
 class BouDePedra(BossEntity):
     """Es Bou de Pedra -- The Stone Bull, World 1 boss.
 
-    Implements 3-phase boss fight with charging, stomping, rock hurling,
+    Implements 3-phase boss fight with charging, stomping,
     frenzy rushes, and core pulse attacks.
 
     Args:
@@ -442,8 +419,6 @@ class BouDePedra(BossEntity):
             self._start_headbutt(params)
         elif pattern_id == "ground_stomp":
             self._start_ground_stomp(params)
-        elif pattern_id == "rock_hurl":
-            self._start_rock_hurl(params)
         elif pattern_id == "frenzy_rush":
             self._start_frenzy_rush(params)
         elif pattern_id == "core_pulse":
@@ -478,8 +453,6 @@ class BouDePedra(BossEntity):
             return 0.4
         elif pattern_id == "ground_stomp":
             return 0.8
-        elif pattern_id == "rock_hurl":
-            return 1.0
         elif pattern_id == "frenzy_rush":
             bounces = params.get("bounces", 3)
             speed = params.get("speed", 280)
@@ -683,56 +656,6 @@ class BouDePedra(BossEntity):
             lifetime=shockwave_range / speed,
             proj_type="shockwave",
         ))
-
-    # ── Rock Hurl ──────────────────────────────────────────────────
-
-    def _start_rock_hurl(self, params: dict) -> None:
-        """Hurl rocks at predicted player positions.
-
-        Args:
-            params: Pattern params (rock_count).
-        """
-        rock_count = params.get("rock_count", 3)
-        damage = self._current_pattern.get("damage", 1.0) if self._current_pattern else 1.0
-
-        if self._player_rect is None:
-            return
-
-        # Predict landing positions around the player.
-        player_cx = self._player_rect.centerx
-        spread = 48  # Pixels between landing points.
-
-        for i in range(rock_count):
-            offset = (i - rock_count // 2) * spread
-            land_x = player_cx + offset
-
-            # Shadow marker at landing position.
-            self.shadow_markers.append(ShadowMarker(
-                x=land_x,
-                y=self._ground_y,
-                duration=0.8,
-            ))
-
-            # Rock projectile (arcs from boss to landing position).
-            start_x = float(self.rect.centerx)
-            start_y = float(self.rect.top)
-            dx = land_x - start_x
-            travel_time = 0.7
-            vx = dx / travel_time
-            # Arc: goes up then comes down.
-            vy = -300.0  # Initial upward velocity.
-
-            self.projectiles.append(BossProjectile(
-                x=start_x,
-                y=start_y,
-                width=12,
-                height=12,
-                vx=vx,
-                vy=vy,
-                damage=damage,
-                lifetime=travel_time + 0.1,
-                proj_type="rock",
-            ))
 
     # ── Core Pulse ─────────────────────────────────────────────────
 

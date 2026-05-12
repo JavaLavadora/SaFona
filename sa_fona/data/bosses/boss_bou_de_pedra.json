@@ -101,7 +101,7 @@
           "tell_time": 0.8,
           "damage": 1.5,
           "punish_window": 2.5,
-          "weight": 0.35,
+          "weight": 0.5,
           "params": {
             "speed": 375,
             "stun_on_wall_hit": true,
@@ -113,20 +113,10 @@
           "tell_time": 1.2,
           "damage": 1.0,
           "punish_window": 2.0,
-          "weight": 0.35,
+          "weight": 0.5,
           "params": {
             "shockwave_range": 6,
             "direct_damage": 1.5
-          }
-        },
-        {
-          "id": "rock_hurl",
-          "tell_time": 0.8,
-          "damage": 1.0,
-          "punish_window": 1.5,
-          "weight": 0.3,
-          "params": {
-            "rock_count": 3
           }
         }
       ],

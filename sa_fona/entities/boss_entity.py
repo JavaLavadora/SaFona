@@ -521,7 +521,7 @@ class BossEntity(Entity):
         short_prefix = self._BOSS_PREFIX_MAP.get(self.boss_id, self.boss_id)
         sprite_names = [
             "idle_p1", "idle_p2", "idle_p3",
-            "rush", "headbutt", "stomp", "hurl",
+            "rush", "headbutt", "stomp",
             "stunned", "transition", "death",
         ]
         for name in sprite_names:
@@ -568,7 +568,6 @@ class BossEntity(Entity):
                     "frenzy_rush": "rush",
                     "headbutt": "headbutt",
                     "ground_stomp": "stomp",
-                    "rock_hurl": "hurl",
                     "core_pulse": "idle_p3",
                 }
                 sprite_key = pattern_sprite_map.get(pattern_id)

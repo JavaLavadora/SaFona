@@ -7,8 +7,8 @@ glowing green eyes and mossy patches. Slow and imposing.
 from tools.sprite_defs.palettes import STONE_GUARDIAN_PALETTE
 
 PALETTE = STONE_GUARDIAN_PALETTE
-WIDTH = 24
-HEIGHT = 32
+WIDTH = 36
+HEIGHT = 48
 
 # fmt: off
 

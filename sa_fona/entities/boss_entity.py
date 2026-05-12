@@ -62,8 +62,8 @@ class BossEntity(Entity):
         event_bus: EventBus,
     ) -> None:
         hitbox = definition.get("hitbox", {})
-        width = hitbox.get("w", 56)
-        height = hitbox.get("h", 48)
+        width = hitbox.get("w", 84)
+        height = hitbox.get("h", 72)
         super().__init__(x, y, width, height)
 
         self._event_bus = event_bus

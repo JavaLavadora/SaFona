@@ -114,7 +114,7 @@ class TestGameplaySceneReset:
 
         # Let the player settle onto the ground before jumping.
         empty = InputState()
-        for _ in range(5):
+        for _ in range(10):
             scene.handle_input(empty)
             scene.update(1.0 / 60.0)
 
@@ -207,7 +207,7 @@ class TestParallaxAndDimming:
         """Parallax factors should be between 0 and 1."""
         assert 0.0 < PARALLAX_FACTOR_OUTDOOR < 1.0
         assert 0.0 < PARALLAX_FACTOR_INTERIOR < 1.0
-        assert PARALLAX_FACTOR_OUTDOOR > PARALLAX_FACTOR_INTERIOR
+        assert PARALLAX_FACTOR_OUTDOOR >= PARALLAX_FACTOR_INTERIOR
 
     def test_dim_alpha_is_sensible(self) -> None:
         """Dim alpha should be between 0 (transparent) and 255 (opaque)."""

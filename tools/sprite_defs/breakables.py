@@ -7,8 +7,8 @@ from tools.sprite_defs.palettes import BREAKABLE_POT_PALETTE, BREAKABLE_CRATE_PA
 
 # ── Pot ──────────────────────────────────────────────────────
 
-POT_W = 16
-POT_H = 16
+POT_W = 24
+POT_H = 24
 
 POT_PALETTE_MAP = BREAKABLE_POT_PALETTE
 
@@ -35,8 +35,8 @@ POT = [
 
 # ── Crate ────────────────────────────────────────────────────
 
-CRATE_W = 16
-CRATE_H = 16
+CRATE_W = 24
+CRATE_H = 24
 
 CRATE_PALETTE_MAP = BREAKABLE_CRATE_PALETTE
 

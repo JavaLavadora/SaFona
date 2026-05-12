@@ -7,8 +7,8 @@ and a stone spear. Dark skin, headwrap, leather straps.
 from tools.sprite_defs.palettes import RIVAL_WARRIOR_PALETTE
 
 PALETTE = RIVAL_WARRIOR_PALETTE
-WIDTH = 16
-HEIGHT = 24
+WIDTH = 24
+HEIGHT = 36
 
 # fmt: off
 

@@ -9,6 +9,7 @@ import pygame
 import pytest
 
 from sa_fona.config.settings import (
+    PLAYER_GRAVITY,
     PLAYER_JUMP_FORCE,
     PLAYER_MOVE_SPEED,
     PLAYER_VARIABLE_JUMP_CUTOFF,
@@ -68,7 +69,7 @@ def walled_level() -> dict:
 def _make_player(level_data: dict, x: float, y: float) -> tuple[Player, PhysicsSystem]:
     """Create a player and physics system from level data."""
     tilemap = TileMap(level_data)
-    physics = PhysicsSystem(tilemap, gravity=800.0)
+    physics = PhysicsSystem(tilemap, gravity=PLAYER_GRAVITY)
     player = Player(x, y)
     return player, physics
 

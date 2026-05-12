@@ -13,20 +13,20 @@ from sa_fona.entities.entity import Entity
 from sa_fona.rendering.asset_loader import load_frame_strip
 
 # Companion dimensions (placeholder).
-COMPANION_WIDTH = 16
-COMPANION_HEIGHT = 16
+COMPANION_WIDTH = 24
+COMPANION_HEIGHT = 24
 
 # Companion colors.
 COMPANION_COLOR = (50, 180, 80)  # Green
 COMPANION_LABEL_COLOR = (255, 255, 255)
 
 # Follow AI parameters.
-FOLLOW_SPEED = 100.0        # px/s when catching up
-FOLLOW_DISTANCE = 32.0      # desired offset from player (pixels)
-CATCH_UP_DISTANCE = 80.0    # distance at which Bep starts running faster
-CATCH_UP_SPEED = 180.0      # px/s when far away
-TELEPORT_DISTANCE = 300.0   # distance at which Bep teleports to player
-GRAVITY = 800.0             # px/s^2
+FOLLOW_SPEED = 150.0        # px/s when catching up
+FOLLOW_DISTANCE = 48.0      # desired offset from player (pixels)
+CATCH_UP_DISTANCE = 120.0   # distance at which Bep starts running faster
+CATCH_UP_SPEED = 270.0      # px/s when far away
+TELEPORT_DISTANCE = 450.0   # distance at which Bep teleports to player
+GRAVITY = 1200.0            # px/s^2
 
 # Vertical bob animation.
 BOB_AMPLITUDE = 2.0

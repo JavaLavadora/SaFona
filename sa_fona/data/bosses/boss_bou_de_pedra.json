@@ -7,8 +7,8 @@
   "music_slot": "boss_1_theme",
   "intro_dialogue_id": "boss_1_intro",
   "hitbox": {
-    "w": 40,
-    "h": 36
+    "w": 60,
+    "h": 54
   },
   "contact_damage": 1.0,
   "arena": {
@@ -18,20 +18,45 @@
     "background": "world1_cave",
     "destructible_pillars": 4,
     "pillar_positions": [
-      {"x": 5, "y": 9},
-      {"x": 10, "y": 9},
-      {"x": 15, "y": 9},
-      {"x": 20, "y": 9}
+      {
+        "x": 5,
+        "y": 9
+      },
+      {
+        "x": 10,
+        "y": 9
+      },
+      {
+        "x": 15,
+        "y": 9
+      },
+      {
+        "x": 20,
+        "y": 9
+      }
     ],
-    "player_spawn": {"x": 2, "y": 10},
-    "boss_spawn": {"x": 20, "y": 9}
+    "player_spawn": {
+      "x": 2,
+      "y": 10
+    },
+    "boss_spawn": {
+      "x": 20,
+      "y": 9
+    }
   },
   "phases": [
     {
       "phase": 1,
       "name": "The Charge",
-      "hp_range": [0.66, 1.0],
-      "color": [140, 140, 140],
+      "hp_range": [
+        0.66,
+        1.0
+      ],
+      "color": [
+        140,
+        140,
+        140
+      ],
       "patterns": [
         {
           "id": "bull_rush",
@@ -40,7 +65,7 @@
           "punish_window": 2.5,
           "weight": 0.6,
           "params": {
-            "speed": 200,
+            "speed": 300,
             "stun_on_wall_hit": true,
             "destroys_pillars": true
           }
@@ -61,8 +86,15 @@
     {
       "phase": 2,
       "name": "The Stomp",
-      "hp_range": [0.33, 0.66],
-      "color": [220, 140, 40],
+      "hp_range": [
+        0.33,
+        0.66
+      ],
+      "color": [
+        220,
+        140,
+        40
+      ],
       "patterns": [
         {
           "id": "bull_rush",
@@ -71,7 +103,7 @@
           "punish_window": 2.5,
           "weight": 0.35,
           "params": {
-            "speed": 250,
+            "speed": 375,
             "stun_on_wall_hit": true,
             "destroys_pillars": true
           }
@@ -103,8 +135,15 @@
     {
       "phase": 3,
       "name": "The Core",
-      "hp_range": [0.0, 0.33],
-      "color": [220, 40, 40],
+      "hp_range": [
+        0.0,
+        0.33
+      ],
+      "color": [
+        220,
+        40,
+        40
+      ],
       "patterns": [
         {
           "id": "frenzy_rush",
@@ -113,7 +152,7 @@
           "punish_window": 2.5,
           "weight": 0.5,
           "params": {
-            "speed": 280,
+            "speed": 420,
             "bounces": 3
           }
         },

@@ -144,7 +144,7 @@ class TestOneWayPlatforms:
         platform_y = 4 * TILE_SIZE
         # Start below the platform with strong upward velocity.
         rect = pygame.Rect(2 * TILE_SIZE, platform_y + TILE_SIZE + 4, 16, 16)
-        vel = [0.0, -600.0]
+        vel = [0.0, -900.0]
 
         rect, vel, _ = physics.update_rect(rect, vel, 0.05, False)
         # Should have moved upward through the platform.

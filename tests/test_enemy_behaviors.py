@@ -59,8 +59,9 @@ class TestPatrolBehavior:
         patrol.reset(100.0)
 
         # Force direction to left, then go past boundary.
+        # Left boundary = 100 - 3 * TILE_SIZE.
         patrol._direction = -1.0
-        enemy_rect = pygame.Rect(40, 100, 16, 16)
+        enemy_rect = pygame.Rect(0, 100, 16, 16)
         player_rect = pygame.Rect(500, 100, 24, 32)
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
@@ -162,7 +163,7 @@ class TestPatrolAggroBehavior:
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 1.0  # Chase right.
-        assert result.speed == max(40 * 2.0, 50.0)  # Aggro speed with min.
+        assert result.speed == max(40 * 2.0, 75.0)  # Aggro speed with min.
 
     def test_aggro_chases_left(self):
         """While aggroed, patrol should chase left if player is left."""
@@ -235,7 +236,7 @@ class TestPatrolAggroBehavior:
 
         result = patrol.update(enemy_rect, player_far, 1 / 60)
         assert result.move_x == 1.0
-        assert result.speed == max(40 * 2.0, 50.0)
+        assert result.speed == max(40 * 2.0, 75.0)
 
     def test_aggro_overrides_attacking_state(self):
         """Damage during ATTACKING state should reset and allow aggro chase."""
@@ -275,7 +276,7 @@ class TestPatrolAggroBehavior:
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 1.0
-        assert result.speed == 50.0  # Min speed, not 20 * 2.0 = 40.
+        assert result.speed == 75.0  # Min speed, not 20 * 2.0 = 40.
 
 
 class TestPatrolEdgeDetection:
@@ -568,7 +569,7 @@ class TestChaseBehavior:
         chase.reset(0.0)
 
         enemy_rect = pygame.Rect(150, 100, 16, 16)
-        player_rect = pygame.Rect(100, 100, 24, 32)
+        player_rect = pygame.Rect(50, 100, 24, 32)
 
         result = chase.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == -1.0
@@ -684,9 +685,9 @@ class TestVerticalDetection:
         patrol = PatrolBehavior(params)
         patrol.reset(100.0)
 
-        enemy_rect = pygame.Rect(100, 200, 16, 16)
-        # Player directly above, within horizontal range but 4 tiles up.
-        player_rect = pygame.Rect(110, 120, 24, 32)
+        enemy_rect = pygame.Rect(100, 300, 16, 16)
+        # Player directly above, within horizontal range but >3 tiles up.
+        player_rect = pygame.Rect(110, 100, 24, 32)
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
         assert result.attack_state == AttackState.IDLE
@@ -721,11 +722,11 @@ class TestVerticalDetection:
         patrol = PatrolBehavior(params)
         patrol.reset(100.0)
 
-        enemy_rect = pygame.Rect(100, 200, 16, 16)
-        # Player 4 tiles above.
-        player_rect = pygame.Rect(150, 120, 24, 32)
+        enemy_rect = pygame.Rect(100, 300, 16, 16)
+        # Player >3 tiles above.
+        player_rect = pygame.Rect(150, 100, 24, 32)
 
-        patrol.on_damaged(150.0, 120.0)
+        patrol.on_damaged(150.0, 100.0)
         assert patrol.aggro_timer > 0
 
         result = patrol.update(enemy_rect, player_rect, 1 / 60)
@@ -742,9 +743,9 @@ class TestVerticalDetection:
         chase = ChaseBehavior(params)
         chase.reset(100.0)
 
-        enemy_rect = pygame.Rect(100, 200, 16, 24)
-        # Player 4 tiles above, within horizontal chase range.
-        player_rect = pygame.Rect(120, 120, 24, 32)
+        enemy_rect = pygame.Rect(100, 300, 16, 24)
+        # Player >3 tiles above, within horizontal chase range.
+        player_rect = pygame.Rect(120, 100, 24, 32)
 
         result = chase.update(enemy_rect, player_rect, 1 / 60)
         assert result.move_x == 0.0
@@ -778,11 +779,11 @@ class TestVerticalDetection:
         chase = ChaseBehavior(params)
         chase.reset(100.0)
 
-        enemy_rect = pygame.Rect(100, 200, 16, 24)
-        # Player far and above.
-        player_rect = pygame.Rect(500, 120, 24, 32)
+        enemy_rect = pygame.Rect(100, 300, 16, 24)
+        # Player far and above (>3 tiles vertical distance).
+        player_rect = pygame.Rect(500, 100, 24, 32)
 
-        chase.on_damaged(500.0, 120.0)
+        chase.on_damaged(500.0, 100.0)
 
         result = chase.update(enemy_rect, player_rect, 1 / 60)
         # Should NOT chase (player on different floor).

@@ -16,8 +16,8 @@ Design notes:
 from tools.sprite_defs.palettes import BEP_PALETTE
 
 PALETTE = BEP_PALETTE
-WIDTH = 16
-HEIGHT = 16
+WIDTH = 24
+HEIGHT = 24
 
 # fmt: off
 

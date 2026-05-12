@@ -56,380 +56,380 @@
     },
     "bep_idle": {
       "path": "assets/sprites/bep/idle.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 4
     },
     "bep_walk": {
       "path": "assets/sprites/bep/walk.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 4
     },
     "bep_jump": {
       "path": "assets/sprites/bep/jump.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "bep_scared": {
       "path": "assets/sprites/bep/scared.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "bep_excited": {
       "path": "assets/sprites/bep/excited.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "enemy_possessed_sheep_idle": {
       "path": "assets/sprites/enemies/possessed_sheep_idle.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 2
     },
     "enemy_possessed_sheep_walk": {
       "path": "assets/sprites/enemies/possessed_sheep_walk.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 4
     },
     "enemy_possessed_sheep_charge": {
       "path": "assets/sprites/enemies/possessed_sheep_charge.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 2
     },
     "enemy_possessed_sheep_hit": {
       "path": "assets/sprites/enemies/possessed_sheep_hit.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "enemy_possessed_sheep_death": {
       "path": "assets/sprites/enemies/possessed_sheep_death.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "enemy_rival_warrior_idle": {
       "path": "assets/sprites/enemies/rival_warrior_idle.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 2
     },
     "enemy_rival_warrior_walk": {
       "path": "assets/sprites/enemies/rival_warrior_walk.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 4
     },
     "enemy_rival_warrior_attack": {
       "path": "assets/sprites/enemies/rival_warrior_attack.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 2
     },
     "enemy_rival_warrior_block": {
       "path": "assets/sprites/enemies/rival_warrior_block.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 1
     },
     "enemy_rival_warrior_hit": {
       "path": "assets/sprites/enemies/rival_warrior_hit.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 1
     },
     "enemy_rival_warrior_death": {
       "path": "assets/sprites/enemies/rival_warrior_death.png",
-      "frame_width": 16,
-      "frame_height": 24,
+      "frame_width": 24,
+      "frame_height": 36,
       "frame_count": 1
     },
     "enemy_stone_guardian_idle": {
       "path": "assets/sprites/enemies/stone_guardian_idle.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 2
     },
     "enemy_stone_guardian_walk": {
       "path": "assets/sprites/enemies/stone_guardian_walk.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 3
     },
     "enemy_stone_guardian_attack": {
       "path": "assets/sprites/enemies/stone_guardian_attack.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 2
     },
     "enemy_stone_guardian_hit": {
       "path": "assets/sprites/enemies/stone_guardian_hit.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 1
     },
     "enemy_stone_guardian_death": {
       "path": "assets/sprites/enemies/stone_guardian_death.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 1
     },
     "boss_bou_idle_p1": {
       "path": "assets/sprites/boss/bou_idle_p1.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 4
     },
     "boss_bou_idle_p2": {
       "path": "assets/sprites/boss/bou_idle_p2.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 4
     },
     "boss_bou_idle_p3": {
       "path": "assets/sprites/boss/bou_idle_p3.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 4
     },
     "boss_bou_rush": {
       "path": "assets/sprites/boss/bou_rush.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 2
     },
     "boss_bou_headbutt": {
       "path": "assets/sprites/boss/bou_headbutt.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 2
     },
     "boss_bou_stomp": {
       "path": "assets/sprites/boss/bou_stomp.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 2
     },
     "boss_bou_hurl": {
       "path": "assets/sprites/boss/bou_hurl.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 1
     },
     "boss_bou_stunned": {
       "path": "assets/sprites/boss/bou_stunned.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 1
     },
     "boss_bou_transition": {
       "path": "assets/sprites/boss/bou_transition.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 1
     },
     "boss_bou_death": {
       "path": "assets/sprites/boss/bou_death.png",
-      "frame_width": 40,
-      "frame_height": 36,
+      "frame_width": 60,
+      "frame_height": 54,
       "frame_count": 1
     },
     "boss_pillar_intact": {
       "path": "assets/sprites/boss/pillar_intact.png",
-      "frame_width": 16,
-      "frame_height": 48,
+      "frame_width": 24,
+      "frame_height": 72,
       "frame_count": 1
     },
     "boss_pillar_destroyed": {
       "path": "assets/sprites/boss/pillar_destroyed.png",
-      "frame_width": 16,
-      "frame_height": 48,
+      "frame_width": 24,
+      "frame_height": 72,
       "frame_count": 1
     },
     "boss_rock": {
       "path": "assets/sprites/boss/boss_rock.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 1
     },
     "boss_shockwave": {
       "path": "assets/sprites/boss/boss_shockwave.png",
-      "frame_width": 16,
-      "frame_height": 8,
+      "frame_width": 24,
+      "frame_height": 12,
       "frame_count": 1
     },
     "boss_pulse": {
       "path": "assets/sprites/boss/boss_pulse.png",
-      "frame_width": 24,
-      "frame_height": 16,
+      "frame_width": 36,
+      "frame_height": 24,
       "frame_count": 1
     },
     "boss_shadow": {
       "path": "assets/sprites/boss/boss_shadow.png",
-      "frame_width": 16,
-      "frame_height": 6,
+      "frame_width": 24,
+      "frame_height": 9,
       "frame_count": 1
     },
     "npc_dimoni_idle": {
       "path": "assets/sprites/npcs/dimoni_idle.png",
-      "frame_width": 24,
-      "frame_height": 40,
+      "frame_width": 36,
+      "frame_height": 60,
       "frame_count": 1
     },
     "npc_dimoni_laugh": {
       "path": "assets/sprites/npcs/dimoni_laugh.png",
-      "frame_width": 24,
-      "frame_height": 40,
+      "frame_width": 36,
+      "frame_height": 60,
       "frame_count": 1
     },
     "npc_dimoni_grant": {
       "path": "assets/sprites/npcs/dimoni_grant.png",
-      "frame_width": 24,
-      "frame_height": 40,
+      "frame_width": 36,
+      "frame_height": 60,
       "frame_count": 1
     },
     "npc_dimoni_angry": {
       "path": "assets/sprites/npcs/dimoni_angry.png",
-      "frame_width": 24,
-      "frame_height": 40,
+      "frame_width": 36,
+      "frame_height": 60,
       "frame_count": 1
     },
     "npc_llorencc_idle": {
       "path": "assets/sprites/npcs/llorencc_idle.png",
-      "frame_width": 20,
-      "frame_height": 36,
+      "frame_width": 30,
+      "frame_height": 54,
       "frame_count": 1
     },
     "npc_llorencc_talk": {
       "path": "assets/sprites/npcs/llorencc_talk.png",
-      "frame_width": 20,
-      "frame_height": 36,
+      "frame_width": 30,
+      "frame_height": 54,
       "frame_count": 1
     },
     "npc_llorencc_shop": {
       "path": "assets/sprites/npcs/llorencc_shop.png",
-      "frame_width": 20,
-      "frame_height": 36,
+      "frame_width": 30,
+      "frame_height": 54,
       "frame_count": 1
     },
     "projectile_stone_tier1": {
       "path": "assets/sprites/projectiles/stone_tier1.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 1
     },
     "projectile_stone_tier2": {
       "path": "assets/sprites/projectiles/stone_tier2.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 1
     },
     "projectile_stone_tier3": {
       "path": "assets/sprites/projectiles/stone_tier3.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 1
     },
     "pickup_heart": {
       "path": "assets/sprites/pickups/heart.png",
-      "frame_width": 12,
-      "frame_height": 12,
+      "frame_width": 18,
+      "frame_height": 18,
       "frame_count": 2
     },
     "pickup_stone": {
       "path": "assets/sprites/pickups/stone.png",
-      "frame_width": 12,
-      "frame_height": 12,
+      "frame_width": 18,
+      "frame_height": 18,
       "frame_count": 2
     },
     "pickup_shield": {
       "path": "assets/sprites/pickups/shield.png",
-      "frame_width": 12,
-      "frame_height": 12,
+      "frame_width": 18,
+      "frame_height": 18,
       "frame_count": 2
     },
     "breakable_pot": {
       "path": "assets/sprites/breakables/pot.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "breakable_pot_break": {
       "path": "assets/sprites/breakables/pot_break.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "breakable_crate": {
       "path": "assets/sprites/breakables/crate.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "breakable_crate_break": {
       "path": "assets/sprites/breakables/crate_break.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 1
     },
     "effect_dust": {
       "path": "assets/effects/dust.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 4
     },
     "effect_impact": {
       "path": "assets/effects/impact.png",
-      "frame_width": 12,
-      "frame_height": 12,
+      "frame_width": 18,
+      "frame_height": 18,
       "frame_count": 3
     },
     "effect_dimoni_aura": {
       "path": "assets/effects/dimoni_aura.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 3
     },
     "effect_portal": {
       "path": "assets/effects/portal.png",
-      "frame_width": 24,
-      "frame_height": 32,
+      "frame_width": 36,
+      "frame_height": 48,
       "frame_count": 4
     },
     "effect_anticipation_glow": {
       "path": "assets/effects/anticipation_glow.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 2
     },
     "effect_stone_debris": {
       "path": "assets/effects/stone_debris.png",
-      "frame_width": 8,
-      "frame_height": 8,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 3
     },
     "enemy_stone_guardian_arm_sweep": {
       "path": "assets/sprites/enemies/effects/stone_guardian_arm_sweep.png",
-      "frame_width": 36,
-      "frame_height": 24,
+      "frame_width": 54,
+      "frame_height": 36,
       "frame_count": 6
     },
     "enemy_rival_warrior_spear_thrust": {
       "path": "assets/sprites/enemies/effects/rival_warrior_spear_thrust.png",
-      "frame_width": 20,
-      "frame_height": 16,
+      "frame_width": 30,
+      "frame_height": 24,
       "frame_count": 4
     },
     "enemy_legionary_gladius_stab": {
       "path": "assets/sprites/enemies/effects/legionary_gladius_stab.png",
-      "frame_width": 16,
-      "frame_height": 16,
+      "frame_width": 24,
+      "frame_height": 24,
       "frame_count": 3
     }
   },
@@ -508,15 +508,15 @@
   "tilesets": {
     "world1": {
       "path": "assets/tilesets/world1/tileset.png",
-      "tile_size": 16
+      "tile_size": 24
     },
     "world1_cave": {
       "path": "assets/tilesets/world1_cave/tileset.png",
-      "tile_size": 16
+      "tile_size": 24
     },
     "world1_talayot": {
       "path": "assets/tilesets/world1_talayot/tileset.png",
-      "tile_size": 16
+      "tile_size": 24
     }
   },
   "backgrounds": {

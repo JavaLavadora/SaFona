@@ -502,7 +502,7 @@ class TestCLI:
         code = main([map_file, yaml_file, "-o", out_path])
         assert code == 0
         data = json.loads(Path(out_path).read_text(encoding="utf-8"))
-        assert data["dimensions"]["width"] == 60
+        assert data["dimensions"]["width"] == 91
 
     def test_missing_map_file(self, tmp_path, capsys):
         """Missing map file returns error code 1."""

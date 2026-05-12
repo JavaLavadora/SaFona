@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import pygame
 
-# All tiles are 16x16 pixels.
-TILE_SIZE: int = 16
+# All tiles are 24x24 pixels (1.5x base scale).
+TILE_SIZE: int = 24
 
 # Auto-tile bitmask flags.
 _AT_UP = 1
@@ -173,7 +173,19 @@ class TileMap:
     # ── Tileset helpers ───────────────────────────────────────────
 
     def _slice_tileset(self, surface: pygame.Surface) -> None:
-        """Slice a horizontal tileset strip into individual tile surfaces."""
+        """Slice a horizontal tileset strip into individual tile surfaces.
+
+        If the tileset image height does not match TILE_SIZE (e.g. an
+        old 16 px tileset loaded after a scale bump), the surface is
+        nearest-neighbour scaled up so every tile becomes TILE_SIZE x
+        TILE_SIZE before slicing.
+        """
+        src_tile = surface.get_height()
+        if src_tile != TILE_SIZE and src_tile > 0:
+            num_src = surface.get_width() // src_tile
+            new_w = num_src * TILE_SIZE
+            surface = pygame.transform.scale(surface, (new_w, TILE_SIZE))
+
         num = surface.get_width() // TILE_SIZE
         for i in range(num):
             rect = pygame.Rect(i * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE)

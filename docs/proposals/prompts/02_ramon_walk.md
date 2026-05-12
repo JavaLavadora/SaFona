@@ -1,0 +1,70 @@
+# 02 — Ramon: Walk Cycle
+
+> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+
+---
+
+```
+Create a SNES-style 16-bit pixel art sprite sheet.
+
+GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
+- Style:         Authentic SNES-era 16-bit pixel art
+- Perspective:   Strict side view (2D platformer)
+- Light source:  Top-left, consistent across all assets
+- Shading:       2-3 tones per material, no pillow shading
+- Pixel density: Moderate, readable at 1x scale
+- Outlines:      Clean, dark outline color from palette
+- Palette:       Use ONLY the approved palette listed below
+- Rendering:     Pixel-perfect, no blur, no anti-aliasing, no gradients
+- Aesthetic:     Pre-Roman Mediterranean (Balearic-inspired)
+- Background:    Solid bright green (#00FF00) for chroma-key
+- Layout:        Single horizontal row, poses numbered, clear spacing
+
+CRITICAL IDENTITY LOCK:
+  - Must match the MASTER idle sprite EXACTLY
+  - Same proportions, face, hair, headband, tunic, sash, bracers, sling
+  - Same palette (15 colors), no new colors
+  - Same head position (Y 0-10), belt height (Y 18), feet baseline (Y 31)
+  - No redesign, no reinterpretation
+
+REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+
+PALETTE (use ONLY these 15 colors — RGB values):
+  248,248,240  Tunic highlight
+  240,232,216  Headwrap / eye white / tunic base
+  208,200,192  Headwrap shadow / tunic mid-shadow
+  192,192,176  Tunic deep crease
+  200,136,72   Skin base
+  176,112,56   Skin shadow / bracers / mouth
+  152,96,48    Skin dark / boot mid
+  32,24,16     Pupil / dark outline
+  224,56,48    Red sash bright
+  192,40,32    Red sash base
+  152,32,24    Red sash dark
+  136,88,48    Leather dark / sling cord light
+  96,72,48     Pants mid / boot dark
+  88,64,40     Pants base / sling cord
+  64,48,32     Pants / boots darkest
+
+SPRITE CONSTRAINTS:
+  - Sheet size:  144x32 (6 frames)
+  - Frame count: 6
+  - Frame size:  24x32 each
+  - Facing:      RIGHT
+
+ANIMATION DESCRIPTION:
+  Frame 1: Contact — right foot forward, left foot back, slight lean forward
+  Frame 2: Low point — weight transfers to right foot, body dips slightly
+  Frame 3: Passing — left leg swings forward past right, body upright
+  Frame 4: Contact — left foot forward, right foot back, slight lean forward
+  Frame 5: Low point — weight transfers to left foot, body dips slightly
+  Frame 6: Passing — right leg swings forward past left, body upright
+
+  Sling held loosely at side, swings naturally with walk motion.
+
+RULES:
+  - Only legs, arms, and slight torso bob may change
+  - Head stays at fixed Y position
+  - Maintain readable silhouette at all frames
+  - Background: solid green (#00FF00)
+```

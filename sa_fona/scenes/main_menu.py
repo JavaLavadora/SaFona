@@ -144,16 +144,17 @@ class MainMenuScene(BaseScene):
             self._confirm_selection()
 
     def _move_selection(self, direction: int) -> None:
-        """Move the menu cursor.
+        """Move the menu cursor, skipping disabled options.
 
         Args:
             direction: -1 for previous, +1 for next.
         """
         new_sel = self._selected + direction
         new_sel = max(0, min(len(self._options) - 1, new_sel))
-        # Skip disabled options.
+        # Skip disabled options in the same direction.
         if new_sel == self._OPT_CONTINUE and not self._has_save:
-            return
+            new_sel += direction
+            new_sel = max(0, min(len(self._options) - 1, new_sel))
         self._selected = new_sel
 
     def _confirm_selection(self) -> None:

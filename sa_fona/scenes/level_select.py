@@ -7,6 +7,7 @@ level into a GameplayScene.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pygame
@@ -23,7 +24,6 @@ _BG_COLOR: tuple[int, int, int] = (20, 20, 40)
 _TITLE_COLOR: tuple[int, int, int] = (255, 220, 80)
 _OPTION_COLOR: tuple[int, int, int] = (240, 240, 240)
 _SELECTED_COLOR: tuple[int, int, int] = (255, 180, 50)
-_HEADER_COLOR: tuple[int, int, int] = (150, 150, 180)
 _BACK_COLOR: tuple[int, int, int] = (200, 200, 200)
 
 
@@ -73,12 +73,18 @@ def discover_levels() -> list[dict[str, str]]:
                 "world": world_name,
             })
 
-    # Sort: numbered worlds first, then test.
-    def sort_key(entry: dict[str, str]) -> tuple[int, str]:
+    # Sort: numbered worlds first (numerically), then test.
+    def sort_key(entry: dict[str, str]) -> tuple[int, int, str]:
         world = entry["world"]
         if world == "test":
-            return (999, entry["display_name"])
-        return (0, entry["display_name"])
+            return (999, 0, entry["display_name"])
+        # Extract number from "World N" for numeric sort.
+        match = re.search(r"(\d+)", world)
+        world_num = int(match.group(1)) if match else 0
+        # Extract level number from display name.
+        match2 = re.search(r"(\d+)", entry["display_name"].split("-")[-1])
+        level_num = int(match2.group(1)) if match2 else 0
+        return (world_num, level_num, entry["display_name"])
 
     results.sort(key=sort_key)
     return results

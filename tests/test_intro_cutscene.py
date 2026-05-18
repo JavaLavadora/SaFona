@@ -171,6 +171,37 @@ class TestMainMenuLevelSelect:
     def test_level_select_option_index(self):
         assert MainMenuScene._OPT_LEVEL_SELECT == 2
 
+    def test_navigate_to_level_select_skips_disabled_continue(self):
+        """Pressing right from Start must reach Level Select when Continue is disabled."""
+        bus = EventBus()
+        menu = MainMenuScene(event_bus=bus)  # no save_system => Continue disabled
+        mgr = SceneManager()
+        menu.scene_manager = mgr
+        mgr.push(menu)
+
+        assert menu.selected == MainMenuScene._OPT_START
+        assert menu.has_save is False
+
+        # One press right should skip Continue and land on Level Select.
+        menu.handle_input(InputState(move_right=True))
+        assert menu.selected == MainMenuScene._OPT_LEVEL_SELECT
+
+    def test_navigate_left_from_level_select_skips_disabled_continue(self):
+        """Pressing left from Level Select must reach Start when Continue is disabled."""
+        bus = EventBus()
+        menu = MainMenuScene(event_bus=bus)
+        mgr = SceneManager()
+        menu.scene_manager = mgr
+        mgr.push(menu)
+
+        # Start at Level Select.
+        menu._selected = MainMenuScene._OPT_LEVEL_SELECT
+        assert menu.has_save is False
+
+        # One press left should skip Continue and land on Start.
+        menu.handle_input(InputState(move_left=True))
+        assert menu.selected == MainMenuScene._OPT_START
+
     def test_selecting_level_select_opens_scene(self):
         bus = EventBus()
         menu = MainMenuScene(event_bus=bus)
@@ -178,7 +209,10 @@ class TestMainMenuLevelSelect:
         menu.scene_manager = mgr
         mgr.push(menu)
 
-        menu._selected = MainMenuScene._OPT_LEVEL_SELECT
+        # Navigate to Level Select via input (not direct assignment).
+        menu.handle_input(InputState(move_right=True))
+        assert menu.selected == MainMenuScene._OPT_LEVEL_SELECT
+
         menu.handle_input(InputState(jump_pressed=True))
         menu.update(0.016)
 

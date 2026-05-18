@@ -202,6 +202,11 @@
       "portrait": "ramon_idle"
     },
     {
+      "type": "transition",
+      "effect": "fade_black",
+      "duration": 0.8
+    },
+    {
       "type": "wait",
       "duration": 0.5
     }

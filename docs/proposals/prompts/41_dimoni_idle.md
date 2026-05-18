@@ -60,10 +60,12 @@ PALETTE (use ONLY these 12 colors — RGB values):
   232,128,40   Flame tips
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x40 (1 frame)
-  - Frame size:  24x40
-  - Facing:      RIGHT
-  - Pose:        Standing imperiously, one hand raised, fiery aura flickering
+  - Sprite sheet: 4 frames in horizontal row
+  - Total size:   96x40
+  - Frame size:   24x40 each
+  - Facing:       RIGHT
+  - Animation:    Idle — fiery aura flickering and pulsing, flames shift between frames,
+                  slight body sway, one hand raised imperiously
 
 BACKGROUND: Solid green (#00FF00)
 

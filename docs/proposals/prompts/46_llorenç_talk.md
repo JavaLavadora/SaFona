@@ -43,13 +43,15 @@ PALETTE (use ONLY these 12 colors — RGB values):
   112,80,48    Boots
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  20x36 (1 frame)
-  - Frame size:  20x36
-  - Facing:      RIGHT
+  - Sprite sheet: 4 frames in horizontal row
+  - Total size:   80x36
+  - Frame size:   20x36 each
+  - Facing:       RIGHT
 
 ANIMATION DESCRIPTION:
-  Single frame: Animated talking — one hand gesturing enthusiastically,
-  mouth open, leaning forward.
+  4 frames: Animated talking loop — hand gestures cycle between raised,
+  extended, and lowered positions. Mouth opens and closes, body leans
+  forward with enthusiastic energy.
 
 RULES:
   - Same identity lock

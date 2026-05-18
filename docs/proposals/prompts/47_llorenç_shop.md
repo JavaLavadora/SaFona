@@ -43,13 +43,15 @@ PALETTE (use ONLY these 12 colors — RGB values):
   112,80,48    Boots
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  20x36 (1 frame)
-  - Frame size:  20x36
-  - Facing:      RIGHT
+  - Sprite sheet: 2 frames in horizontal row
+  - Total size:   40x36
+  - Frame size:   20x36 each
+  - Facing:       RIGHT
 
 ANIMATION DESCRIPTION:
-  Single frame: Behind counter pose — hands on surface, satchel open showing wares,
-  inviting gesture. Shopkeeper mode.
+  2 frames: Behind counter pose — satchel open showing wares.
+  Frames alternate between hands resting on surface and a subtle
+  beckoning gesture. Shopkeeper mode.
 
 RULES:
   - Same identity lock

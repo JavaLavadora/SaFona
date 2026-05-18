@@ -43,12 +43,14 @@ PALETTE (use ONLY these 12 colors — RGB values):
   232,128,40   Flame tips
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x40 (1 frame)
-  - Frame size:  24x40
-  - Facing:      RIGHT
+  - Sprite sheet: 2 frames in horizontal row
+  - Total size:   48x40
+  - Frame size:   24x40 each
+  - Facing:       RIGHT
 
 ANIMATION DESCRIPTION:
-  Single frame: Head thrown back laughing, mouth open, flames flare up around body.
+  2 frames: Head thrown back laughing, mouth open, flames flare up around body.
+  Frames alternate between laugh peak and laugh inhale for looping cackle.
 
 RULES:
   - Same identity lock

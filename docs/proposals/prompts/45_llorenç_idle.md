@@ -59,10 +59,12 @@ PALETTE (use ONLY these 12 colors — RGB values):
   112,80,48    Boots
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  20x36 (1 frame)
-  - Frame size:  20x36
-  - Facing:      RIGHT
-  - Pose:        Standing relaxed, one hand on satchel, friendly smile
+  - Sprite sheet: 4 frames in horizontal row
+  - Total size:   80x36
+  - Frame size:   20x36 each
+  - Facing:       RIGHT
+  - Animation:    Idle breathing — subtle chest rise/fall, slight weight shift,
+                  hand on satchel adjusts grip gently
 
 BACKGROUND: Solid green (#00FF00)
 

@@ -43,13 +43,14 @@ PALETTE (use ONLY these 12 colors — RGB values):
   232,128,40   Flame tips
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x40 (1 frame)
-  - Frame size:  24x40
-  - Facing:      RIGHT
+  - Sprite sheet: 2 frames in horizontal row
+  - Total size:   48x40
+  - Frame size:   24x40 each
+  - Facing:       RIGHT
 
 ANIMATION DESCRIPTION:
-  Single frame: Hunched forward aggressively, eyes blazing brighter, flames intensified,
-  fists clenched. Rage posture.
+  2 frames: Hunched forward aggressively, eyes blazing brighter, flames intensified,
+  fists clenched. Frames alternate flame intensity for seething rage pulse.
 
 RULES:
   - Same identity lock

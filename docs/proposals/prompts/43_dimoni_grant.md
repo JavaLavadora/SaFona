@@ -43,12 +43,14 @@ PALETTE (use ONLY these 12 colors — RGB values):
   232,128,40   Flame tips
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  24x40 (1 frame)
-  - Frame size:  24x40
-  - Facing:      RIGHT
+  - Sprite sheet: 2 frames in horizontal row
+  - Total size:   48x40
+  - Frame size:   24x40 each
+  - Facing:       RIGHT
 
 ANIMATION DESCRIPTION:
-  Single frame: Arms extended forward, palms open, energy flowing outward — granting a power.
+  2 frames: Arms extended forward, palms open, energy flowing outward — granting a power.
+  Frames alternate energy burst intensity for pulsing flow effect.
   Generous but still menacing posture.
 
 RULES:

@@ -290,7 +290,7 @@
       ]
     },
     {
-      "input": "assets/ai_sources/projectile_stone/image.png",
+      "input": "assets/ai_sources/projectile_stone/projectile.png",
       "min_area": 3000,
       "outputs": [
         {
@@ -362,7 +362,7 @@
       ]
     },
     {
-      "input": "assets/ai_sources/pickup_heart/image.png",
+      "input": "assets/ai_sources/pickup_heart/pickup_heart.png",
       "min_area": 3000,
       "outputs": [
         {
@@ -374,7 +374,7 @@
       ]
     },
     {
-      "input": "assets/ai_sources/pickup_stone/image.png",
+      "input": "assets/ai_sources/pickup_stone/pickup_stone.png",
       "min_area": 3000,
       "outputs": [
         {

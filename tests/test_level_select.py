@@ -67,28 +67,33 @@ class TestLevelSelectScene:
     def test_navigate_down(self):
         scene = self._make_scene()
         initial = scene.selected
+        # Press right (edge triggers on first press).
         scene.handle_input(InputState(move_right=True))
         assert scene.selected == initial + 1
 
     def test_navigate_up(self):
         scene = self._make_scene()
-        # Move down first, then back up.
+        # Move down first (press then release to reset edge state).
         scene.handle_input(InputState(move_right=True))
+        scene.handle_input(InputState())  # Release.
         pos = scene.selected
         scene.handle_input(InputState(move_left=True))
         assert scene.selected == pos - 1
 
     def test_navigate_up_clamps_at_zero(self):
         scene = self._make_scene()
-        # Move to top.
+        # Move to top — simulate press/release cycles for edge detection.
         for _ in range(20):
             scene.handle_input(InputState(move_left=True))
+            scene.handle_input(InputState())  # Release.
         assert scene.selected == 0
 
     def test_navigate_down_clamps_at_end(self):
         scene = self._make_scene()
+        # Simulate press/release cycles for edge detection.
         for _ in range(100):
             scene.handle_input(InputState(move_right=True))
+            scene.handle_input(InputState())  # Release.
         assert scene.selected == len(scene.entries) - 1
 
     def test_back_action(self):
@@ -161,3 +166,70 @@ class TestLevelSelectRender:
         scene.handle_input(InputState(move_right=True))
         surface = pygame.Surface((384, 216))
         scene.render(surface)
+
+
+class TestDiscoverBosses:
+    """Tests for boss discovery in the level select."""
+
+    def test_boss_entry_exists(self):
+        result = discover_levels()
+        boss_entries = [l for l in result if l.get("boss_id")]
+        assert len(boss_entries) >= 1
+
+    def test_boss_entry_has_display_name(self):
+        result = discover_levels()
+        boss_entries = [l for l in result if l.get("boss_id")]
+        assert any("Boss" in b["display_name"] for b in boss_entries)
+
+    def test_boss_entry_placed_after_world_levels(self):
+        result = discover_levels()
+        # Find the world1 boss entry and verify it comes after world1 levels.
+        boss_idx = None
+        last_w1_level_idx = None
+        for i, entry in enumerate(result):
+            if entry.get("boss_id") and entry["world"] == "world1":
+                boss_idx = i
+            elif entry["world"] == "world1" and not entry.get("boss_id"):
+                last_w1_level_idx = i
+        if boss_idx is not None and last_w1_level_idx is not None:
+            assert boss_idx > last_w1_level_idx
+
+    def test_boss_has_boss_id_key(self):
+        result = discover_levels()
+        boss_entries = [l for l in result if l.get("boss_id")]
+        assert boss_entries[0]["boss_id"] == "bou_de_pedra"
+
+
+class TestLevelSelectDebounce:
+    """Tests for edge-detection input debounce in the level select."""
+
+    def _make_scene(self) -> LevelSelectScene:
+        bus = EventBus()
+        scene = LevelSelectScene(event_bus=bus)
+        mgr = SceneManager()
+        scene.scene_manager = mgr
+        mgr.push(scene)
+        return scene
+
+    def test_held_key_does_not_repeat(self):
+        """Holding a key should only move once."""
+        scene = self._make_scene()
+        initial = scene.selected
+        # First press moves.
+        scene.handle_input(InputState(move_right=True))
+        assert scene.selected == initial + 1
+        # Held key (same state) does not move further.
+        scene.handle_input(InputState(move_right=True))
+        assert scene.selected == initial + 1
+
+    def test_release_and_repress_moves_again(self):
+        """Releasing and re-pressing should move again."""
+        scene = self._make_scene()
+        initial = scene.selected
+        scene.handle_input(InputState(move_right=True))
+        assert scene.selected == initial + 1
+        # Release.
+        scene.handle_input(InputState())
+        # Re-press.
+        scene.handle_input(InputState(move_right=True))
+        assert scene.selected == initial + 2

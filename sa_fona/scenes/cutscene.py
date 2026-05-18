@@ -193,10 +193,8 @@ class CutsceneScene(BaseScene):
         Args:
             surface: Target surface.
         """
-        # Semi-transparent dark overlay for the cutscene atmosphere.
-        overlay = pygame.Surface((BASE_WIDTH, BASE_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))
-        surface.blit(overlay, (0, 0))
+        # Solid black background for the cutscene.
+        surface.fill((0, 0, 0))
 
         # Visual effects (aura, portal) -- rendered in screen space (0,0 offset).
         self._effects.render(surface, (0, 0))

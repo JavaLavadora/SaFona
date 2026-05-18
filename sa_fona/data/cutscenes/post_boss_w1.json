@@ -46,7 +46,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "A mask. Fine.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "spawn_effect",
@@ -69,7 +69,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "Bep, what are you--",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_surprised"
     },
     {
       "type": "wait",
@@ -126,7 +126,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "This is your fault, Bep.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_angry"
     },
     {
       "type": "wait",

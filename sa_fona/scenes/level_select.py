@@ -2,11 +2,13 @@
 
 Scans the data/levels/ directory for world sub-directories and level
 JSON files, presents them in a navigable list, and loads the chosen
-level into a GameplayScene.
+level into a GameplayScene. Also discovers boss encounters from
+data/bosses/ and includes them after the last regular level of each world.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -87,6 +89,45 @@ def discover_levels() -> list[dict[str, str]]:
         return (world_num, level_num, entry["display_name"])
 
     results.sort(key=sort_key)
+
+    # Discover boss encounters from data/bosses/ and insert them after the
+    # last regular level of their world.
+    bosses_dir = DATA_DIR / "bosses"
+    if bosses_dir.is_dir():
+        boss_entries: list[dict[str, str]] = []
+        for boss_file in sorted(bosses_dir.glob("*.json")):
+            try:
+                with open(boss_file, "r", encoding="utf-8") as fh:
+                    boss_def = json.load(fh)
+            except (json.JSONDecodeError, OSError):
+                continue
+
+            boss_id = boss_def.get("boss_id", boss_file.stem)
+            display_name_raw = boss_def.get("display_name", boss_id)
+            world_num = boss_def.get("world", 0)
+            world_key = f"world{world_num}"
+            cutscene_id = boss_def.get("post_defeat", {}).get(
+                "cutscene", "post_boss_w1"
+            )
+            display_name = f"World {world_num} - Boss: {display_name_raw}"
+
+            boss_entries.append({
+                "display_name": display_name,
+                "level_path": "",  # Empty — bosses are procedural.
+                "world": world_key,
+                "boss_id": boss_id,
+                "cutscene_id": cutscene_id,
+            })
+
+        # Insert each boss entry after the last regular level of its world.
+        for boss in boss_entries:
+            boss_world = boss["world"]
+            insert_idx = len(results)
+            for i, entry in enumerate(results):
+                if entry["world"] == boss_world:
+                    insert_idx = i + 1
+            results.insert(insert_idx, boss)
+
     return results
 
 
@@ -126,6 +167,11 @@ class LevelSelectScene(BaseScene):
         ]
 
         self._selected: int = 1 if self._levels else 0
+
+        # Previous-frame directional input state for edge detection.
+        self._prev_left: bool = False
+        self._prev_right: bool = False
+        self._prev_down: bool = False
 
         # Deferred action.
         self._pending_action: str | None = None
@@ -184,10 +230,18 @@ class LevelSelectScene(BaseScene):
         Args:
             input_state: Current frame input snapshot.
         """
-        # Navigate: left = up, right = down.
-        if input_state.move_left:
+        # Navigate: left = up, right/down = down.
+        # Edge detection: only move on the frame the key is first pressed.
+        left_pressed = input_state.move_left and not self._prev_left
+        right_pressed = input_state.move_right and not self._prev_right
+        down_pressed = input_state.move_down and not self._prev_down
+        self._prev_left = input_state.move_left
+        self._prev_right = input_state.move_right
+        self._prev_down = input_state.move_down
+
+        if left_pressed:
             self._selected = max(0, self._selected - 1)
-        elif input_state.move_right or input_state.move_down:
+        elif right_pressed or down_pressed:
             self._selected = min(len(self._entries) - 1, self._selected + 1)
 
         # Confirm selection.
@@ -296,7 +350,7 @@ class LevelSelectScene(BaseScene):
         self._scene_manager.replace(menu)
 
     def _select_level(self) -> None:
-        """Load the selected level into a GameplayScene."""
+        """Load the selected level into a GameplayScene or BossScene."""
         if self._scene_manager is None:
             return
 
@@ -306,6 +360,12 @@ class LevelSelectScene(BaseScene):
             return
 
         level_info = self._levels[level_idx]
+
+        # Boss entries have a boss_id key — launch BossScene instead.
+        if level_info.get("boss_id"):
+            self._select_boss(level_info)
+            return
+
         level_path = level_info["level_path"]
 
         if not Path(level_path).is_file():
@@ -325,4 +385,25 @@ class LevelSelectScene(BaseScene):
             scene.save_system = self._save_system
             scene.take_level_entry_snapshot()
 
+        self._scene_manager.replace(scene)
+
+    def _select_boss(self, boss_info: dict[str, str]) -> None:
+        """Load the selected boss encounter into a BossScene.
+
+        Args:
+            boss_info: Dict with boss_id, cutscene_id, and other metadata.
+        """
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.boss_scene import BossScene
+
+        scene = BossScene(
+            boss_id=boss_info["boss_id"],
+            screen_width=self._screen_width,
+            screen_height=self._screen_height,
+            event_bus=self._event_bus,
+            cutscene_id=boss_info.get("cutscene_id", "post_boss_w1"),
+        )
+        scene.scene_manager = self._scene_manager
         self._scene_manager.replace(scene)

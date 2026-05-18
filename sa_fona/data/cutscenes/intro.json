@@ -23,7 +23,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "...",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "dialogue",
@@ -88,7 +88,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "...what.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "dialogue",
@@ -100,7 +100,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "He's a myotragus. He eats things. That's what he does.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_angry"
     },
     {
       "type": "dialogue",
@@ -129,7 +129,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "...",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "dialogue",
@@ -165,13 +165,13 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "Great.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "This is your fault, Bep.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_angry"
     },
     {
       "type": "dialogue",
@@ -183,7 +183,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "I was napping.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "wait",
@@ -199,7 +199,7 @@
       "type": "dialogue",
       "speaker": "Ramon",
       "text": "Now we walk. And you stop eating things.",
-      "portrait": "ramon_idle"
+      "portrait": "ramon_neutral"
     },
     {
       "type": "transition",

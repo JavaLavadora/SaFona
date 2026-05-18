@@ -13,14 +13,14 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Dimoni",
-      "text": "You have proven your worth, foner. The Bou de Pedra was merely the first guardian.",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "You defeated my guardian. Perhaps you are not entirely useless, foner.",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
-      "speaker": "Dimoni",
-      "text": "Take this ancient power. The Talayotic mask shall bend stone to your will.",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "Take this. The Talayotic mask shall bend stone to your will. You have earned it.",
       "portrait": "dimoni_granting"
     },
     {
@@ -44,23 +44,40 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Bep",
-      "text": "Ramon, look! A mask! The legends about the Dimoni's trials were true...",
-      "portrait": "bep_excited"
+      "speaker": "Ramon",
+      "text": "A mask. Fine.",
+      "portrait": "ramon_idle"
+    },
+    {
+      "type": "spawn_effect",
+      "effect_type": "portal",
+      "x": 160,
+      "y": 110,
+      "tag": "bep_glow"
+    },
+    {
+      "type": "wait",
+      "duration": 0.3
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "I can feel its power. The stones themselves tremble!",
+      "text": "Ramon... I feel strange... something is happening!",
       "portrait": "bep_scared"
     },
     {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "Bep, what are you--",
+      "portrait": "ramon_idle"
+    },
+    {
       "type": "wait",
-      "duration": 0.5
+      "duration": 0.3
     },
     {
       "type": "remove_effect",
-      "tag": "dimoni_aura"
+      "tag": "bep_glow"
     },
     {
       "type": "spawn_effect",
@@ -71,7 +88,49 @@
     },
     {
       "type": "wait",
-      "duration": 1.0
+      "duration": 0.5
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "AAAH! I sneezed and the world RIPPED OPEN! What is happening to me?!",
+      "portrait": "bep_scared"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "Ha! You thought we were done? That sheep ate my herbs. Every dimoni on this island wants a piece of him now.",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "My fire burns inside him. Wherever he goes, portals will tear open. Good luck, foner.",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "remove_effect",
+      "tag": "dimoni_aura"
+    },
+    {
+      "type": "wait",
+      "duration": 0.3
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "Ramon! We have to go through the portal before it closes! I can feel it pulling us!",
+      "portrait": "bep_scared"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "This is your fault, Bep.",
+      "portrait": "ramon_idle"
+    },
+    {
+      "type": "wait",
+      "duration": 0.5
     },
     {
       "type": "transition",

@@ -771,10 +771,7 @@ def _scale_to_frame(
 
     x_offset = (frame_w - pw) // 2
 
-    if is_death:
-        y_offset = (frame_h - ph) // 2
-    else:
-        y_offset = frame_h - ph
+    y_offset = frame_h - ph
 
     frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled_arr
     return frame
@@ -826,10 +823,7 @@ def _scale_to_frame_uniform(
 
     x_offset = (frame_w - pw) // 2
 
-    if is_death:
-        y_offset = (frame_h - ph) // 2
-    else:
-        y_offset = frame_h - ph
+    y_offset = frame_h - ph
 
     frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled_arr
     return frame

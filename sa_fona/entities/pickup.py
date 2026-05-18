@@ -29,8 +29,8 @@ class PickupType(Enum):
 
 
 # Pickup dimensions (pixels).
-PICKUP_WIDTH: int = 18
-PICKUP_HEIGHT: int = 18
+PICKUP_WIDTH: int = 12
+PICKUP_HEIGHT: int = 12
 
 
 class Pickup(Entity):

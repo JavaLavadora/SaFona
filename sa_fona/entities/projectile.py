@@ -16,7 +16,7 @@ from sa_fona.config.settings import PLAYER_GRAVITY
 from sa_fona.entities.entity import Entity
 from sa_fona.rendering.asset_loader import load_frame_strip
 
-_PROJECTILE_GRAVITY: float = PLAYER_GRAVITY * 0.5
+_PROJECTILE_GRAVITY: float = PLAYER_GRAVITY * 0.25
 
 
 class ProjectileType(Enum):

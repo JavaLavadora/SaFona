@@ -22,7 +22,7 @@
     },
     "tap_damage": 1.0,
     "tap_range_tiles": 1.5,
-    "projectile_speed": 375.0,
+    "projectile_speed": 500.0,
     "tap_hitbox_width": 30,
     "tap_hitbox_height": 30,
     "tap_duration": 0.1,

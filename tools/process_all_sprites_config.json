@@ -296,20 +296,20 @@
         {
           "file": "assets/sprites/projectiles/stone_tier1.png",
           "poses": [1],
-          "frame_width": 8,
-          "frame_height": 8
+          "frame_width": 12,
+          "frame_height": 12
         },
         {
           "file": "assets/sprites/projectiles/stone_tier2.png",
           "poses": [2],
-          "frame_width": 8,
-          "frame_height": 8
+          "frame_width": 12,
+          "frame_height": 12
         },
         {
           "file": "assets/sprites/projectiles/stone_tier3.png",
           "poses": [3],
-          "frame_width": 8,
-          "frame_height": 8
+          "frame_width": 12,
+          "frame_height": 12
         }
       ]
     },

@@ -714,23 +714,45 @@ class TestSameWallRegrab:
             "Origin Y should be cleared after landing"
         )
 
-    def test_can_wall_jump_same_wall_when_lower(self, walled_level: dict) -> None:
+    def test_can_wall_jump_same_wall_when_lower(self) -> None:
         """After wall jumping from a wall and sliding back down to at or
         below the origin Y, the player should be able to wall jump again
         from the same wall.  The new jump updates the origin Y so each
-        successive jump starts lower."""
-        ground_y = 9 * TILE_SIZE
-        wall_x = 5 * TILE_SIZE
+        successive jump starts lower.
+
+        Uses a tall, wide level so the player has enough air time to
+        arc away during the wall-jump lockout and return to the wall
+        before hitting the ground.
+        """
+        # Tall, wide level: 30 wide, 60 tall.  Wall at col 20, ground
+        # at row 59.  Wide enough that the lockout arc doesn't reach any
+        # opposite wall.
+        rows = []
+        for r in range(60):
+            if r < 59:
+                row = [0] * 30
+                row[20] = 1   # wall
+                rows.append(row)
+            else:
+                rows.append([1] * 30)  # ground
+        tall_level = {
+            "dimensions": {"width": 30, "height": 60},
+            "layers": {"midground": rows},
+            "collision_types": {"solid": [1], "one_way": [10]},
+        }
+
+        # Place player against the wall, mid-height in the level.
+        # Start airborne and sliding: place next to wall, give downward
+        # velocity so it enters wall slide immediately.
+        wall_x = 20 * TILE_SIZE
         px = wall_x - PLAYER_WIDTH - 1
-        player, physics = _make_player(walled_level, px, ground_y - 32)
-        _settle_on_ground(player, physics)
+        start_y = 20 * TILE_SIZE
+        player, physics = _make_player(tall_level, px, start_y)
+        player.velocity[1] = 50.0  # falling
+        player.on_ground = False
 
-        # Jump up.
-        player.handle_input(_input(jump_pressed=True, jump_held=True))
-        _step(player, physics, 1.0 / 60.0)
-
-        # Move right into the wall until wall sliding.
-        for _ in range(60):
+        # Press into wall to enter wall slide.
+        for _ in range(10):
             player.handle_input(_input(move_right=True, move_x=1.0))
             _step(player, physics, 1.0 / 60.0)
             if player.state == PlayerState.WALL_SLIDING:
@@ -749,8 +771,9 @@ class TestSameWallRegrab:
 
         # Let the player arc away and then slide back down onto the same
         # wall.  We stop pressing jump so the player falls back naturally.
+        # Use enough frames to account for the wall-jump lockout duration.
         reached_wall_slide = False
-        for _ in range(180):
+        for _ in range(600):
             player.handle_input(_input(move_right=True, move_x=1.0))
             _step(player, physics, 1.0 / 60.0)
             if player.on_ground:

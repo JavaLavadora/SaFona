@@ -6,7 +6,7 @@ import random
 
 import pygame
 
-from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH
+from sa_fona.config.settings import BASE_HEIGHT, BASE_WIDTH, CAMERA_LOOKAHEAD_RATIO
 
 
 class Camera:
@@ -74,19 +74,26 @@ class Camera:
         Useful after respawning or scene transitions to avoid the
         visible "snap" that lerp produces on the first frame.
 
+        The camera applies a horizontal lookahead offset so the player
+        sits in roughly the left third of the screen, showing more of
+        the upcoming map ahead.
+
         Args:
             target_rect: The rectangle to center on (world coordinates).
         """
         eff_w = self.view_width / self._zoom
         eff_h = self.view_height / self._zoom
-        self._x = target_rect.centerx - eff_w / 2
+        lookahead = eff_w * CAMERA_LOOKAHEAD_RATIO
+        self._x = target_rect.centerx - eff_w / 2 + lookahead
         self._y = target_rect.centery - eff_h / 2
         self._clamp()
 
     def follow(self, target_rect: pygame.Rect, dt: float) -> None:
         """Move the camera towards centering the target.
 
-        Uses linear interpolation for smooth following.
+        Uses linear interpolation for smooth following.  A horizontal
+        lookahead offset shifts the player towards the left side of
+        the screen so more of the upcoming map is visible.
 
         Args:
             target_rect: The rectangle to follow (world coordinates).
@@ -96,8 +103,10 @@ class Camera:
         eff_w = self.view_width / self._zoom
         eff_h = self.view_height / self._zoom
 
-        # Desired camera position: center the target on screen.
-        target_x = target_rect.centerx - eff_w / 2
+        # Desired camera position: offset the target towards the left
+        # third of the screen so more map ahead (right) is visible.
+        lookahead = eff_w * CAMERA_LOOKAHEAD_RATIO
+        target_x = target_rect.centerx - eff_w / 2 + lookahead
         target_y = target_rect.centery - eff_h / 2
 
         # Lerp towards the target.

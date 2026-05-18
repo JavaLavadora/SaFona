@@ -3,6 +3,7 @@
 import pygame
 import pytest
 
+from sa_fona.config.settings import CAMERA_LOOKAHEAD_RATIO
 from sa_fona.core.camera import Camera
 
 
@@ -19,8 +20,10 @@ class TestCameraFollow:
             camera.update(0.016)
 
         ox, oy = camera.offset
-        # Camera should roughly center on the target.
-        expected_x = target.centerx - camera.view_width // 2
+        # Camera should roughly center on the target, shifted right
+        # by the lookahead offset so the player sits left of center.
+        lookahead = int(camera.view_width * CAMERA_LOOKAHEAD_RATIO)
+        expected_x = target.centerx - camera.view_width // 2 + lookahead
         expected_y = target.centery - camera.view_height // 2
         assert abs(ox - expected_x) < 5, f"Camera X {ox} should be near {expected_x}"
         assert abs(oy - expected_y) < 5, f"Camera Y {oy} should be near {expected_y}"
@@ -94,14 +97,15 @@ class TestCameraSnapTo:
     """Tests for the snap_to() instant centering method."""
 
     def test_snap_to_centers_on_target(self) -> None:
-        """snap_to places camera so the target is centered."""
+        """snap_to places camera so the target sits left of center (lookahead)."""
         camera = Camera(level_width=2000, level_height=1000)
         target = pygame.Rect(500, 300, 24, 32)
 
         camera.snap_to(target)
 
         ox, oy = camera.offset
-        expected_x = target.centerx - camera.view_width // 2
+        lookahead = int(camera.view_width * CAMERA_LOOKAHEAD_RATIO)
+        expected_x = target.centerx - camera.view_width // 2 + lookahead
         expected_y = target.centery - camera.view_height // 2
         assert ox == expected_x
         assert oy == expected_y
@@ -141,7 +145,8 @@ class TestCameraSnapTo:
         # Effective viewport is half the view size at 2x zoom.
         eff_w = camera.view_width / 2.0
         eff_h = camera.view_height / 2.0
-        expected_x = int(target.centerx - eff_w / 2)
+        lookahead = eff_w * CAMERA_LOOKAHEAD_RATIO
+        expected_x = int(target.centerx - eff_w / 2 + lookahead)
         expected_y = int(target.centery - eff_h / 2)
         ox, oy = camera.offset
         assert ox == expected_x, f"Zoomed snap X {ox} != {expected_x}"
@@ -192,7 +197,8 @@ class TestCameraZoom:
 
         eff_w = camera.view_width / 2.0
         eff_h = camera.view_height / 2.0
-        expected_x = target.centerx - eff_w / 2
+        lookahead = eff_w * CAMERA_LOOKAHEAD_RATIO
+        expected_x = target.centerx - eff_w / 2 + lookahead
         expected_y = target.centery - eff_h / 2
         ox, oy = camera.offset
         assert abs(ox - expected_x) < 2, f"Zoomed follow X {ox} != ~{expected_x}"
@@ -241,7 +247,8 @@ class TestScreenShake:
             camera.update(0.016)
 
         # After shake expires, offset should return to steady state.
-        base_x = target.centerx - camera.view_width // 2
+        lookahead = int(camera.view_width * CAMERA_LOOKAHEAD_RATIO)
+        base_x = target.centerx - camera.view_width // 2 + lookahead
         base_y = target.centery - camera.view_height // 2
         ox, oy = camera.offset
         assert abs(ox - base_x) < 3, "Shake should have decayed"

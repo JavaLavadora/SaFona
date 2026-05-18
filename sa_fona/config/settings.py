@@ -14,6 +14,7 @@ BASE_HEIGHT: int = 216
 WINDOW_SCALE: int = 3
 FPS: int = 60
 CAMERA_ZOOM: float = 1.3  # Camera zoom factor (1.0 = no zoom, >1 = closer)
+CAMERA_LOOKAHEAD_RATIO: float = 0.15  # Fraction of viewport width to shift camera ahead of player
 
 # ── Color Palette ───────────────────────────────────────────────
 COLORS: dict[str, tuple[int, int, int]] = {
@@ -37,7 +38,7 @@ PLAYER_VARIABLE_JUMP_CUTOFF: float = 0.5  # multiply vy when jump released early
 PLAYER_WALL_SLIDE_SPEED: float = 60.0     # px/s max downward speed on wall
 PLAYER_WALL_JUMP_FORCE_X: float = 240.0   # px/s horizontal push off wall
 PLAYER_WALL_JUMP_FORCE_Y: float = -465.0  # px/s upward impulse on wall jump
-PLAYER_WALL_JUMP_LOCKOUT: float = 0.40    # seconds of input lockout after wall jump
+PLAYER_WALL_JUMP_LOCKOUT: float = 0.60    # seconds of input lockout after wall jump
 PLAYER_COYOTE_TIME: float = 0.06          # seconds grace after leaving ground
 PLAYER_JUMP_BUFFER: float = 0.08          # seconds jump press remembered
 PLAYER_GRAVITY: float = 1200.0            # px/s^2

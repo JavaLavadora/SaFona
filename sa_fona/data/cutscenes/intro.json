@@ -22,24 +22,24 @@
     {
       "type": "dialogue",
       "speaker": "Ramon",
-      "text": "...",
+      "text": "...zzzzZZzzzz....",
       "portrait": "ramon_neutral"
     },
     {
       "type": "dialogue",
       "speaker": "Narrator",
-      "text": "Ramon, a talayotic foner, naps against the ancient stones. Nearby, his myotragus companion Bep grazes.",
+      "text": "Ramon, a talayotic foner, naps against the stones. Nearby, his myotragus companion Bep grazes.",
       "portrait": ""
     },
     {
       "type": "wait",
-      "duration": 0.5
+      "duration": 0.3
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
       "text": "*munch munch*",
-      "portrait": "bep_idle"
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
@@ -54,7 +54,13 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ooh, these smell nice...",
+      "text": "*Ooh, these herbs smell nice...*",
+      "portrait": "bep_idle"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "*mmm, Mixed herbs! My favorite!*",
       "portrait": "bep_idle"
     },
     {
@@ -86,27 +92,69 @@
     },
     {
       "type": "dialogue",
+      "speaker": "Bep",
+      "text": "...",
+      "portrait": "bep_scared"
+    },
+    {
+      "type": "dialogue",
       "speaker": "Ramon",
       "text": "...what.",
-      "portrait": "ramon_neutral"
-    },
-    {
-      "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
-      "text": "Your wretched beast has devoured my sacred herbs! Do you have ANY idea how long those take to grow?!",
-      "portrait": "dimoni_menacing"
-    },
-    {
-      "type": "dialogue",
-      "speaker": "Ramon",
-      "text": "He's a myotragus. He eats things. That's what he does.",
       "portrait": "ramon_angry"
     },
     {
       "type": "dialogue",
       "speaker": "Es Dimoni de Sant Joan",
-      "text": "SILENCE! Your beast shall carry a piece of my fire for this offense. Every dimoni on this island will sense him now!",
+      "text": "Your wretched beast has devoured my sacred herbs! These things take longer than Poseidonia to grow back!",
       "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "Beeeeeep",
+      "portrait": "bep_happy"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "Who on earth are you? Do you come from the sea?",
+      "portrait": "ramon_surprised"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "SILENCE! I have inhabited this land way before your species even existed show some respect and apologize for your beast's actions!",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "I mean he's a myotragus. He eats things. That's what he does.",
+      "portrait": "ramon_smirk"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "SILENCE! Your beast has now stolen a piece of my power. Give it back and accept your punishment!",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "Ew! I am not sticking my hand in there! I would need to cut it afterwards! No thanks!",
+      "portrait": "ramon_smirk"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "SILENCE! Show some respect my power is beyond your comprehension. Actually...",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Es Dimoni de Sant Joan",
+      "text": "... the power this beast stole will be your punishment. Every demon on this island will sense him now!",
+      "portrait": "dimoni_laughing"
     },
     {
       "type": "spawn_effect",
@@ -121,26 +169,44 @@
     },
     {
       "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "Bep why can't your stay still?! You are always getting me into trouble!",
+      "portrait": "ramon_angry"
+    },
+    {
+      "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ramon! RAMON! I can TALK! ...Why can I talk?!",
-      "portrait": "bep_scared"
+      "text": "Well I was hungry man what could I do?!",
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
       "speaker": "Ramon",
-      "text": "...",
-      "portrait": "ramon_neutral"
+      "text": "...Bep?",
+      "portrait": "ramon_surprised"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "This is bad! This is very bad! I can feel something burning inside me! What did he DO to me?!",
+      "text": "What, I was hungry! You never let me try your food",
+      "portrait": "bep_sleepy"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Ramon",
+      "text": "Why are you talking?!",
+      "portrait": "ramon_surprised"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "What?! Wow, Why am I talking?! My stomach hurts like crazy!",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
       "speaker": "Es Dimoni de Sant Joan",
-      "text": "Consider it a gift. Or a curse. Either way, you will both suffer for this. Now get out of my sight!",
+      "text": "HAHAHAHA. Consider it a gift. Or a side effect of my power. Either way, you will both suffer for this. Now get out of my sight!",
       "portrait": "dimoni_menacing"
     },
     {

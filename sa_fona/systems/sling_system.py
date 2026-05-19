@@ -212,6 +212,19 @@ class SlingSystem:
             return self._charge_timer
         return 0.0
 
+    def cancel(self) -> None:
+        """Cancel any in-progress sling action and return to idle.
+
+        Called when an external event (e.g. dialogue starting) needs to
+        interrupt the sling state machine.  Resets all timers so the
+        system is ready for a fresh input sequence.
+        """
+        self._state = "idle"
+        self._press_timer = 0.0
+        self._charge_timer = 0.0
+        self._cooldown_timer = 0.0
+        self._current_tier = 0
+
     @property
     def state(self) -> str:
         """Current internal state name."""

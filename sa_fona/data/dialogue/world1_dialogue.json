@@ -27,14 +27,14 @@
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "Since a dimoni cursed me! Now come on, follow me!",
+        "text": "Since a demon cursed me! Now come on, follow me!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
         "portrait": "ramon_neutral",
-        "text": "Give me a second, I just woke up from my nap.",
+        "text": "Give me a second, I'm tired of walking.",
         "sfx": null,
         "auto_advance_ms": null
       },
@@ -42,6 +42,13 @@
         "speaker": "bep",
         "portrait": "bep_neutral",
         "text": "Come on Ramon! Use the arrow keys or A/D to move. Press Space to jump!",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "ramon",
+        "portrait": "ramon_smirk",
+        "text": "I liked you better when you could not talk.",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -88,7 +95,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Looks like it cannot move, try hitting it! Quickly Press Z to attack!",
+        "text": "Try hitting it! Quickly Press Z to attack!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -131,13 +138,6 @@
         "text": "Sa Cova des Bous... this is a place of magic. The best warriors of the island train here. I hope we don't come accross any of them.",
         "sfx": null,
         "auto_advance_ms": null
-      },
-      {
-        "speaker": "bep",
-        "portrait": "bep_scared",
-        "text": "It's dark in there! I'll stay close.",
-        "sfx": null,
-        "auto_advance_ms": null
       }
     ]
   },
@@ -175,14 +175,14 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "If they keep resisting so many shorts we'll never make it in time for snack...",
+        "text": "They can block your shots! Try charging your sling for a super shot!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Maybe if you hold the sling longer... try holding Z until it glows bright!",
+        "text": "Try holding Z until it glows bright!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -202,21 +202,21 @@
      {
         "speaker": "ramon",
         "portrait": "ramon_annoyed",
-        "text": "What do you mean tight... for me?",
+        "text": "What do you mean tight for me?",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Well it's not news that you've let yourself go since you stopped working as a shepherd.",
+        "text": "Well it's not news that you've let yourself go since you stopped working as an overseas mercenary.",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_happy",
-        "text": "Try pressing down to crouch and fit through that gap! You can still move side to side while crouching!",
+        "text": "Try pressing down to crouch and fit through that gap!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -229,7 +229,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_sleepy",
-        "text": "We need to go UP! I think I see the exit! above us",
+        "text": "Finally we are out the cavens... but where are we?",
         "sfx": null,
         "auto_advance_ms": null
       },
@@ -257,13 +257,6 @@
         "speaker": "bep",
         "portrait": "bep_sleepy",
         "text": "Jump towards a wall and then jump again while pressing the direction button to jump higher.",
-        "sfx": null,
-        "auto_advance_ms": null
-      },
-      {
-        "speaker": "bep",
-        "portrait": "bep_sleepy",
-        "text": " Chain as many jumps as you need to get higher!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -351,7 +344,7 @@
       {
         "speaker": "ramon",
         "portrait": "ramon_neutral",
-        "text": "Sa Porta des Bou. The gate of the bull. Stay close.",
+        "text": "Sa Porta des Bou must be near, stay close.",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -364,7 +357,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "There's a lot of supplies here. Stock up before we go further.",
+        "text": "There's a lot of supplies here.",
         "sfx": null,
         "auto_advance_ms": null
       },

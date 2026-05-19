@@ -1389,10 +1389,22 @@ class GameplayScene(BaseScene):
             "save_point_reached", shop_available=shop_available
         )
 
+    # ── Sling cancel helper ──────────────────────────────────────
+
+    def _cancel_sling_before_overlay(self) -> None:
+        """Cancel sling charge before pushing an input-swallowing overlay."""
+        self._sling_system.cancel()
+        self._player.sling_anim_state = "none"
+
     # ── Dialogue push ─────────────────────────────────────────────
 
     def _push_dialogue(self, dialogue_id: str) -> None:
         """Push a DialogueScene overlay onto the scene stack.
+
+        Cancels any in-progress sling charge before pushing the overlay,
+        because the dialogue scene consumes all input and the sling
+        would never receive the ``attack_released`` event needed to
+        leave the charging state.
 
         Requires that ``scene_manager`` has been set on this scene.
 
@@ -1401,6 +1413,8 @@ class GameplayScene(BaseScene):
         """
         if self._scene_manager is None:
             return
+
+        self._cancel_sling_before_overlay()
 
         from sa_fona.scenes.dialogue import DialogueScene
 
@@ -1424,6 +1438,8 @@ class GameplayScene(BaseScene):
         """
         if self._scene_manager is None:
             return
+
+        self._cancel_sling_before_overlay()
 
         from sa_fona.scenes.shop import ShopScene
 
@@ -1468,6 +1484,8 @@ class GameplayScene(BaseScene):
         """
         if self._scene_manager is None:
             return
+
+        self._cancel_sling_before_overlay()
 
         from sa_fona.scenes.game_over import GameOverScene
 

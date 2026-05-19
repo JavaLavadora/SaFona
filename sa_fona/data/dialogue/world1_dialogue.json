@@ -12,29 +12,29 @@
       },
       {
         "speaker": "ramon",
-        "portrait": "ramon_angry",
-        "text": "...They're sheeps, they are always strange.",
+        "portrait": "ramon_neutral",
+        "text": "...They're sheep. They're always strange.",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
-        "portrait": "ramon_surprised",
-        "text": "Wait... You can talk?!",
+        "portrait": "ramon_angry",
+        "text": "And since when is this my problem?",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "It's a long story but we need to get out of here! Follow me!",
+        "text": "Since a dimoni cursed me! Now come on, follow me!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
         "speaker": "ramon",
         "portrait": "ramon_neutral",
-        "text": "Give me a second I just woke up from my nap I don't even know my name yet.",
+        "text": "Give me a second, I just woke up from my nap.",
         "sfx": null,
         "auto_advance_ms": null
       },

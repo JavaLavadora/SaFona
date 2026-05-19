@@ -545,7 +545,7 @@ class TestDialogueCoherence:
         dimoni_step_idx = None
         mask_event_idx = None
         for i, step in enumerate(steps):
-            if step.get("type") == "dialogue" and step.get("speaker") == "Dimoni":
+            if step.get("type") == "dialogue" and "Dimoni" in step.get("speaker", ""):
                 if dimoni_step_idx is None:
                     dimoni_step_idx = i
             if step.get("type") == "event" and step.get("event_name") == "mask_acquired":

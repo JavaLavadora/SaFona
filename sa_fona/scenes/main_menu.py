@@ -1,7 +1,7 @@
-"""Main menu scene: title screen with Start and Continue options.
+"""Main menu scene: title screen with Start, Continue, and Level Select options.
 
 Displays the title image (assets/ui/title.png) centered on screen,
-two menu options, and an arrow cursor.  Falls back to text rendering
+three menu options, and an arrow cursor.  Falls back to text rendering
 when the title image is missing.
 The Continue option is grayed out when no save file exists.
 """
@@ -30,7 +30,7 @@ _SUBTITLE_COLOR: tuple[int, int, int] = (150, 150, 180)
 
 
 class MainMenuScene(BaseScene):
-    """Title screen with Start and Continue options.
+    """Title screen with Start, Continue, and Level Select options.
 
     Arrow keys navigate, Space or Enter confirms.  The Continue option
     is disabled (grayed out) when no save file exists.
@@ -45,6 +45,7 @@ class MainMenuScene(BaseScene):
     # Menu option indices.
     _OPT_START = 0
     _OPT_CONTINUE = 1
+    _OPT_LEVEL_SELECT = 2
 
     def __init__(
         self,
@@ -62,7 +63,7 @@ class MainMenuScene(BaseScene):
 
         # Menu state.
         self._selected: int = self._OPT_START
-        self._options: list[str] = ["Start", "Continue"]
+        self._options: list[str] = ["Start", "Continue", "Level Select"]
         self._has_save: bool = (
             self._save_system.exists() if self._save_system is not None else False
         )
@@ -143,16 +144,17 @@ class MainMenuScene(BaseScene):
             self._confirm_selection()
 
     def _move_selection(self, direction: int) -> None:
-        """Move the menu cursor.
+        """Move the menu cursor, skipping disabled options.
 
         Args:
             direction: -1 for previous, +1 for next.
         """
         new_sel = self._selected + direction
         new_sel = max(0, min(len(self._options) - 1, new_sel))
-        # Skip disabled options.
+        # Skip disabled options in the same direction.
         if new_sel == self._OPT_CONTINUE and not self._has_save:
-            return
+            new_sel += direction
+            new_sel = max(0, min(len(self._options) - 1, new_sel))
         self._selected = new_sel
 
     def _confirm_selection(self) -> None:
@@ -161,6 +163,8 @@ class MainMenuScene(BaseScene):
             self._pending_action = "start"
         elif self._selected == self._OPT_CONTINUE and self._has_save:
             self._pending_action = "continue"
+        elif self._selected == self._OPT_LEVEL_SELECT:
+            self._pending_action = "level_select"
 
     def update(self, dt: float) -> None:
         """Process deferred actions.
@@ -174,6 +178,9 @@ class MainMenuScene(BaseScene):
         elif self._pending_action == "continue":
             self._pending_action = None
             self._continue_game()
+        elif self._pending_action == "level_select":
+            self._pending_action = None
+            self._open_level_select()
 
     def render(self, surface: pygame.Surface) -> None:
         """Draw the main menu.
@@ -253,11 +260,12 @@ class MainMenuScene(BaseScene):
     # ── Actions ───────────────────────────────────────────────────
 
     def _start_new_game(self) -> None:
-        """Start a new game from W1-L1."""
+        """Start a new game from W1-L1 with an intro cutscene overlay."""
         if self._scene_manager is None:
             return
 
         from sa_fona.config.settings import DATA_DIR
+        from sa_fona.scenes.cutscene import CutsceneScene
         from sa_fona.scenes.gameplay import GameplayScene
 
         # Delete existing save for a fresh start.
@@ -281,6 +289,14 @@ class MainMenuScene(BaseScene):
             scene.take_level_entry_snapshot()
 
         self._scene_manager.replace(scene)
+
+        # Push the intro cutscene as an overlay on top of gameplay.
+        # When the cutscene completes, it auto-pops and reveals gameplay.
+        cutscene_data = CutsceneScene.load_cutscene_data("intro")
+        if cutscene_data.get("steps"):
+            cutscene = CutsceneScene(cutscene_data, self._event_bus)
+            cutscene.scene_manager = self._scene_manager
+            self._scene_manager.push(cutscene)
 
     def _continue_game(self) -> None:
         """Continue from the saved state."""
@@ -342,6 +358,22 @@ class MainMenuScene(BaseScene):
 
         scene.take_level_entry_snapshot()
 
+        self._scene_manager.replace(scene)
+
+    def _open_level_select(self) -> None:
+        """Open the level select scene."""
+        if self._scene_manager is None:
+            return
+
+        from sa_fona.scenes.level_select import LevelSelectScene
+
+        scene = LevelSelectScene(
+            screen_width=self._screen_width,
+            screen_height=self._screen_height,
+            event_bus=self._event_bus,
+            save_system=self._save_system,
+        )
+        scene.scene_manager = self._scene_manager
         self._scene_manager.replace(scene)
 
     @staticmethod

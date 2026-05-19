@@ -254,12 +254,17 @@ class TestMainMenuScene:
         menu = MainMenuScene(event_bus=bus, save_system=sys)
         menu.on_enter()
 
-        # Try to move right (to Continue).
+        # Try to move right — Continue is disabled, so it should skip
+        # over it and land on Level Select (index 2).
         inp = InputState(move_right=True)
         menu.handle_input(inp)
 
-        # Should stay on Start since Continue is disabled.
-        assert menu.selected == 0
+        assert menu.selected == MainMenuScene._OPT_LEVEL_SELECT
+
+        # Moving left should skip back over Continue to Start.
+        inp = InputState(move_left=True)
+        menu.handle_input(inp)
+        assert menu.selected == MainMenuScene._OPT_START
 
     def test_menu_renders_without_crash(self, bus, save_path):
         from sa_fona.scenes.main_menu import MainMenuScene

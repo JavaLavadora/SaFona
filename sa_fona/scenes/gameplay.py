@@ -32,7 +32,7 @@ from sa_fona.entities.companion import Companion
 from sa_fona.entities.enemy import Enemy, EnemyFactory
 from sa_fona.entities.npc import NPC
 from sa_fona.entities.pickup import Pickup, PickupType
-from sa_fona.entities.player import Player
+from sa_fona.entities.player import Player, PlayerState
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
@@ -436,7 +436,20 @@ class GameplayScene(BaseScene):
         )
         self._projectiles.extend(new_projectiles)
 
-        # 5b. Sync sling animation state to the player sprite.
+        # 5b. Cancel sling if the player is crouching or crawling --
+        # the sling animation conflicts with the crouch posture and
+        # would show the standing sling charge while crouched.
+        if self._player.state in (PlayerState.CROUCHING, PlayerState.CRAWLING):
+            if self._sling_system.state != "idle":
+                self._sling_system.cancel()
+
+        # 5c. Cancel sling if the player is wall sliding -- you can't
+        # aim a sling while clinging to a wall.
+        if self._player.state == PlayerState.WALL_SLIDING:
+            if self._sling_system.state != "idle":
+                self._sling_system.cancel()
+
+        # 5d. Sync sling animation state to the player sprite.
         # Map all four SlingSystem states to player animation states:
         #   idle     -> "none"      (no sling activity)
         #   pressed  -> "charging"  (player starting to wind up)

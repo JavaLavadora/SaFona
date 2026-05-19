@@ -145,6 +145,12 @@ class Player(Entity):
         self._walk_anim_speed: float = 0.1
         self._sling_anim_speed: float = 0.08
 
+        # Independent movement animation timer -- keeps advancing even
+        # when the sling override is active so that composited lower-body
+        # walk/run cycles are not frozen.
+        self._move_anim_timer: float = 0.0
+        self._move_anim_frame: int = 0
+
         # Sling animation state set externally by the gameplay scene.
         # Values: "none", "charging", "releasing".
         self._sling_anim_state: str = "none"
@@ -397,10 +403,64 @@ class Player(Entity):
             self._anim_frame = 0
             self._anim_timer = 0.0
 
+    def _get_movement_frame(self, dt: float) -> pygame.Surface:
+        """Return the current movement frame based on PlayerState.
+
+        Advances the independent movement animation timer so that
+        walk/run cycles keep playing even while the sling override is
+        active.  Does NOT modify the main ``_anim_frame`` / ``_anim_timer``.
+
+        Args:
+            dt: Delta time in seconds.
+
+        Returns:
+            The appropriate movement sprite frame for the current state.
+        """
+        if self._state == PlayerState.RUNNING and self._walk_frames:
+            frames = self._walk_frames
+            speed = self._walk_anim_speed
+        elif self._state == PlayerState.JUMPING and self._jump_frames:
+            return self._jump_frames[0]
+        elif self._state == PlayerState.FALLING and self._jump_frames:
+            return self._jump_frames[-1]
+        elif self._state == PlayerState.WALL_SLIDING and self._wall_slide_frames:
+            frames = self._wall_slide_frames
+            speed = self._anim_speed
+        elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
+            frames = self._wall_jump_frames
+            speed = self._anim_speed
+        elif self._state == PlayerState.IDLE and self._idle_frames:
+            frames = self._idle_frames
+            speed = self._anim_speed
+        elif self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
+            frames = self._crouch_idle_frames
+            speed = self._anim_speed
+        elif self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
+            frames = self._crouch_walk_frames
+            speed = self._walk_anim_speed
+        else:
+            return self._surfaces[self._state]
+
+        # Advance independent movement timer.
+        self._move_anim_timer += dt
+        if self._move_anim_timer >= speed:
+            self._move_anim_timer -= speed
+            self._move_anim_frame = (
+                (self._move_anim_frame + 1) % len(frames)
+            )
+        if self._move_anim_frame >= len(frames):
+            self._move_anim_frame = 0
+        return frames[self._move_anim_frame]
+
     def _update_sprite(self, dt: float) -> None:
         """Select the correct sprite frame, with animation and flipping.
 
-        Priority: death > hit > sling > movement state.
+        Priority: death > hit > sling (composited with movement) > movement.
+
+        When the sling is active during movement (running, jumping,
+        falling), the upper body is taken from the sling frame and the
+        lower body from the movement frame, producing a composited sprite.
+        Sling + idle uses the full sling frame (no compositing needed).
         """
         # Death animation overrides everything.
         if self._damage_anim_state == "death" and self._death_frames:
@@ -428,10 +488,10 @@ class Player(Entity):
             # Hit animation done, revert.
             self._damage_anim_state = "none"
 
-        # Sling animation overrides movement animation when active.
+        # Sling animation: composite upper body with movement lower body.
         if self._sling_anim_state != "none" and self._sling_frames:
+            # Determine the sling frame (upper body source).
             if self._sling_anim_state == "charging":
-                # Cycle through frames 0 and 1 (wind-up, mid-rotation).
                 charge_frames = self._sling_frames[:2]
                 self._anim_timer += dt
                 if self._anim_timer >= self._sling_anim_speed:
@@ -439,12 +499,42 @@ class Player(Entity):
                     self._anim_frame = (self._anim_frame + 1) % len(charge_frames)
                 if self._anim_frame >= len(charge_frames):
                     self._anim_frame = 0
-                base = charge_frames[self._anim_frame]
+                sling_frame = charge_frames[self._anim_frame]
             else:
-                # "releasing" -- show frame 2 (release pose).
-                base = self._sling_frames[-1]
+                # "releasing" -- show release pose.
+                sling_frame = self._sling_frames[-1]
                 self._anim_frame = 0
                 self._anim_timer = 0.0
+
+            # Decide whether to composite or use full sling frame.
+            # Composite when the player is actively moving (not idle).
+            needs_composite = self._state in (
+                PlayerState.RUNNING,
+                PlayerState.JUMPING,
+                PlayerState.FALLING,
+            )
+
+            if needs_composite:
+                move_frame = self._get_movement_frame(dt)
+                # Split at the vertical midpoint of the sprite.
+                split_y = PLAYER_SPRITE_HEIGHT // 2
+                composite = pygame.Surface(
+                    (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT),
+                    pygame.SRCALPHA,
+                )
+                # Bottom half from the movement frame (legs).
+                composite.blit(
+                    move_frame, (0, split_y),
+                    (0, split_y, PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT - split_y),
+                )
+                # Top half from the sling frame (upper body).
+                composite.blit(
+                    sling_frame, (0, 0),
+                    (0, 0, PLAYER_SPRITE_WIDTH, split_y),
+                )
+                base = composite
+            else:
+                base = sling_frame
 
             if not self.facing_right:
                 self._sprite = pygame.transform.flip(base, True, False)
@@ -455,6 +545,8 @@ class Player(Entity):
         if self._state != self._prev_state:
             self._anim_frame = 0
             self._anim_timer = 0.0
+            self._move_anim_frame = 0
+            self._move_anim_timer = 0.0
             self._prev_state = self._state
 
         frames: list[pygame.Surface] | None = None

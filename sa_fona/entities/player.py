@@ -403,6 +403,39 @@ class Player(Entity):
             self._anim_frame = 0
             self._anim_timer = 0.0
 
+    def _resolve_movement_frames(
+        self,
+    ) -> tuple[list[pygame.Surface] | None, float]:
+        """Return the frame list and animation speed for the current movement state.
+
+        Centralises the state-to-frame-list mapping so that both
+        ``_get_movement_frame`` and the movement section of
+        ``_update_sprite`` share a single source of truth.
+
+        Returns:
+            A ``(frames, speed)`` tuple.  *frames* is ``None`` when no
+            animation strip is available for the current state.
+        """
+        if self._state == PlayerState.RUNNING and self._walk_frames:
+            return self._walk_frames, self._walk_anim_speed
+        if self._state == PlayerState.JUMPING and self._jump_frames:
+            return [self._jump_frames[0]], self._anim_speed
+        if self._state == PlayerState.FALLING and self._jump_frames:
+            return [self._jump_frames[-1]], self._anim_speed
+        if self._state == PlayerState.WALL_SLIDING and self._wall_slide_frames:
+            return self._wall_slide_frames, self._anim_speed
+        if self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
+            return self._wall_jump_frames, self._anim_speed
+        if self._state == PlayerState.IDLE and self._idle_frames:
+            return self._idle_frames, self._anim_speed
+        if self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
+            return self._crouch_idle_frames, self._anim_speed
+        if self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
+            return self._crouch_walk_frames, self._walk_anim_speed
+        # No animation strip -- caller should fall back to the static surface.
+        fallback = self._surfaces.get(self._state)
+        return [fallback] if fallback else None, self._anim_speed
+
     def _get_movement_frame(self, dt: float) -> pygame.Surface:
         """Return the current movement frame based on PlayerState.
 
@@ -416,30 +449,14 @@ class Player(Entity):
         Returns:
             The appropriate movement sprite frame for the current state.
         """
-        if self._state == PlayerState.RUNNING and self._walk_frames:
-            frames = self._walk_frames
-            speed = self._walk_anim_speed
-        elif self._state == PlayerState.JUMPING and self._jump_frames:
-            return self._jump_frames[0]
-        elif self._state == PlayerState.FALLING and self._jump_frames:
-            return self._jump_frames[-1]
-        elif self._state == PlayerState.WALL_SLIDING and self._wall_slide_frames:
-            frames = self._wall_slide_frames
-            speed = self._anim_speed
-        elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
-            frames = self._wall_jump_frames
-            speed = self._anim_speed
-        elif self._state == PlayerState.IDLE and self._idle_frames:
-            frames = self._idle_frames
-            speed = self._anim_speed
-        elif self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
-            frames = self._crouch_idle_frames
-            speed = self._anim_speed
-        elif self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
-            frames = self._crouch_walk_frames
-            speed = self._walk_anim_speed
-        else:
+        frames, speed = self._resolve_movement_frames()
+
+        if frames is None:
             return self._surfaces[self._state]
+
+        # Single-frame lists (jump / fall) need no timer advancement.
+        if len(frames) == 1:
+            return frames[0]
 
         # Advance independent movement timer.
         self._move_anim_timer += dt
@@ -549,43 +566,14 @@ class Player(Entity):
             self._move_anim_timer = 0.0
             self._prev_state = self._state
 
-        frames: list[pygame.Surface] | None = None
-        speed = self._anim_speed
+        frames, speed = self._resolve_movement_frames()
 
-        if self._state == PlayerState.IDLE and self._idle_frames:
-            frames = self._idle_frames
-        elif self._state == PlayerState.RUNNING and self._walk_frames:
-            frames = self._walk_frames
-            speed = self._walk_anim_speed
-        elif self._state == PlayerState.JUMPING and self._jump_frames:
-            base = self._jump_frames[0]
+        if frames and len(frames) == 1:
+            # Single-frame state (jump / fall) -- no timer needed.
+            base = frames[0]
             self._anim_frame = 0
             self._anim_timer = 0.0
-            if not self.facing_right:
-                self._sprite = pygame.transform.flip(base, True, False)
-            else:
-                self._sprite = base
-            return
-        elif self._state == PlayerState.FALLING and self._jump_frames:
-            base = self._jump_frames[-1]
-            self._anim_frame = 0
-            self._anim_timer = 0.0
-            if not self.facing_right:
-                self._sprite = pygame.transform.flip(base, True, False)
-            else:
-                self._sprite = base
-            return
-        elif self._state == PlayerState.WALL_SLIDING and self._wall_slide_frames:
-            frames = self._wall_slide_frames
-        elif self._state == PlayerState.WALL_JUMPING and self._wall_jump_frames:
-            frames = self._wall_jump_frames
-        elif self._state == PlayerState.CROUCHING and self._crouch_idle_frames:
-            frames = self._crouch_idle_frames
-        elif self._state == PlayerState.CRAWLING and self._crouch_walk_frames:
-            frames = self._crouch_walk_frames
-            speed = self._walk_anim_speed
-
-        if frames:
+        elif frames:
             self._anim_timer += dt
             if self._anim_timer >= speed:
                 self._anim_timer -= speed

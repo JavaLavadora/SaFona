@@ -312,17 +312,16 @@ class TestMovementAnimDuringSling:
         initial_frame = player._move_anim_frame
 
         # Run many frames to advance the movement timer.
+        # Track whether the frame ever changes from its initial value.
+        frame_changed = False
         for _ in range(20):
             player._update_sprite(1 / 60)
+            if player._move_anim_frame != initial_frame:
+                frame_changed = True
 
-        # The movement frame should have advanced.
-        assert player._move_anim_frame != initial_frame or True, (
-            "Movement animation frame should advance during sling "
-            "(may wrap back to 0, so we just verify it ran)"
+        assert frame_changed, (
+            "Movement animation frame should advance during sling charge"
         )
-
-        # More robust check: accumulate timer and verify it's non-zero.
-        assert player._move_anim_timer >= 0.0
 
 
 # ── Test: wall slide cancels sling ───────────────────────────────────

@@ -222,6 +222,7 @@ class SlingSystem:
         self._state = "idle"
         self._press_timer = 0.0
         self._charge_timer = 0.0
+        self._cooldown_timer = 0.0
         self._current_tier = 0
 
     @property

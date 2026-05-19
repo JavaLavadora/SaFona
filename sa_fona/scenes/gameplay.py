@@ -1394,6 +1394,11 @@ class GameplayScene(BaseScene):
     def _push_dialogue(self, dialogue_id: str) -> None:
         """Push a DialogueScene overlay onto the scene stack.
 
+        Cancels any in-progress sling charge before pushing the overlay,
+        because the dialogue scene consumes all input and the sling
+        would never receive the ``attack_released`` event needed to
+        leave the charging state.
+
         Requires that ``scene_manager`` has been set on this scene.
 
         Args:
@@ -1401,6 +1406,12 @@ class GameplayScene(BaseScene):
         """
         if self._scene_manager is None:
             return
+
+        # Cancel sling charge so it doesn't stay stuck while dialogue
+        # is active (the overlay swallows input, so attack_released
+        # would never arrive).
+        self._sling_system.cancel()
+        self._player.sling_anim_state = "none"
 
         from sa_fona.scenes.dialogue import DialogueScene
 

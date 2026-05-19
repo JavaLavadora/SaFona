@@ -55,19 +55,19 @@
       "type": "dialogue",
       "speaker": "Bep",
       "text": "*Ooh, these herbs smell nice...*",
-      "portrait": "bep_idle"
+      "portrait": "bep_excited"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
       "text": "*mmm, Mixed herbs! My favorite!*",
-      "portrait": "bep_idle"
+      "portrait": "bep_excited"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
       "text": "*chomp*",
-      "portrait": "bep_idle"
+      "portrait": "bep_happy"
     },
     {
       "type": "wait",

@@ -32,7 +32,7 @@ from sa_fona.entities.companion import Companion
 from sa_fona.entities.enemy import Enemy, EnemyFactory
 from sa_fona.entities.npc import NPC
 from sa_fona.entities.pickup import Pickup, PickupType
-from sa_fona.entities.player import Player
+from sa_fona.entities.player import Player, PlayerState
 from sa_fona.entities.projectile import Projectile
 from sa_fona.level.level_loader import LevelLoader
 from sa_fona.level.tilemap import TILE_SIZE
@@ -435,6 +435,15 @@ class GameplayScene(BaseScene):
             self._input_state, self._player, dt
         )
         self._projectiles.extend(new_projectiles)
+
+        # 5a. Cancel sling if the player is crouching, crawling, or wall-sliding.
+        if self._player.state in (
+            PlayerState.CROUCHING,
+            PlayerState.CRAWLING,
+            PlayerState.WALL_SLIDING,
+        ):
+            if self._sling_system.state != "idle":
+                self._sling_system.cancel()
 
         # 5b. Sync sling animation state to the player sprite.
         # Map all four SlingSystem states to player animation states:

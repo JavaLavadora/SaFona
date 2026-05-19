@@ -135,6 +135,8 @@ class Player(Entity):
         self._wall_slide_frames: list[pygame.Surface] = []
         self._wall_jump_frames: list[pygame.Surface] = []
         self._sling_frames: list[pygame.Surface] = []
+        self._sling_walk_frames: list[pygame.Surface] = []
+        self._sling_jump_frames: list[pygame.Surface] = []
         self._hit_frames: list[pygame.Surface] = []
         self._death_frames: list[pygame.Surface] = []
         self._crouch_idle_frames: list[pygame.Surface] = []
@@ -162,6 +164,8 @@ class Player(Entity):
             "_wall_slide_frames": "wall_slide",
             "_wall_jump_frames": "wall_jump",
             "_sling_frames": "sling",
+            "_sling_walk_frames": "sling_walk",
+            "_sling_jump_frames": "sling_jump",
             "_hit_frames": "hit",
             "_death_frames": "death",
             "_crouch_idle_frames": "crouch",
@@ -431,15 +435,43 @@ class Player(Entity):
         # Sling animation overrides movement animation when active.
         if self._sling_anim_state != "none" and self._sling_frames:
             if self._sling_anim_state == "charging":
-                # Cycle through frames 0 and 1 (wind-up, mid-rotation).
-                charge_frames = self._sling_frames[:2]
-                self._anim_timer += dt
-                if self._anim_timer >= self._sling_anim_speed:
-                    self._anim_timer -= self._sling_anim_speed
-                    self._anim_frame = (self._anim_frame + 1) % len(charge_frames)
-                if self._anim_frame >= len(charge_frames):
+                # Use pre-composited sling+movement frames when available.
+                if (
+                    self._state == PlayerState.RUNNING
+                    and self._sling_walk_frames
+                ):
+                    # Sling walk: cycle through all 6 pre-composited frames.
+                    frames = self._sling_walk_frames
+                    self._anim_timer += dt
+                    if self._anim_timer >= self._walk_anim_speed:
+                        self._anim_timer -= self._walk_anim_speed
+                        self._anim_frame = (self._anim_frame + 1) % len(frames)
+                    if self._anim_frame >= len(frames):
+                        self._anim_frame = 0
+                    base = frames[self._anim_frame]
+                elif (
+                    self._state in (PlayerState.JUMPING, PlayerState.FALLING)
+                    and self._sling_jump_frames
+                ):
+                    # Sling jump/fall: use pre-composited jump frames.
+                    if self._state == PlayerState.JUMPING:
+                        base = self._sling_jump_frames[0]
+                    else:
+                        base = self._sling_jump_frames[-1]
                     self._anim_frame = 0
-                base = charge_frames[self._anim_frame]
+                    self._anim_timer = 0.0
+                else:
+                    # Stationary or no composite frames: plain sling anim.
+                    charge_frames = self._sling_frames[:2]
+                    self._anim_timer += dt
+                    if self._anim_timer >= self._sling_anim_speed:
+                        self._anim_timer -= self._sling_anim_speed
+                        self._anim_frame = (
+                            (self._anim_frame + 1) % len(charge_frames)
+                        )
+                    if self._anim_frame >= len(charge_frames):
+                        self._anim_frame = 0
+                    base = charge_frames[self._anim_frame]
             else:
                 # "releasing" -- show frame 2 (release pose).
                 base = self._sling_frames[-1]

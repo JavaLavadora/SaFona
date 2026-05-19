@@ -55,6 +55,8 @@ RAMON_MAPPING: list[dict[str, Any]] = [
     {"source": "wall_slide.png", "target": "wall_slide.png", "frames": 2},
     {"source": "wall_jump.png", "target": "wall_jump.png", "frames": 2},
     {"source": "sling_attack.png", "target": "sling.png", "frames": 3},
+    {"source": "sling_walk.png", "target": "sling_walk.png", "frames": 6},
+    {"source": "sling_jump.png", "target": "sling_jump.png", "frames": 2},
     {"source": "hit.png", "target": "hit.png", "frames": 1},
     {"source": "death.png", "target": "death.png", "frames": 1},
 ]

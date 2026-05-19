@@ -896,3 +896,170 @@ class TestPlaceholderRendering:
         assert idle_color != running_color, (
             "Idle and running states should have different colors"
         )
+
+
+# ── Sling composite sprite tests ─────────────────────────────────
+
+
+class TestSlingCompositeSprites:
+    """Tests that pre-composited sling+movement sprites are used."""
+
+    @staticmethod
+    def _make_sling_walk_frames() -> list[pygame.Surface]:
+        """Create 6 distinguishable sling_walk frame surfaces."""
+        frames = []
+        for i in range(6):
+            surf = pygame.Surface((48, 64), pygame.SRCALPHA)
+            # Each frame has a unique red shade so they're distinguishable.
+            surf.fill((50 + i * 30, 100, 0, 255))
+            frames.append(surf)
+        return frames
+
+    @staticmethod
+    def _make_sling_jump_frames() -> list[pygame.Surface]:
+        """Create 2 distinguishable sling_jump frame surfaces."""
+        frames = []
+        for i in range(2):
+            surf = pygame.Surface((48, 64), pygame.SRCALPHA)
+            surf.fill((0, 100 + i * 50, 200, 255))
+            frames.append(surf)
+        return frames
+
+    @staticmethod
+    def _make_sling_frames() -> list[pygame.Surface]:
+        """Create 3 plain sling frame surfaces."""
+        frames = []
+        for i in range(3):
+            surf = pygame.Surface((48, 64), pygame.SRCALPHA)
+            surf.fill((200, 0, 50 + i * 50, 255))
+            frames.append(surf)
+        return frames
+
+    def test_sling_walk_frames_used_when_running(self, flat_ground: dict) -> None:
+        """When charging sling and RUNNING, sling_walk_frames should be used."""
+        ground_y = 5 * TILE_SIZE
+        player, physics = _make_player(flat_ground, 32, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Inject test frames.
+        player._sling_frames = self._make_sling_frames()
+        player._sling_walk_frames = self._make_sling_walk_frames()
+
+        # Start running.
+        player.handle_input(_input(move_right=True, move_x=1.0))
+        _step(player, physics, 1.0 / 60.0)
+        assert player.state == PlayerState.RUNNING
+
+        # Activate sling charging.
+        player.sling_anim_state = "charging"
+        player._update_sprite(1.0 / 60.0)
+
+        # The sprite should be from sling_walk_frames (green channel = 100).
+        color = player.sprite.get_at((0, 0))
+        assert color.g == 100, (
+            f"Expected sling_walk_frames (green=100), got {color}"
+        )
+
+    def test_sling_jump_frames_used_when_jumping(self, flat_ground: dict) -> None:
+        """When charging sling and JUMPING, sling_jump_frames should be used."""
+        ground_y = 5 * TILE_SIZE
+        player, physics = _make_player(flat_ground, 32, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Inject test frames.
+        player._sling_frames = self._make_sling_frames()
+        player._sling_jump_frames = self._make_sling_jump_frames()
+
+        # Jump.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+        assert player.state == PlayerState.JUMPING
+
+        # Activate sling charging.
+        player.sling_anim_state = "charging"
+        player._update_sprite(1.0 / 60.0)
+
+        # The sprite should be from sling_jump_frames (blue channel = 200).
+        color = player.sprite.get_at((0, 0))
+        assert color.b == 200, (
+            f"Expected sling_jump_frames (blue=200), got {color}"
+        )
+
+    def test_sling_jump_frames_used_when_falling(self, flat_ground: dict) -> None:
+        """When charging sling and FALLING, sling_jump_frames[-1] should be used."""
+        ground_y = 5 * TILE_SIZE
+        player, physics = _make_player(flat_ground, 32, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Inject test frames.
+        player._sling_frames = self._make_sling_frames()
+        player._sling_jump_frames = self._make_sling_jump_frames()
+
+        # Jump and wait until falling.
+        player.handle_input(_input(jump_pressed=True, jump_held=True))
+        _step(player, physics, 1.0 / 60.0)
+        for _ in range(30):
+            player.handle_input(_input())
+            _step(player, physics, 1.0 / 60.0)
+            if player.state == PlayerState.FALLING:
+                break
+
+        assert player.state == PlayerState.FALLING
+
+        # Activate sling charging.
+        player.sling_anim_state = "charging"
+        player._update_sprite(1.0 / 60.0)
+
+        # Should use the last sling_jump frame (green = 150).
+        color = player.sprite.get_at((0, 0))
+        assert color.g == 150, (
+            f"Expected sling_jump_frames[-1] (green=150), got {color}"
+        )
+
+    def test_plain_sling_fallback_when_no_walk_frames(self, flat_ground: dict) -> None:
+        """When sling_walk_frames are empty, plain sling frames should be used."""
+        ground_y = 5 * TILE_SIZE
+        player, physics = _make_player(flat_ground, 32, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Inject plain sling frames only (no walk composites).
+        player._sling_frames = self._make_sling_frames()
+        player._sling_walk_frames = []
+
+        # Start running.
+        player.handle_input(_input(move_right=True, move_x=1.0))
+        _step(player, physics, 1.0 / 60.0)
+        assert player.state == PlayerState.RUNNING
+
+        # Activate sling charging.
+        player.sling_anim_state = "charging"
+        player._update_sprite(1.0 / 60.0)
+
+        # Should fall back to plain sling frames (red channel = 200).
+        color = player.sprite.get_at((0, 0))
+        assert color.r == 200, (
+            f"Expected plain sling_frames fallback (red=200), got {color}"
+        )
+
+    def test_plain_sling_used_when_idle(self, flat_ground: dict) -> None:
+        """When charging sling while IDLE, plain sling frames should be used."""
+        ground_y = 5 * TILE_SIZE
+        player, physics = _make_player(flat_ground, 32, ground_y - 32)
+        _settle_on_ground(player, physics)
+
+        # Inject all frame types.
+        player._sling_frames = self._make_sling_frames()
+        player._sling_walk_frames = self._make_sling_walk_frames()
+        player._sling_jump_frames = self._make_sling_jump_frames()
+
+        assert player.state == PlayerState.IDLE
+
+        # Activate sling charging.
+        player.sling_anim_state = "charging"
+        player._update_sprite(1.0 / 60.0)
+
+        # Should use plain sling frames (red = 200), not composites.
+        color = player.sprite.get_at((0, 0))
+        assert color.r == 200, (
+            f"Expected plain sling_frames for IDLE (red=200), got {color}"
+        )

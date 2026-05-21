@@ -23,7 +23,8 @@ python tools/process_ai_sprites.py \
     --frame-width 48 --frame-height 64 \
     --mapping stone_guardian_idle:2 stone_guardian_walk:3 \
               stone_guardian_attack:2 stone_guardian_hit:1 \
-              stone_guardian_death:1
+              stone_guardian_death:1 \
+    --scale-from stone_guardian_idle
 
 echo "--- rival_warrior ---"
 python tools/process_ai_sprites.py \
@@ -31,7 +32,8 @@ python tools/process_ai_sprites.py \
     --frame-width 32 --frame-height 48 \
     --mapping rival_warrior_idle:2 rival_warrior_walk:4 \
               rival_warrior_attack:2 rival_warrior_block:1 \
-              rival_warrior_hit:1 rival_warrior_death:2
+              rival_warrior_hit:1 rival_warrior_death:2 \
+    --scale-from rival_warrior_idle
 
 echo "--- possessed_sheep ---"
 python tools/process_ai_sprites.py \
@@ -41,7 +43,8 @@ python tools/process_ai_sprites.py \
               "sheep_walk>possessed_sheep_walk:4" \
               "sheep_charge>possessed_sheep_charge:2" \
               "sheep_hit>possessed_sheep_hit:1" \
-              "sheep_death>possessed_sheep_death:1"
+              "sheep_death>possessed_sheep_death:1" \
+    --scale-from sheep_idle
 
 echo "--- boss_bou_de_pedra ---"
 python tools/process_ai_sprites.py \
@@ -56,7 +59,8 @@ python tools/process_ai_sprites.py \
               "es_bou_de_pedra_hurl_image>bou_hurl:1" \
               "es_bou_de_pedra_stunned_image>bou_stunned:1" \
               "es_bou_de_pedra_transition_image>bou_transition:1" \
-              "es_bou_de_pedra_death_image>bou_death:2"
+              "es_bou_de_pedra_death_image>bou_death:2" \
+    --scale-from es_bou_de_pedra_idle_1_image
 
 echo "--- npc_dimoni (idle only, other poses via config) ---"
 python tools/process_ai_sprites.py \
@@ -70,7 +74,8 @@ python tools/process_ai_sprites.py \
     --frame-width 40 --frame-height 72 \
     --mapping "llorenc_idle>llorencc_idle:4" \
               "llorenc_talk>llorencc_talk:4" \
-              "llorenc_shop>llorencc_shop:2"
+              "llorenc_shop>llorencc_shop:2" \
+    --scale-from llorenc_idle
 
 echo ""
 echo "=== Phase 3: Process remaining sprites (config mode) ==="

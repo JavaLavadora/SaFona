@@ -1,24 +1,6 @@
 {
   "sources": [
     {
-      "input": "assets/ai_sources/ramon/image.png",
-      "note": "Only process NEW poses 12-13 (hit/death) if they exist. Poses 1-11 already processed by process_ramon_sprites.py.",
-      "outputs": [
-        {
-          "file": "assets/sprites/ramon/hit.png",
-          "poses": [12],
-          "frame_width": 48,
-          "frame_height": 64
-        },
-        {
-          "file": "assets/sprites/ramon/death.png",
-          "poses": [13],
-          "frame_width": 48,
-          "frame_height": 64
-        }
-      ]
-    },
-    {
       "input": "assets/ai_sources/bep/image.png",
       "min_area": 3000,
       "outputs": [

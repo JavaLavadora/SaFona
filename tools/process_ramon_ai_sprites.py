@@ -326,6 +326,61 @@ def scale_to_frame(
     return frame
 
 
+def scale_to_frame_uniform(
+    sprite: np.ndarray,
+    frame_w: int,
+    frame_h: int,
+    scale: float,
+    is_death: bool = False,
+) -> np.ndarray:
+    """Scale a sprite using a pre-computed uniform scale factor.
+
+    All non-death animations share the same scale (computed from idle
+    dimensions) so Ramon's body stays the same size across poses.
+
+    Args:
+        sprite: Tightly cropped RGBA array.
+        frame_w: Target frame width.
+        frame_h: Target frame height.
+        scale: Uniform scale factor (pre-computed from idle crop).
+        is_death: If True, center vertically instead of bottom-aligning.
+
+    Returns:
+        RGBA array of exactly (frame_h, frame_w, 4).
+    """
+    if sprite.size == 0:
+        return np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+
+    sh, sw = sprite.shape[:2]
+    new_w = max(1, int(sw * scale))
+    new_h = max(1, int(sh * scale))
+
+    pil = Image.fromarray(sprite, "RGBA")
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
+    scaled_arr = np.array(pil_scaled)
+
+    frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
+    ph, pw = scaled_arr.shape[:2]
+
+    if ph > frame_h:
+        scaled_arr = scaled_arr[ph - frame_h:]
+        ph = frame_h
+    if pw > frame_w:
+        offset = (pw - frame_w) // 2
+        scaled_arr = scaled_arr[:, offset:offset + frame_w]
+        pw = frame_w
+
+    x_offset = (frame_w - pw) // 2
+
+    if is_death:
+        y_offset = (frame_h - ph) // 2
+    else:
+        y_offset = frame_h - ph
+
+    frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled_arr
+    return frame
+
+
 # ---------------------------------------------------------------------------
 # Process a single source image
 # ---------------------------------------------------------------------------
@@ -432,7 +487,14 @@ def process_all(
     frame_h: int,
     mapping: list[dict[str, Any]] | None = None,
 ) -> tuple[int, int]:
-    """Process all source images according to the mapping.
+    """Process all source images with uniform scaling from idle.
+
+    Two-pass approach:
+      Pass 1 -- Load every animation, crop all frames, record dimensions.
+      Pass 2 -- Compute ONE scale from IDLE animation dimensions, then
+                apply it to ALL non-death animations. Death gets its own
+                independent scale. This ensures Ramon's body stays the
+                same size across all poses (idle, walk, jump, hit, etc.).
 
     Args:
         source_dir: Directory containing AI source PNGs.
@@ -448,28 +510,164 @@ def process_all(
     if mapping is None:
         mapping = RAMON_MAPPING
 
-    successes = 0
+    # ------------------------------------------------------------------
+    # Pass 1: Load, chroma-remove, detect, crop all animations
+    # ------------------------------------------------------------------
+    animations: list[dict[str, Any]] = []
     failures = 0
 
     for entry in mapping:
         source_path = source_dir / entry["source"]
-        target_path = output_dir / entry["target"]
+        output_path = output_dir / entry["target"]
         expected_frames = entry["frames"]
         is_death = entry["source"] == "death.png"
 
-        ok = process_single(
-            source_path=source_path,
-            output_path=target_path,
-            frame_w=frame_w,
-            frame_h=frame_h,
-            expected_frames=expected_frames,
-            is_death=is_death,
+        if not source_path.exists():
+            log.error("Source not found: %s", source_path)
+            failures += 1
+            continue
+
+        log.info(
+            "Loading: %s -> %s (%d frames, %dx%d each)",
+            source_path.name, output_path.name, expected_frames,
+            frame_w, frame_h,
         )
 
-        if ok:
-            successes += 1
-        else:
+        img = np.array(Image.open(source_path))
+        log.info("  Source size: %dx%d %s", img.shape[1], img.shape[0],
+                 "RGB" if img.shape[2] == 3 else "RGBA")
+
+        rgba = remove_green_background(img)
+        cleaned = remove_small_components(rgba, min_area=5000)
+        regions = detect_sprite_regions(cleaned, min_area=5000)
+
+        if len(regions) == 0:
+            log.error("  No sprite regions found in %s", source_path.name)
             failures += 1
+            continue
+
+        if len(regions) != expected_frames:
+            log.warning(
+                "  Expected %d frames but found %d regions in %s",
+                expected_frames, len(regions), source_path.name,
+            )
+
+        frame_count = min(len(regions), expected_frames)
+
+        cropped_frames = []
+        for i in range(frame_count):
+            cropped = crop_region(cleaned, regions[i])
+            cropped = clean_green_fringe(cropped)
+            cropped_frames.append(cropped)
+            log.info(
+                "    Frame %d: cropped %dx%d",
+                i + 1, cropped.shape[1], cropped.shape[0],
+            )
+
+        while len(cropped_frames) < expected_frames:
+            log.warning(
+                "  Duplicating frame %d to fill expected count of %d",
+                len(cropped_frames), expected_frames,
+            )
+            cropped_frames.append(cropped_frames[-1].copy())
+
+        animations.append({
+            "entry": entry,
+            "output_path": output_path,
+            "is_death": is_death,
+            "cropped_frames": cropped_frames,
+        })
+
+    # ------------------------------------------------------------------
+    # Compute global scale from IDLE animation dimensions
+    # ------------------------------------------------------------------
+    idle_max_w = 0
+    idle_max_h = 0
+    for anim in animations:
+        if anim["is_death"]:
+            continue
+        if "idle" in anim["entry"]["source"].lower():
+            for crop in anim["cropped_frames"]:
+                idle_max_w = max(idle_max_w, crop.shape[1])
+                idle_max_h = max(idle_max_h, crop.shape[0])
+            break
+
+    # Fallback: if no idle found, use first non-death animation
+    if idle_max_w == 0 or idle_max_h == 0:
+        for anim in animations:
+            if not anim["is_death"]:
+                for crop in anim["cropped_frames"]:
+                    idle_max_w = max(idle_max_w, crop.shape[1])
+                    idle_max_h = max(idle_max_h, crop.shape[0])
+                break
+
+    usable_w = max(1, frame_w - 2)
+    usable_h = max(1, frame_h - 2)
+
+    if idle_max_w > 0 and idle_max_h > 0:
+        global_scale = min(usable_w / idle_max_w, usable_h / idle_max_h)
+    else:
+        global_scale = 1.0
+
+    log.info("")
+    log.info(
+        "Global scale: %.4f (from idle max %dx%d into %dx%d frame)",
+        global_scale, idle_max_w, idle_max_h, frame_w, frame_h,
+    )
+
+    # ------------------------------------------------------------------
+    # Pass 2: Scale all frames with uniform scale and save
+    # ------------------------------------------------------------------
+    successes = 0
+
+    for anim in animations:
+        entry = anim["entry"]
+        output_path = anim["output_path"]
+        is_death = anim["is_death"]
+        cropped_frames = anim["cropped_frames"]
+
+        if is_death:
+            # Death gets its own independent scale to fill frame
+            d_max_w = max(c.shape[1] for c in cropped_frames)
+            d_max_h = max(c.shape[0] for c in cropped_frames)
+            death_scale = min(usable_w / d_max_w, usable_h / d_max_h)
+            log.info(
+                "Saving: %s (death, own scale %.4f)",
+                output_path.name, death_scale,
+            )
+            scale = death_scale
+        else:
+            scale = global_scale
+            log.info(
+                "Saving: %s (uniform scale %.4f from idle)",
+                output_path.name, scale,
+            )
+
+        frames = []
+        for i, cropped in enumerate(cropped_frames):
+            framed = scale_to_frame_uniform(
+                cropped, frame_w, frame_h, scale, is_death=is_death,
+            )
+            frames.append(framed)
+            log.info(
+                "    Frame %d: %dx%d -> %dx%d in %dx%d",
+                i + 1, cropped.shape[1], cropped.shape[0],
+                max(1, int(cropped.shape[1] * scale)),
+                max(1, int(cropped.shape[0] * scale)),
+                frame_w, frame_h,
+            )
+
+        total_w = frame_w * len(frames)
+        sheet = np.zeros((frame_h, total_w, 4), dtype=np.uint8)
+        for i, frame in enumerate(frames):
+            sheet[:, i * frame_w:(i + 1) * frame_w] = frame
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        out_img = Image.fromarray(sheet, "RGBA")
+        out_img.save(str(output_path))
+
+        log.info("  Saved: %s (%dx%d)", output_path.name, total_w, frame_h)
+        successes += 1
 
     return successes, failures
 

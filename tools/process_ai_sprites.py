@@ -1003,10 +1003,13 @@ def process_directory(
                 src_name, anim["pre_scale"], max_h, reference_h,
             )
         elif max_h > reference_h and not has_overhead:
-            anim["pre_scale"] = reference_h / max_h
+            # Taller animations (raised arms/weapons) keep pre_scale 1.0.
+            # The body is already the right height; extra height is overhead
+            # content that may overflow the frame top and get clipped.
+            anim["pre_scale"] = 1.0
             log.info(
-                "  %s: pre-scale %.4f (crop %d -> %d to match idle)",
-                src_name, anim["pre_scale"], max_h, reference_h,
+                "  %s: taller than idle (%d > %d), keeping body scale 1.0",
+                src_name, max_h, reference_h,
             )
         else:
             anim["pre_scale"] = 1.0

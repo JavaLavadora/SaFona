@@ -2,16 +2,11 @@
 """Process AI-generated character sprite sources into game-ready sprite sheets.
 
 A standalone CLI tool that reads a simple JSON config per character and
-produces properly scaled, anchored, horizontal sprite sheets.
+produces properly scaled, snapped, horizontal sprite sheets.
 
 Usage:
-    # Process one character
     python tools/process_character_sprites.py tools/sprite_defs/characters/ramon.json
-
-    # Process multiple characters
     python tools/process_character_sprites.py tools/sprite_defs/characters/*.json
-
-    # Verbose mode (shows per-frame crop/scale details)
     python tools/process_character_sprites.py -v tools/sprite_defs/characters/ramon.json
 
 Config format (JSON):
@@ -21,30 +16,22 @@ Config format (JSON):
       "source_dir": "assets/ai_sources/ramon",
       "output_dir": "assets/sprites/ramon",
       "animations": [
-        {"source": "idle.png", "frames": 4, "anchor": "ground"},
-        {"source": "walk.png", "frames": 6, "anchor": "ground"},
-        {"source": "jump.png", "frames": 2, "anchor": "center"},
-        {"source": "death.png", "frames": 1, "anchor": "center", "independent_scale": true}
+        {"source": "idle.png", "frames": 4, "scale_pct": 80},
+        {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "scale_pct": 100},
+        {"source": "jump.png", "frames": 2, "scale_pct": 85, "vertical_snap": "center"},
+        {"source": "death.png", "frames": 1, "scale_pct": 100}
       ]
     }
 
-Scaling rules:
-    - Body-height normalization: idle is the reference height.  Ground-anchored
-      animations get pre-scaled both UP and DOWN so every animation represents
-      the same body height (AI sources draw inconsistent sizes).  Each
-      animation's max crop height is normalized to idle's max crop height.
-      All frames within one animation share the same pre_scale.
-      Set "normalize": false to opt out (e.g. crouch).
-    - One shared scale factor is computed from the pre-scaled global max
-      of GROUND-ANCHORED animations only (center-anchored excluded).
-      Final scale = pre_scale * shared_scale.
-    - Center-anchored animations use shared_scale with pre_scale=1.0.
-      Content that overflows the frame is clipped, not rescaled.
-    - Animations with "independent_scale": true get their own scale.
+scale_pct:
+    Percentage of frame_height the tallest frame should occupy.
+    100 = fills the full frame height. 80 = fills 80% of frame height.
+    You decide this per animation by inspecting the art.
 
-Anchor modes:
-    - "ground": center horizontally, bottom-align (feet on floor)
-    - "center": center both horizontally and vertically (airborne/death)
+vertical_snap / horizontal_snap:
+    Where to place the sprite in the frame. Defaults: bottom / center.
+    Allowed: "top", "bottom", "center" / "left", "right", "center".
+    If the scaled sprite overflows, it is clipped from the opposite side.
 """
 
 from __future__ import annotations
@@ -74,16 +61,7 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def remove_green_background(arr: np.ndarray) -> np.ndarray:
-    """Remove green chroma-key background and return RGBA array.
-
-    Green pixels are detected where g-r > 40, g-b > 40, and g > 80.
-
-    Args:
-        arr: Input image as numpy array (H, W, 3 or 4).
-
-    Returns:
-        RGBA numpy array with green pixels made transparent.
-    """
+    """Remove green chroma-key background and return RGBA array."""
     rgb = arr[:, :, :3]
     r = rgb[:, :, 0].astype(np.int32)
     g = rgb[:, :, 1].astype(np.int32)
@@ -106,18 +84,7 @@ def remove_small_components(
     rgba: np.ndarray,
     min_area: int = 5000,
 ) -> np.ndarray:
-    """Remove small connected components (labels/artifacts) from RGBA image.
-
-    Makes components below min_area fully transparent so they don't
-    interfere with bounding box detection.
-
-    Args:
-        rgba: RGBA image array.
-        min_area: Components below this pixel area become transparent.
-
-    Returns:
-        Cleaned RGBA array.
-    """
+    """Remove connected components below min_area pixels."""
     mask = rgba[:, :, 3] > 0
     labeled, n_features = ndimage.label(mask)
 
@@ -141,12 +108,7 @@ def detect_sprite_regions(
 ) -> list[tuple[int, int, int, int]]:
     """Detect sprite regions via connected-component labeling.
 
-    Args:
-        rgba: RGBA image array with small components already removed.
-        min_area: Minimum pixel area for a region.
-
-    Returns:
-        List of (x0, y0, x1, y1) bounding boxes, sorted left-to-right.
+    Returns list of (x0, y0, x1, y1) bounding boxes, sorted left-to-right.
     """
     mask = rgba[:, :, 3] > 0
     labeled, n_features = ndimage.label(mask)
@@ -168,15 +130,7 @@ def detect_sprite_regions(
 
 
 def crop_region(rgba: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
-    """Crop a region and tight-crop to non-transparent content.
-
-    Args:
-        rgba: Full RGBA image array.
-        bbox: (x0, y0, x1, y1) bounding box.
-
-    Returns:
-        Tightly cropped RGBA array.
-    """
+    """Crop a region and tight-crop to non-transparent content."""
     x0, y0, x1, y1 = bbox
     crop = rgba[y0:y1, x0:x1].copy()
 
@@ -198,17 +152,7 @@ def crop_region(rgba: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray
 # ---------------------------------------------------------------------------
 
 def clean_green_fringe(crop: np.ndarray) -> np.ndarray:
-    """Remove green fringe pixels via neighbor averaging.
-
-    After chroma removal, edge pixels may retain green tint. This
-    replaces them with the average of non-green neighbors.
-
-    Args:
-        crop: Cropped RGBA numpy array.
-
-    Returns:
-        Cleaned RGBA array.
-    """
+    """Replace green-tinted edge pixels with neighbor color averages."""
     result = crop.copy()
     r = result[:, :, 0].astype(np.int32)
     g = result[:, :, 1].astype(np.int32)
@@ -247,15 +191,7 @@ def clean_green_fringe(crop: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 def scale_sprite(sprite: np.ndarray, scale: float) -> np.ndarray:
-    """Scale a sprite by the given factor using LANCZOS interpolation.
-
-    Args:
-        sprite: Tightly cropped RGBA array.
-        scale: Scale factor to apply.
-
-    Returns:
-        Scaled RGBA array.
-    """
+    """Scale a sprite using LANCZOS interpolation."""
     if sprite.size == 0:
         return sprite
 
@@ -272,22 +208,13 @@ def place_in_frame(
     scaled: np.ndarray,
     frame_w: int,
     frame_h: int,
-    anchor: str = "ground",
+    vertical_snap: str = "bottom",
+    horizontal_snap: str = "center",
 ) -> np.ndarray:
     """Place a scaled sprite into a fixed-size frame.
 
-    If the scaled sprite overflows the frame, it is clipped (not rescaled)
-    to preserve the uniform scale factor.
-
-    Args:
-        scaled: Scaled RGBA sprite array.
-        frame_w: Target frame width.
-        frame_h: Target frame height.
-        anchor: "ground" for bottom-aligned or "center" for vertically
-            centered placement.
-
-    Returns:
-        RGBA array of exactly (frame_h, frame_w, 4).
+    If the scaled sprite overflows, it is clipped from the opposite side
+    of the snap direction.
     """
     frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
 
@@ -296,32 +223,43 @@ def place_in_frame(
 
     ph, pw = scaled.shape[:2]
 
-    # Clip if sprite overflows frame
+    # --- Vertical clipping ---
     if ph > frame_h:
-        if anchor == "center":
-            # Center-clip vertically
+        if vertical_snap == "bottom":
+            scaled = scaled[ph - frame_h:]
+        elif vertical_snap == "top":
+            scaled = scaled[:frame_h]
+        else:
             top_clip = (ph - frame_h) // 2
             scaled = scaled[top_clip:top_clip + frame_h]
-        else:
-            # Bottom-clip for ground anchor (keep feet, clip head)
-            scaled = scaled[ph - frame_h:]
         ph = frame_h
 
+    # --- Horizontal clipping ---
     if pw > frame_w:
-        # Center-clip horizontally
-        left_clip = (pw - frame_w) // 2
-        scaled = scaled[:, left_clip:left_clip + frame_w]
+        if horizontal_snap == "right":
+            scaled = scaled[:, pw - frame_w:]
+        elif horizontal_snap == "left":
+            scaled = scaled[:, :frame_w]
+        else:
+            left_clip = (pw - frame_w) // 2
+            scaled = scaled[:, left_clip:left_clip + frame_w]
         pw = frame_w
 
-    # Horizontal: always center
-    x_offset = (frame_w - pw) // 2
-
-    # Vertical: depends on anchor
-    if anchor == "center":
-        y_offset = (frame_h - ph) // 2
-    else:
-        # "ground" — bottom-aligned (feet on ground line)
+    # --- Vertical placement ---
+    if vertical_snap == "bottom":
         y_offset = frame_h - ph
+    elif vertical_snap == "top":
+        y_offset = 0
+    else:
+        y_offset = (frame_h - ph) // 2
+
+    # --- Horizontal placement ---
+    if horizontal_snap == "right":
+        x_offset = frame_w - pw
+    elif horizontal_snap == "left":
+        x_offset = 0
+    else:
+        x_offset = (frame_w - pw) // 2
 
     frame[y_offset:y_offset + ph, x_offset:x_offset + pw] = scaled
     return frame
@@ -332,14 +270,7 @@ def place_in_frame(
 # ---------------------------------------------------------------------------
 
 def assemble_sheet(frames: list[np.ndarray]) -> np.ndarray:
-    """Assemble frames into a horizontal sprite sheet.
-
-    Args:
-        frames: List of same-sized RGBA arrays.
-
-    Returns:
-        RGBA array with frames laid out horizontally.
-    """
+    """Assemble frames into a horizontal sprite sheet."""
     if not frames:
         return np.zeros((1, 1, 4), dtype=np.uint8)
 
@@ -351,12 +282,7 @@ def assemble_sheet(frames: list[np.ndarray]) -> np.ndarray:
 
 
 def save_sheet(sheet: np.ndarray, path: Path) -> None:
-    """Save an RGBA sheet as PNG.
-
-    Args:
-        sheet: RGBA numpy array.
-        path: Output file path.
-    """
+    """Save an RGBA sheet as PNG."""
     path.parent.mkdir(parents=True, exist_ok=True)
     img = Image.fromarray(sheet, "RGBA")
     img.save(str(path))
@@ -374,30 +300,13 @@ def save_sheet(sheet: np.ndarray, path: Path) -> None:
 def process_character(config_path: Path) -> tuple[int, int]:
     """Process all animations for one character from a JSON config file.
 
-    Processing steps:
-    1. Load each source image, remove green background, remove small
-       components (<5000px), detect sprite regions, crop each frame,
-       and clean green fringe.
-    2. Body-height normalization: find the idle animation's max crop
-       height as reference.  Each ground-anchored animation gets ONE
-       pre_scale = reference_h / anim_max_h (both UP and DOWN), so
-       every animation represents the same body height.  All frames
-       within one animation share the same pre_scale.  Center-anchored
-       animations get pre_scale 1.0.  Set "normalize": false to opt out.
-    3. Compute global max from GROUND-ANCHORED pre-scaled crops only
-       (center-anchored excluded), then ONE shared scale factor.
-    4. Final scale per animation = pre_scale * shared_scale.
-    5. For independent_scale animations: own scale from own dimensions.
-    6. Place each scaled frame using anchor: "ground" = bottom-aligned,
-       "center" = vertically centered.
-    7. If a scaled frame overflows, clip (don't rescale).
-    8. Assemble frames into horizontal sprite sheet and save as PNG.
-
-    Args:
-        config_path: Path to character JSON config file.
-
-    Returns:
-        Tuple of (successes, failures).
+    For each animation:
+    1. Load source, remove green background, remove small components,
+       detect sprite regions, crop each frame, clean green fringe.
+    2. Compute scale from scale_pct: target_h = frame_h * scale_pct / 100,
+       scale = target_h / max_crop_h. All frames share the same scale.
+    3. Scale each frame, place in frame using snap settings, assemble
+       into horizontal sprite sheet, save as PNG.
     """
     with open(config_path) as f:
         config = json.load(f)
@@ -409,15 +318,9 @@ def process_character(config_path: Path) -> tuple[int, int]:
     anim_entries: list[dict[str, Any]] = config["animations"]
 
     log.info("Character: %s", config_path.stem)
-    log.info("  Source: %s", source_dir)
-    log.info("  Output: %s", output_dir)
-    log.info("  Frame: %dx%d", frame_w, frame_h)
-    log.info("  Animations: %d", len(anim_entries))
+    log.info("  Frame: %dx%d, %d animations", frame_w, frame_h, len(anim_entries))
 
-    # ------------------------------------------------------------------
-    # Step 1: Load, chroma-remove, detect, crop all animations
-    # ------------------------------------------------------------------
-    animations: list[dict[str, Any]] = []
+    successes = 0
     failures = 0
 
     for entry in anim_entries:
@@ -425,27 +328,25 @@ def process_character(config_path: Path) -> tuple[int, int]:
         output_name = entry.get("output", entry["source"])
         output_path = output_dir / output_name
         expected_frames: int = entry["frames"]
-        anchor: str = entry.get("anchor", "ground")
-        independent: bool = entry.get("independent_scale", False)
+        scale_pct: float = entry["scale_pct"]
+        v_snap: str = entry.get("vertical_snap", "bottom")
+        h_snap: str = entry.get("horizontal_snap", "center")
 
         if not source_path.exists():
-            log.error("Source not found: %s", source_path)
+            log.error("  Source not found: %s", source_path)
             failures += 1
             continue
 
         log.info(
-            "  Loading: %s (%d frames, anchor=%s%s)",
-            source_path.name, expected_frames, anchor,
-            ", independent" if independent else "",
+            "  %s: %d frames, scale=%d%%, snap=%s/%s",
+            source_path.name, expected_frames, scale_pct, v_snap, h_snap,
         )
 
+        # --- Load, clean, detect, crop ---
         img = np.array(Image.open(source_path))
         rgba = remove_green_background(img)
         cleaned = remove_small_components(rgba, min_area=5000)
-
         bboxes = detect_sprite_regions(cleaned, min_area=5000)
-
-        log.debug("    Detected %d sprite regions", len(bboxes))
 
         if len(bboxes) == 0:
             log.error("    No sprite regions found in %s", source_path.name)
@@ -453,155 +354,38 @@ def process_character(config_path: Path) -> tuple[int, int]:
             continue
 
         frame_count = min(len(bboxes), expected_frames)
-
         cropped_frames: list[np.ndarray] = []
         for i in range(frame_count):
             cropped = crop_region(cleaned, bboxes[i])
             cropped = clean_green_fringe(cropped)
             cropped_frames.append(cropped)
 
-        # Duplicate last frame if fewer found than expected
         while len(cropped_frames) < expected_frames:
-            log.debug(
-                "    Duplicating last frame (%d found, %d expected)",
-                frame_count, expected_frames,
-            )
             cropped_frames.append(cropped_frames[-1].copy())
 
-        animations.append({
-            "entry": entry,
-            "output_path": output_path,
-            "anchor": anchor,
-            "independent_scale": independent,
-            "cropped_frames": cropped_frames,
-        })
+        # --- Compute scale from scale_pct ---
+        max_crop_h = max(c.shape[0] for c in cropped_frames)
+        target_h = frame_h * (scale_pct / 100.0)
+        scale = target_h / max_crop_h
 
-    # ------------------------------------------------------------------
-    # Step 2: Per-ANIMATION body-height normalization
-    #
-    # AI sources draw each animation at a different overall size.
-    # Use idle's max crop height as the reference.  For each ground-
-    # anchored animation (normalize!=false), compute ONE pre_scale =
-    # reference_h / anim_max_h.  This scales both UP (shorter than
-    # idle) and DOWN (taller than idle) so every ground-anchored
-    # animation represents the same body height.  All frames within
-    # one animation share the same pre_scale, preserving within-
-    # animation proportions.
-    #
-    # Center-anchored animations (jump, wall_slide) get pre_scale=1.0.
-    # They use the shared_scale computed from ground-only animations
-    # but do NOT contribute to computing it.
-    # ------------------------------------------------------------------
-    reference_h = 0.0
-    for anim in animations:
-        if anim["independent_scale"]:
-            continue
-        src = anim["entry"]["source"].lower()
-        if "idle" in src:
-            reference_h = max(
-                float(c.shape[0]) for c in anim["cropped_frames"]
-            )
-            break
+        log.debug(
+            "    max_crop_h=%d, target_h=%.1f, scale=%.4f",
+            max_crop_h, target_h, scale,
+        )
 
-    if reference_h == 0.0:
-        for anim in animations:
-            if not anim["independent_scale"] and anim["anchor"] == "ground":
-                reference_h = max(
-                    float(c.shape[0]) for c in anim["cropped_frames"]
-                )
-                break
-
-    log.info("  Reference height (idle): %.0f px", reference_h)
-
-    for anim in animations:
-        if anim["independent_scale"]:
-            anim["pre_scale"] = 1.0
-            continue
-
-        normalize = anim["entry"].get("normalize", True)
-
-        if anim["anchor"] == "ground" and normalize and reference_h > 0:
-            anim_max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
-            anim["pre_scale"] = reference_h / anim_max_h
-        else:
-            anim["pre_scale"] = 1.0
-
-        if anim["pre_scale"] != 1.0:
-            anim_max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
-            log.info(
-                "    %s: pre_scale=%.3f (max_h=%.0f -> %.0f)",
-                anim["entry"]["source"],
-                anim["pre_scale"], anim_max_h,
-                anim_max_h * anim["pre_scale"],
-            )
-
-    # ------------------------------------------------------------------
-    # Step 3: Compute shared scale from ground-anchored pre-scaled max
-    #
-    # Only ground-anchored animations contribute to the global max.
-    # Center-anchored animations use the shared_scale but don't drive
-    # it — this prevents tall airborne poses from shrinking ground
-    # poses.
-    # ------------------------------------------------------------------
-    global_max_w = 0.0
-    global_max_h = 0.0
-    for anim in animations:
-        if anim["independent_scale"] or anim["anchor"] != "ground":
-            continue
-        ps = anim["pre_scale"]
-        for crop in anim["cropped_frames"]:
-            global_max_w = max(global_max_w, float(crop.shape[1]) * ps)
-            global_max_h = max(global_max_h, float(crop.shape[0]) * ps)
-
-    usable_w = max(1, frame_w - 2)
-    usable_h = max(1, frame_h - 2)
-
-    if global_max_w > 0 and global_max_h > 0:
-        shared_scale = min(usable_w / global_max_w, usable_h / global_max_h)
-    else:
-        shared_scale = 1.0
-
-    log.info(
-        "  Shared scale: %.4f (ground max %.0fx%.0f -> %dx%d frame)",
-        shared_scale, global_max_w, global_max_h, frame_w, frame_h,
-    )
-
-    # ------------------------------------------------------------------
-    # Step 4: Scale, place, assemble, and save each animation
-    # ------------------------------------------------------------------
-    successes = 0
-
-    for anim in animations:
-        entry = anim["entry"]
-        output_path: Path = anim["output_path"]
-        anchor: str = anim["anchor"]
-        independent: bool = anim["independent_scale"]
-        cropped_frames: list[np.ndarray] = anim["cropped_frames"]
-
-        if independent:
-            own_max_w = max(c.shape[1] for c in cropped_frames)
-            own_max_h = max(c.shape[0] for c in cropped_frames)
-            scale = min(usable_w / own_max_w, usable_h / own_max_h)
-            log.debug(
-                "  %s: independent scale %.4f (max %dx%d)",
-                output_path.name, scale, own_max_w, own_max_h,
-            )
-        else:
-            scale = anim["pre_scale"] * shared_scale
-
-        frames: list[np.ndarray] = []
+        # --- Scale, place, assemble ---
+        placed_frames: list[np.ndarray] = []
         for i, cropped in enumerate(cropped_frames):
             scaled = scale_sprite(cropped, scale)
-            placed = place_in_frame(scaled, frame_w, frame_h, anchor)
-            frames.append(placed)
+            placed = place_in_frame(scaled, frame_w, frame_h, v_snap, h_snap)
+            placed_frames.append(placed)
             log.debug(
-                "    Frame %d: %dx%d -> %dx%d in %dx%d (scale=%.4f)",
+                "    Frame %d: %dx%d -> %dx%d (scale=%.4f)",
                 i + 1, cropped.shape[1], cropped.shape[0],
-                scaled.shape[1], scaled.shape[0],
-                frame_w, frame_h, scale,
+                scaled.shape[1], scaled.shape[0], scale,
             )
 
-        sheet = assemble_sheet(frames)
+        sheet = assemble_sheet(placed_frames)
         save_sheet(sheet, output_path)
         successes += 1
 
@@ -615,9 +399,7 @@ def process_character(config_path: Path) -> tuple[int, int]:
 def build_parser() -> argparse.ArgumentParser:
     """Build the argument parser."""
     parser = argparse.ArgumentParser(
-        description=(
-            "Process AI-generated sprite sources into game-ready sprite sheets."
-        ),
+        description="Process AI-generated sprite sources into game-ready sprite sheets.",
     )
     parser.add_argument(
         "config",
@@ -634,7 +416,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    """Entry point: parse args and process each config."""
+    """Entry point."""
     parser = build_parser()
     args = parser.parse_args()
 

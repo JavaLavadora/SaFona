@@ -4,11 +4,11 @@
   "source_dir": "assets/ai_sources/rival_warrior",
   "output_dir": "assets/sprites/enemies",
   "animations": [
-    {"source": "rival_warrior_idle.png", "frames": 2, "anchor": "ground"},
-    {"source": "rival_warrior_walk.png", "frames": 4, "anchor": "ground"},
-    {"source": "rival_warrior_attack.png", "frames": 2, "anchor": "ground"},
-    {"source": "rival_warrior_block.png", "frames": 1, "anchor": "ground"},
-    {"source": "rival_warrior_hit.png", "frames": 1, "anchor": "ground"},
-    {"source": "rival_warrior_death.png", "frames": 2, "anchor": "ground", "independent_scale": true}
+    {"source": "rival_warrior_idle.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "rival_warrior_walk.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "rival_warrior_attack.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "rival_warrior_block.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "rival_warrior_hit.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "rival_warrior_death.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"}
   ]
 }

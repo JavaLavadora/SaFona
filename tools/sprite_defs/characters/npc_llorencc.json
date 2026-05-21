@@ -4,8 +4,8 @@
   "source_dir": "assets/ai_sources/npc_llorencc",
   "output_dir": "assets/sprites/npcs",
   "animations": [
-    {"source": "llorenc_idle.png", "output": "llorencc_idle.png", "frames": 4, "anchor": "ground"},
-    {"source": "llorenc_talk.png", "output": "llorencc_talk.png", "frames": 4, "anchor": "ground"},
-    {"source": "llorenc_shop.png", "output": "llorencc_shop.png", "frames": 2, "anchor": "ground"}
+    {"source": "llorenc_idle.png", "output": "llorencc_idle.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "llorenc_talk.png", "output": "llorencc_talk.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "llorenc_shop.png", "output": "llorencc_shop.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"}
   ]
 }

@@ -4,10 +4,10 @@
   "source_dir": "assets/ai_sources/stone_guardian",
   "output_dir": "assets/sprites/enemies",
   "animations": [
-    {"source": "stone_guardian_idle.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "stone_guardian_walk.png", "frames": 3, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "stone_guardian_attack.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "stone_guardian_hit.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "stone_guardian_death.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"}
+    {"source": "stone_guardian_idle.png", "frames": 2, "scale_pct": 85.625, "vertical_snap": "bottom"},
+    {"source": "stone_guardian_walk.png", "frames": 3, "scale_pct": 95.625, "vertical_snap": "bottom"},
+    {"source": "stone_guardian_attack.png", "frames": 2, "scale_pct": 110, "vertical_snap": "bottom"},
+    {"source": "stone_guardian_hit.png", "frames": 1, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "stone_guardian_death.png", "frames": 1, "scale_pct": 60, "vertical_snap": "bottom"}
   ]
 }

@@ -4,10 +4,10 @@
   "source_dir": "assets/ai_sources/possessed_sheep",
   "output_dir": "assets/sprites/enemies",
   "animations": [
-    {"source": "sheep_idle.png", "output": "possessed_sheep_idle.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "sheep_walk.png", "output": "possessed_sheep_walk.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "sheep_charge.png", "output": "possessed_sheep_charge.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "sheep_hit.png", "output": "possessed_sheep_hit.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "sheep_death.png", "output": "possessed_sheep_death.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"}
+    {"source": "sheep_idle.png", "output": "possessed_sheep_idle.png", "frames": 2, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "sheep_walk.png", "output": "possessed_sheep_walk.png", "frames": 4, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "sheep_charge.png", "output": "possessed_sheep_charge.png", "frames": 2, "scale_pct": 60, "vertical_snap": "bottom"},
+    {"source": "sheep_hit.png", "output": "possessed_sheep_hit.png", "frames": 1, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "sheep_death.png", "output": "possessed_sheep_death.png", "frames": 1, "scale_pct": 70, "vertical_snap": "bottom"}
   ]
 }

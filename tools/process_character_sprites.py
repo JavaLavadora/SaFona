@@ -24,9 +24,11 @@ Config format (JSON):
     }
 
 scale_pct:
-    Percentage of frame_height the tallest frame should occupy.
-    100 = fills the full frame height. 80 = fills 80% of frame height.
-    You decide this per animation by inspecting the art.
+    First, all animations are fit into the frame using one shared base
+    scale (tallest crop across ALL animations fills the frame height).
+    Then scale_pct is applied on top: 100 = use the base scale as-is.
+    80 = shrink this animation to 80% of the base. At 100% for all
+    animations, bodies are automatically consistent.
 
 vertical_snap / horizontal_snap:
     Where to place the sprite in the frame. Defaults: bottom / center.
@@ -300,13 +302,14 @@ def save_sheet(sheet: np.ndarray, path: Path) -> None:
 def process_character(config_path: Path) -> tuple[int, int]:
     """Process all animations for one character from a JSON config file.
 
-    For each animation:
-    1. Load source, remove green background, remove small components,
-       detect sprite regions, crop each frame, clean green fringe.
-    2. Compute scale from scale_pct: target_h = frame_h * scale_pct / 100,
-       scale = target_h / max_crop_h. All frames share the same scale.
-    3. Scale each frame, place in frame using snap settings, assemble
-       into horizontal sprite sheet, save as PNG.
+    Steps:
+    1. Load ALL sources, remove green, detect regions, crop, clean fringe.
+    2. Find the global max crop height across ALL animations.
+    3. Compute one base_scale = frame_h / global_max_h that fits everything.
+    4. Per animation: final_scale = base_scale * (scale_pct / 100).
+       At scale_pct=100 all animations share the same scale (bodies
+       consistent). Lower values shrink individual animations.
+    5. Scale, place using snap settings, assemble sheet, save.
     """
     with open(config_path) as f:
         config = json.load(f)
@@ -320,7 +323,10 @@ def process_character(config_path: Path) -> tuple[int, int]:
     log.info("Character: %s", config_path.stem)
     log.info("  Frame: %dx%d, %d animations", frame_w, frame_h, len(anim_entries))
 
-    successes = 0
+    # ------------------------------------------------------------------
+    # Step 1: Load, chroma-remove, detect, crop ALL animations
+    # ------------------------------------------------------------------
+    animations: list[dict[str, Any]] = []
     failures = 0
 
     for entry in anim_entries:
@@ -328,21 +334,14 @@ def process_character(config_path: Path) -> tuple[int, int]:
         output_name = entry.get("output", entry["source"])
         output_path = output_dir / output_name
         expected_frames: int = entry["frames"]
-        scale_pct: float = entry["scale_pct"]
-        v_snap: str = entry.get("vertical_snap", "bottom")
-        h_snap: str = entry.get("horizontal_snap", "center")
 
         if not source_path.exists():
             log.error("  Source not found: %s", source_path)
             failures += 1
             continue
 
-        log.info(
-            "  %s: %d frames, scale=%d%%, snap=%s/%s",
-            source_path.name, expected_frames, scale_pct, v_snap, h_snap,
-        )
+        log.info("  Loading: %s (%d frames)", source_path.name, expected_frames)
 
-        # --- Load, clean, detect, crop ---
         img = np.array(Image.open(source_path))
         rgba = remove_green_background(img)
         cleaned = remove_small_components(rgba, min_area=5000)
@@ -363,17 +362,47 @@ def process_character(config_path: Path) -> tuple[int, int]:
         while len(cropped_frames) < expected_frames:
             cropped_frames.append(cropped_frames[-1].copy())
 
-        # --- Compute scale from scale_pct ---
-        max_crop_h = max(c.shape[0] for c in cropped_frames)
-        target_h = frame_h * (scale_pct / 100.0)
-        scale = target_h / max_crop_h
+        animations.append({
+            "entry": entry,
+            "output_path": output_path,
+            "cropped_frames": cropped_frames,
+        })
 
-        log.debug(
-            "    max_crop_h=%d, target_h=%.1f, scale=%.4f",
-            max_crop_h, target_h, scale,
+    # ------------------------------------------------------------------
+    # Step 2: Compute base_scale from global max crop height
+    # ------------------------------------------------------------------
+    global_max_h = 0
+    for anim in animations:
+        for crop in anim["cropped_frames"]:
+            global_max_h = max(global_max_h, crop.shape[0])
+
+    if global_max_h > 0:
+        base_scale = frame_h / global_max_h
+    else:
+        base_scale = 1.0
+
+    log.info("  Base scale: %.4f (global max_h=%d -> frame_h=%d)", base_scale, global_max_h, frame_h)
+
+    # ------------------------------------------------------------------
+    # Step 3: Scale, place, assemble, save each animation
+    # ------------------------------------------------------------------
+    successes = 0
+
+    for anim in animations:
+        entry = anim["entry"]
+        output_path: Path = anim["output_path"]
+        cropped_frames: list[np.ndarray] = anim["cropped_frames"]
+        scale_pct: float = entry["scale_pct"]
+        v_snap: str = entry.get("vertical_snap", "bottom")
+        h_snap: str = entry.get("horizontal_snap", "center")
+
+        scale = base_scale * (scale_pct / 100.0)
+
+        log.info(
+            "  %s: %d frames, scale_pct=%d%%, final_scale=%.4f, snap=%s/%s",
+            entry["source"], len(cropped_frames), scale_pct, scale, v_snap, h_snap,
         )
 
-        # --- Scale, place, assemble ---
         placed_frames: list[np.ndarray] = []
         for i, cropped in enumerate(cropped_frames):
             scaled = scale_sprite(cropped, scale)

@@ -1,0 +1,9 @@
+{
+  "frame_width": 48,
+  "frame_height": 80,
+  "source_dir": "assets/ai_sources/npc_dimoni",
+  "output_dir": "assets/sprites/npcs",
+  "animations": [
+    {"source": "dimoni_idle.png", "frames": 1, "anchor": "ground"}
+  ]
+}

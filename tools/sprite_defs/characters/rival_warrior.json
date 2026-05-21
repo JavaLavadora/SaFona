@@ -1,0 +1,14 @@
+{
+  "frame_width": 32,
+  "frame_height": 48,
+  "source_dir": "assets/ai_sources/rival_warrior",
+  "output_dir": "assets/sprites/enemies",
+  "animations": [
+    {"source": "rival_warrior_idle.png", "frames": 2, "anchor": "ground"},
+    {"source": "rival_warrior_walk.png", "frames": 4, "anchor": "ground"},
+    {"source": "rival_warrior_attack.png", "frames": 2, "anchor": "ground"},
+    {"source": "rival_warrior_block.png", "frames": 1, "anchor": "ground"},
+    {"source": "rival_warrior_hit.png", "frames": 1, "anchor": "ground"},
+    {"source": "rival_warrior_death.png", "frames": 2, "anchor": "center", "independent_scale": true}
+  ]
+}

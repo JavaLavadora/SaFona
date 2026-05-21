@@ -865,15 +865,17 @@ class TestCleanSprite:
             [0, 0, 255],
             [0, 0, 0],
         ], dtype=np.uint8)
-        rgba = np.zeros((4, 4, 4), dtype=np.uint8)
+        rgba = np.zeros((5, 4, 4), dtype=np.uint8)
         # Row 0: semi-transparent near-red (alpha >= 128 -> opaque, color -> red)
         rgba[0, :, :] = [240, 10, 10, 200]
         # Row 1: opaque near-blue (color -> blue)
         rgba[1, :, :] = [10, 10, 240, 255]
-        # Row 2: semi-transparent below threshold (alpha < 128 -> transparent)
+        # Row 2: mid-alpha (32-127) preserved as semi-transparent
         rgba[2, :, :] = [100, 100, 100, 50]
-        # Row 3: fully transparent
-        rgba[3, :, :] = [0, 0, 0, 0]
+        # Row 3: very low alpha below threshold (< 32 -> transparent)
+        rgba[3, :, :] = [100, 100, 100, 20]
+        # Row 4: fully transparent
+        rgba[4, :, :] = [0, 0, 0, 0]
 
         # Test with outline disabled to verify core pipeline
         result, ambiguous_resolved, stray_fixed = clean_sprite(
@@ -888,11 +890,14 @@ class TestCleanSprite:
         assert np.all(result[1, :, 3] == 255)
         np.testing.assert_array_equal(result[1, 0, :3], [0, 0, 255])
 
-        # Row 2: was semi-transparent < 128, snapped to transparent
-        assert np.all(result[2, :, 3] == 0)
+        # Row 2: mid-alpha preserved (soft alpha, not snapped to 0 or 255)
+        assert np.all(result[2, :, 3] == 50)
 
-        # Row 3: stays transparent
+        # Row 3: very low alpha < 32, snapped to transparent
         assert np.all(result[3, :, 3] == 0)
+
+        # Row 4: stays transparent
+        assert np.all(result[4, :, 3] == 0)
 
         assert isinstance(ambiguous_resolved, int)
         assert isinstance(stray_fixed, int)
@@ -907,7 +912,7 @@ class TestCleanSprite:
         rgba = np.zeros((4, 4, 4), dtype=np.uint8)
         rgba[0, :, :] = [240, 10, 10, 200]   # -> opaque red
         rgba[1, :, :] = [10, 10, 240, 255]   # -> opaque blue
-        rgba[2, :, :] = [100, 100, 100, 50]  # -> transparent
+        rgba[2, :, :] = [100, 100, 100, 10]  # -> transparent (alpha < 32)
         rgba[3, :, :] = [0, 0, 0, 0]
 
         result, _, _ = clean_sprite(rgba, palette, outline=True)
@@ -918,6 +923,26 @@ class TestCleanSprite:
 
         # Row 3 stays transparent (not adjacent to opaque after outline)
         assert np.all(result[3, :, 3] == 0)
+
+    def test_semi_transparent_edges_preserved(self) -> None:
+        """Anti-aliased edge pixels (alpha 32-127) survive the full pipeline."""
+        palette = np.array([
+            [255, 0, 0],
+            [0, 0, 0],
+        ], dtype=np.uint8)
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        # Center pixel fully opaque
+        rgba[2, 2] = [240, 10, 10, 255]
+        # Edge pixels with mid-alpha (anti-aliased from LANCZOS)
+        rgba[2, 1] = [240, 10, 10, 80]
+        rgba[2, 3] = [240, 10, 10, 64]
+        rgba[1, 2] = [240, 10, 10, 100]
+
+        result, _, _ = clean_sprite(rgba, palette, outline=False)
+        # Mid-alpha pixels should survive (not snapped to 0 or 255)
+        assert result[2, 1, 3] == 80
+        assert result[2, 3, 3] == 64
+        assert result[1, 2, 3] == 100
 
     def test_preserves_transparency(self) -> None:
         palette = _make_test_palette()

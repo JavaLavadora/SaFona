@@ -11,7 +11,7 @@ Processing pipeline:
    stray pixels) by area threshold
 4. Frame sorting -- sort remaining sprite regions left-to-right
 5. Crop and scale -- crop each frame bbox, scale to target frame size
-   using NEAREST interpolation to preserve pixel art crispness
+   using LANCZOS interpolation for smooth downscaling
 6. Frame placement -- center horizontally, bottom-align (feet anchored)
    in target frame; death pose is vertically centered instead
 7. Assembly -- combine frames into a single horizontal sprite sheet

@@ -22,7 +22,7 @@ The pipeline:
 3. Detect sprite regions via scipy.ndimage.label
 4. Crop each frame to bounding box content
 5. Clean green fringe pixels via neighbor averaging
-6. Scale to target frame size using NEAREST interpolation (pixel art)
+6. Scale to target frame size using LANCZOS interpolation
 7. Center horizontally, bottom-align (feet anchored); death poses centered vertically
 8. Assemble frames into a horizontal sprite sheet
 9. Save as RGBA PNG

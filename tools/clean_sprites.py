@@ -736,7 +736,7 @@ def compute_stats(
 def clean_sprite(
     rgba: np.ndarray,
     palette_rgb: np.ndarray,
-    alpha_threshold: int = 128,
+    alpha_threshold: int = 32,
     max_colors: int = 15,
     outline: bool = True,
 ) -> tuple[np.ndarray, int, int]:

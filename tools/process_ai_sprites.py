@@ -22,7 +22,7 @@ The pipeline:
 3. Detect sprite regions via scipy.ndimage.label
 4. Crop each frame to bounding box content
 5. Clean green fringe pixels via neighbor averaging
-6. Scale to target frame size using NEAREST interpolation (pixel art)
+6. Scale to target frame size using LANCZOS interpolation
 7. Center horizontally, bottom-align (feet anchored); death poses centered vertically
 8. Assemble frames into a horizontal sprite sheet
 9. Save as RGBA PNG
@@ -205,7 +205,7 @@ def _clean_green_fringe(crop: np.ndarray) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Scaling pipeline: LANCZOS intermediate -> NEAREST final
+# Scaling pipeline: LANCZOS
 # ---------------------------------------------------------------------------
 
 def scale_pose_to_frame(
@@ -215,11 +215,8 @@ def scale_pose_to_frame(
 ) -> np.ndarray:
     """Scale a pose to fit within target frame dimensions.
 
-    Uses a two-step approach: LANCZOS to an intermediate size
-    (2x target) then NEAREST to final, preserving pixel-art quality.
-
-    The pose is scaled uniformly to fill the frame as much as possible
-    while maintaining aspect ratio.
+    Uses LANCZOS interpolation for smooth downscaling that preserves
+    gradients and produces anti-aliased edges.
 
     Args:
         pose: Tightly cropped RGBA array.
@@ -234,25 +231,15 @@ def scale_pose_to_frame(
 
     ph, pw = pose.shape[:2]
 
-    # Compute uniform scale to fit in frame (with 1px margin)
     usable_w = max(1, frame_w - 2)
     usable_h = max(1, frame_h - 2)
     scale = min(usable_w / pw, usable_h / ph)
 
-    # Intermediate size at 2x for LANCZOS quality
-    inter_w = max(1, int(pw * scale * 2))
-    inter_h = max(1, int(ph * scale * 2))
-
-    # Final size
     final_w = max(1, int(pw * scale))
     final_h = max(1, int(ph * scale))
 
     pil = Image.fromarray(pose, "RGBA")
-
-    # Step 1: LANCZOS to intermediate
-    pil_inter = pil.resize((inter_w, inter_h), Image.LANCZOS)
-    # Step 2: NEAREST to final
-    pil_final = pil_inter.resize((final_w, final_h), Image.NEAREST)
+    pil_final = pil.resize((final_w, final_h), Image.LANCZOS)
 
     return np.array(pil_final)
 
@@ -305,18 +292,18 @@ def place_in_frame(
 # Alpha thresholding
 # ---------------------------------------------------------------------------
 
-def hard_threshold_alpha(rgba: np.ndarray, threshold: int = 100) -> np.ndarray:
-    """Apply hard alpha threshold: below = 0, above = 255.
+def hard_threshold_alpha(rgba: np.ndarray, threshold: int = 32) -> np.ndarray:
+    """Apply soft alpha threshold: below cutoff becomes transparent, above keeps original.
 
     Args:
         rgba: RGBA numpy array.
-        threshold: Alpha cutoff value.
+        threshold: Alpha cutoff value. Pixels below this become fully transparent.
 
     Returns:
-        Modified RGBA array with binary alpha.
+        Modified RGBA array with cleaned alpha.
     """
     result = rgba.copy()
-    result[:, :, 3] = np.where(result[:, :, 3] < threshold, 0, 255)
+    result[:, :, 3] = np.where(result[:, :, 3] < threshold, 0, result[:, :, 3])
     return result
 
 
@@ -728,7 +715,7 @@ def _scale_to_frame(
     frame_h: int,
     is_death: bool = False,
 ) -> np.ndarray:
-    """Scale a sprite into target frame using NEAREST interpolation.
+    """Scale a sprite into target frame using LANCZOS interpolation.
 
     Centers horizontally, bottom-aligns (feet anchored) for normal
     poses. Death poses are centered vertically.
@@ -755,7 +742,7 @@ def _scale_to_frame(
     new_h = max(1, int(sh * scale))
 
     pil = Image.fromarray(sprite, "RGBA")
-    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
     scaled_arr = np.array(pil_scaled)
 
     frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
@@ -807,7 +794,7 @@ def _scale_to_frame_uniform(
     new_h = max(1, int(sh * scale))
 
     pil = Image.fromarray(sprite, "RGBA")
-    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
     scaled_arr = np.array(pil_scaled)
 
     frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
@@ -1016,10 +1003,13 @@ def process_directory(
                 src_name, anim["pre_scale"], max_h, reference_h,
             )
         elif max_h > reference_h and not has_overhead:
-            anim["pre_scale"] = reference_h / max_h
+            # Taller animations (raised arms/weapons) keep pre_scale 1.0.
+            # The body is already the right height; extra height is overhead
+            # content that may overflow the frame top and get clipped.
+            anim["pre_scale"] = 1.0
             log.info(
-                "  %s: pre-scale %.4f (crop %d -> %d to match idle)",
-                src_name, anim["pre_scale"], max_h, reference_h,
+                "  %s: taller than idle (%d > %d), keeping body scale 1.0",
+                src_name, max_h, reference_h,
             )
         else:
             anim["pre_scale"] = 1.0

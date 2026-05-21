@@ -13,6 +13,10 @@
       "attack_range": 5
     },
     "sprite": "enemy_possessed_sheep",
+    "size": {
+      "w": 32,
+      "h": 32
+    },
     "hitbox": {
       "w": 24,
       "h": 24
@@ -46,9 +50,13 @@
       "block_duration": 0.5
     },
     "sprite": "enemy_rival_warrior",
-    "hitbox": {
-      "w": 36,
+    "size": {
+      "w": 32,
       "h": 48
+    },
+    "hitbox": {
+      "w": 24,
+      "h": 36
     },
     "attack_hitbox_w": 24,
     "drops": {
@@ -98,6 +106,10 @@
       "vertical_detection": 3.0
     },
     "sprite": "enemy_stone_guardian",
+    "size": {
+      "w": 48,
+      "h": 64
+    },
     "hitbox": {
       "w": 36,
       "h": 48

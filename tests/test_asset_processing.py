@@ -2,7 +2,7 @@
 
 Verifies that:
 - Cave and talayot tilesets exist with correct dimensions (256x16)
-- Backgrounds exist with correct dimensions (384x216)
+- Backgrounds exist and meet minimum dimension requirements (>= 384x216)
 - UI elements exist with expected dimensions
 - LevelLoader correctly loads backgrounds via metadata
 - Asset manifest has all required entries
@@ -55,11 +55,19 @@ class TestBackgroundAssets:
 
     @pytest.mark.parametrize("name", ["world1", "world1_cave", "world1_talayot"])
     def test_background_dimensions(self, name: str) -> None:
+        """Background must be at least as large as the game viewport.
+
+        The gameplay scene scales backgrounds at runtime via
+        ``pygame.transform.scale``, so source images may be larger
+        than 384x216 (e.g. high-res AI-generated art).
+        """
         from PIL import Image
 
         path = ASSETS_DIR / "backgrounds" / f"{name}.png"
         img = Image.open(path)
-        assert img.size == (384, 216), f"Expected 384x216, got {img.size}"
+        w, h = img.size
+        assert w >= 384, f"Width {w} < minimum 384"
+        assert h >= 216, f"Height {h} < minimum 216"
 
 
 class TestUIAssets:

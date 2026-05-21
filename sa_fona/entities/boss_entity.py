@@ -61,9 +61,15 @@ class BossEntity(Entity):
         definition: dict,
         event_bus: EventBus,
     ) -> None:
+        size = definition.get("size", {})
         hitbox = definition.get("hitbox", {})
-        width = hitbox.get("w", 84)
-        height = hitbox.get("h", 72)
+        DEFAULT_HITBOX_RATIO = 0.75
+        # Sprite frame dimensions from "size"; fall back to hitbox for backward compat
+        sprite_w = size.get("w", hitbox.get("w", 84))
+        sprite_h = size.get("h", hitbox.get("h", 72))
+        # Hitbox: explicit override, or derive from size with default 0.75 ratio
+        width = hitbox.get("w", int(sprite_w * DEFAULT_HITBOX_RATIO))
+        height = hitbox.get("h", int(sprite_h * DEFAULT_HITBOX_RATIO))
         super().__init__(x, y, width, height)
 
         self._event_bus = event_bus
@@ -124,6 +130,8 @@ class BossEntity(Entity):
         # Rendering dimensions and sprite cache.
         self._width = width
         self._height = height
+        self._sprite_frame_w = sprite_w
+        self._sprite_frame_h = sprite_h
         self._boss_sprites: dict[str, list[pygame.Surface]] = {}
         self._has_boss_sprites: bool = False
         self._load_boss_sprites()
@@ -527,7 +535,7 @@ class BossEntity(Entity):
         for name in sprite_names:
             path = f"assets/sprites/boss/{short_prefix}_{name}.png"
             frames = load_frame_strip(
-                path, self._width, self._height,
+                path, self._sprite_frame_w, self._sprite_frame_h,
             )
             if frames:
                 self._boss_sprites[name] = frames
@@ -605,14 +613,17 @@ class BossEntity(Entity):
             self._sprite = boss_surf
             return
 
-        # Fallback: colored rectangle.
+        # Fallback: colored rectangle at sprite frame size.
         phase_data = self.current_phase_data
         color = tuple(phase_data.get("color", [140, 140, 140]))
 
-        surf = pygame.Surface((self._width, self._height))
+        surf = pygame.Surface((self._sprite_frame_w, self._sprite_frame_h))
         surf.fill(color)
         border = tuple(max(0, c - 40) for c in color)
-        pygame.draw.rect(surf, border, (0, 0, self._width, self._height), 2)
+        pygame.draw.rect(
+            surf, border,
+            (0, 0, self._sprite_frame_w, self._sprite_frame_h), 2,
+        )
         self._sprite = surf
 
     def render(
@@ -635,53 +646,56 @@ class BossEntity(Entity):
             if boss_surf is not None:
                 self._sprite = boss_surf
 
+        # Center the sprite frame horizontally over the collision rect,
+        # bottom-aligned (feet on ground).  Same pattern as the player.
+        sprite_offset_x = (self._sprite_frame_w - self.rect.width) // 2
+        vis_x = self.rect.x - camera_offset[0] - sprite_offset_x
+        vis_y = self.rect.bottom - self._sprite_frame_h - camera_offset[1]
+
         # Hit flash: blink white briefly when damaged.
         if self._hit_flash_timer > 0:
             blink = int(self._hit_flash_timer / 0.05)
             if blink % 2 == 1:
-                screen_x = self.rect.x - camera_offset[0]
-                screen_y = self.rect.y - camera_offset[1]
-                flash = pygame.Surface((self._width, self._height))
+                flash = pygame.Surface(
+                    (self._sprite_frame_w, self._sprite_frame_h)
+                )
                 flash.fill((255, 255, 255))
-                surface.blit(flash, (screen_x, screen_y))
+                surface.blit(flash, (vis_x, vis_y))
                 return
-
-        screen_x = self.rect.x - camera_offset[0]
-        screen_y = self.rect.y - camera_offset[1]
 
         # Draw base sprite, mirrored when facing left.
         if self._sprite is not None:
             if not self.facing_right:
                 flipped = pygame.transform.flip(self._sprite, True, False)
-                surface.blit(flipped, (screen_x, screen_y))
+                surface.blit(flipped, (vis_x, vis_y))
             else:
-                surface.blit(self._sprite, (screen_x, screen_y))
+                surface.blit(self._sprite, (vis_x, vis_y))
 
         # Overlays only when using placeholder sprites (no sprite assets).
         if not self._has_boss_sprites:
             # Tell overlay (pulsing yellow).
             if self._state == BossState.TELL:
                 tell_surf = pygame.Surface(
-                    (self._width, self._height), pygame.SRCALPHA
+                    (self._sprite_frame_w, self._sprite_frame_h), pygame.SRCALPHA
                 )
                 tell_surf.fill((255, 220, 50, 100))
-                surface.blit(tell_surf, (screen_x, screen_y))
+                surface.blit(tell_surf, (vis_x, vis_y))
 
             # Punish overlay (blue tint = stunned).
             if self._state == BossState.PUNISH:
                 punish_surf = pygame.Surface(
-                    (self._width, self._height), pygame.SRCALPHA
+                    (self._sprite_frame_w, self._sprite_frame_h), pygame.SRCALPHA
                 )
                 punish_surf.fill((50, 100, 255, 80))
-                surface.blit(punish_surf, (screen_x, screen_y))
+                surface.blit(punish_surf, (vis_x, vis_y))
 
             # Label.
             try:
                 if self._font is None:
                     self._font = pygame.font.Font(None, 18)
                 label = self._font.render("B", False, (0, 0, 0))
-                lx = screen_x + (self._width - label.get_width()) // 2
-                ly = screen_y + (self._height - label.get_height()) // 2
+                lx = vis_x + (self._sprite_frame_w - label.get_width()) // 2
+                ly = vis_y + (self._sprite_frame_h - label.get_height()) // 2
                 surface.blit(label, (lx, ly))
             except (pygame.error, IndexError):
                 pass
@@ -689,11 +703,11 @@ class BossEntity(Entity):
         # Phase transition overlay (bright flash) -- shown even with sprites.
         if self._state == BossState.PHASE_TRANSITION:
             flash_surf = pygame.Surface(
-                (self._width, self._height), pygame.SRCALPHA
+                (self._sprite_frame_w, self._sprite_frame_h), pygame.SRCALPHA
             )
             alpha = int(180 * (self._transition_timer / self._transition_duration))
             flash_surf.fill((255, 255, 255, max(0, min(255, alpha))))
-            surface.blit(flash_surf, (screen_x, screen_y))
+            surface.blit(flash_surf, (vis_x, vis_y))
 
         # Core glow in Phase 3.
         if self._core_exposed:
@@ -701,8 +715,8 @@ class BossEntity(Entity):
             pulse = abs(int(self._idle_timer * 4) % 2)
             glow_alpha = 180 if pulse else 120
             core_surf.fill((255, 80, 80, glow_alpha))
-            core_x = screen_x + self._width // 2 - 6
-            core_y = screen_y + self._height // 2 - 6
+            core_x = vis_x + self._sprite_frame_w // 2 - 6
+            core_y = vis_y + self._sprite_frame_h // 2 - 6
             surface.blit(core_surf, (core_x, core_y))
 
     # ── Static loader ──────────────────────────────────────────────

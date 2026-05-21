@@ -1,0 +1,17 @@
+{
+  "frame_width": 48,
+  "frame_height": 64,
+  "source_dir": "assets/ai_sources/ramon",
+  "output_dir": "assets/sprites/ramon",
+  "animations": [
+    {"source": "idle.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "walk.png", "frames": 6, "scale_pct": 120, "vertical_snap": "bottom"},
+    {"source": "jump.png", "frames": 2, "scale_pct": 100, "vertical_snap": "center"},
+    {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "scale_pct": 115, "vertical_snap": "bottom"},
+    {"source": "crouch.png", "frames": 2, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "wall_slide.png", "frames": 2, "scale_pct": 85, "vertical_snap": "center"},
+    {"source": "wall_jump.png", "frames": 2, "scale_pct": 105, "vertical_snap": "center"},
+    {"source": "hit.png", "frames": 1, "scale_pct": 70, "vertical_snap": "bottom"},
+    {"source": "death.png", "frames": 1, "scale_pct": 50, "vertical_snap": "bottom"}
+  ]
+}

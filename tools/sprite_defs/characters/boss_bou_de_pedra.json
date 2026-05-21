@@ -1,0 +1,18 @@
+{
+  "frame_width": 80,
+  "frame_height": 72,
+  "source_dir": "assets/ai_sources/boss_bou_de_pedra",
+  "output_dir": "assets/sprites/boss",
+  "animations": [
+    {"source": "es_bou_de_pedra_idle_1_image.png", "output": "bou_idle_p1.png", "frames": 4, "scale_pct": 180, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_idle_2_image.png", "output": "bou_idle_p2.png", "frames": 4, "scale_pct": 180, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_idle_3_image.png", "output": "bou_idle_p3.png", "frames": 4, "scale_pct": 180, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_rush_attack_image.png", "output": "bou_rush.png", "frames": 2, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_headbutt_image.png", "output": "bou_headbutt.png", "frames": 2, "scale_pct": 130, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_stomp_image.png", "output": "bou_stomp.png", "frames": 2, "scale_pct": 120, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_hurl_image.png", "output": "bou_hurl.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_stunned_image.png", "output": "bou_stunned.png", "frames": 1, "scale_pct": 100, "vertical_snap": "bottom"},
+    {"source": "es_bou_de_pedra_transition_image.png", "output": "bou_transition.png", "frames": 1, "scale_pct": 100, "vertical_snap": "center"},
+    {"source": "es_bou_de_pedra_death_image.png", "output": "bou_death.png", "frames": 2, "scale_pct": 80, "vertical_snap": "bottom"}
+  ]
+}

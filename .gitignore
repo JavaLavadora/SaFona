@@ -19,5 +19,8 @@ build/
 *.swp
 *.swo
 
+# Jupyter
+.ipynb_checkpoints/
+
 # Saves (generated at runtime)
 saves/

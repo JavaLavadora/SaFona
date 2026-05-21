@@ -55,8 +55,8 @@
       "h": 48
     },
     "hitbox": {
-      "w": 36,
-      "h": 48
+      "w": 24,
+      "h": 36
     },
     "attack_hitbox_w": 24,
     "drops": {

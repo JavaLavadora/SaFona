@@ -30,12 +30,16 @@ Config format (JSON):
 
 Scaling rules:
     - Body-height normalization: idle is the reference height.  Ground-anchored
-      animations that are shorter than idle get pre-scaled UP so the character
-      stays the same height (AI sources draw inconsistent sizes).  Taller
-      animations keep their natural size.  Set "normalize": false to opt out
-      (e.g. crouch).
-    - One shared scale factor is then computed from the pre-scaled global max
-      to fit the frame.  Final scale = pre_scale * shared_scale.
+      animations get pre-scaled both UP and DOWN so every animation represents
+      the same body height (AI sources draw inconsistent sizes).  Each
+      animation's max crop height is normalized to idle's max crop height.
+      All frames within one animation share the same pre_scale.
+      Set "normalize": false to opt out (e.g. crouch).
+    - One shared scale factor is computed from the pre-scaled global max
+      of GROUND-ANCHORED animations only (center-anchored excluded).
+      Final scale = pre_scale * shared_scale.
+    - Center-anchored animations use shared_scale with pre_scale=1.0.
+      Content that overflows the frame is clipped, not rescaled.
     - Animations with "independent_scale": true get their own scale.
 
 Anchor modes:
@@ -375,13 +379,13 @@ def process_character(config_path: Path) -> tuple[int, int]:
        components (<5000px), detect sprite regions, crop each frame,
        and clean green fringe.
     2. Body-height normalization: find the idle animation's max crop
-       height as reference.  Ground-anchored animations that are shorter
-       get a pre-scale factor to match idle height (AI sources draw
-       animations at inconsistent sizes).  Taller animations and
-       center-anchored animations keep pre_scale 1.0.  Set
-       "normalize": false in the config to opt out (e.g. crouch).
-    3. Compute global max dimensions from all pre-scaled shared-scale
-       crops, then ONE shared scale factor to fit the frame.
+       height as reference.  Each ground-anchored animation gets ONE
+       pre_scale = reference_h / anim_max_h (both UP and DOWN), so
+       every animation represents the same body height.  All frames
+       within one animation share the same pre_scale.  Center-anchored
+       animations get pre_scale 1.0.  Set "normalize": false to opt out.
+    3. Compute global max from GROUND-ANCHORED pre-scaled crops only
+       (center-anchored excluded), then ONE shared scale factor.
     4. Final scale per animation = pre_scale * shared_scale.
     5. For independent_scale animations: own scale from own dimensions.
     6. Place each scaled frame using anchor: "ground" = bottom-aligned,
@@ -473,13 +477,20 @@ def process_character(config_path: Path) -> tuple[int, int]:
         })
 
     # ------------------------------------------------------------------
-    # Step 2: Body-height normalization
+    # Step 2: Per-ANIMATION body-height normalization
     #
-    # AI sources draw animations at inconsistent sizes.  Use idle as
-    # the reference: ground-anchored animations that are SHORTER than
-    # idle get a pre_scale to match idle height.  Taller animations,
-    # center-anchored animations, and those with normalize:false keep
-    # pre_scale = 1.0.
+    # AI sources draw each animation at a different overall size.
+    # Use idle's max crop height as the reference.  For each ground-
+    # anchored animation (normalize!=false), compute ONE pre_scale =
+    # reference_h / anim_max_h.  This scales both UP (shorter than
+    # idle) and DOWN (taller than idle) so every ground-anchored
+    # animation represents the same body height.  All frames within
+    # one animation share the same pre_scale, preserving within-
+    # animation proportions.
+    #
+    # Center-anchored animations (jump, wall_slide) get pre_scale=1.0.
+    # They use the shared_scale computed from ground-only animations
+    # but do NOT contribute to computing it.
     # ------------------------------------------------------------------
     reference_h = 0.0
     for anim in animations:
@@ -508,30 +519,34 @@ def process_character(config_path: Path) -> tuple[int, int]:
             continue
 
         normalize = anim["entry"].get("normalize", True)
-        max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
 
-        if (
-            anim["anchor"] == "ground"
-            and normalize
-            and reference_h > 0
-            and max_h < reference_h
-        ):
-            anim["pre_scale"] = reference_h / max_h
-            log.info(
-                "    %s: pre_scale %.3f (crop %dpx -> %dpx to match idle)",
-                anim["entry"]["source"], anim["pre_scale"],
-                int(max_h), int(reference_h),
-            )
+        if anim["anchor"] == "ground" and normalize and reference_h > 0:
+            anim_max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
+            anim["pre_scale"] = reference_h / anim_max_h
         else:
             anim["pre_scale"] = 1.0
 
+        if anim["pre_scale"] != 1.0:
+            anim_max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
+            log.info(
+                "    %s: pre_scale=%.3f (max_h=%.0f -> %.0f)",
+                anim["entry"]["source"],
+                anim["pre_scale"], anim_max_h,
+                anim_max_h * anim["pre_scale"],
+            )
+
     # ------------------------------------------------------------------
-    # Step 3: Compute shared scale from pre-scaled global max
+    # Step 3: Compute shared scale from ground-anchored pre-scaled max
+    #
+    # Only ground-anchored animations contribute to the global max.
+    # Center-anchored animations use the shared_scale but don't drive
+    # it — this prevents tall airborne poses from shrinking ground
+    # poses.
     # ------------------------------------------------------------------
     global_max_w = 0.0
     global_max_h = 0.0
     for anim in animations:
-        if anim["independent_scale"]:
+        if anim["independent_scale"] or anim["anchor"] != "ground":
             continue
         ps = anim["pre_scale"]
         for crop in anim["cropped_frames"]:
@@ -547,7 +562,7 @@ def process_character(config_path: Path) -> tuple[int, int]:
         shared_scale = 1.0
 
     log.info(
-        "  Shared scale: %.4f (pre-scaled max %.0fx%.0f -> %dx%d frame)",
+        "  Shared scale: %.4f (ground max %.0fx%.0f -> %dx%d frame)",
         shared_scale, global_max_w, global_max_h, frame_w, frame_h,
     )
 

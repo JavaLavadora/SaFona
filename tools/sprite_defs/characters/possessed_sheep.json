@@ -8,6 +8,6 @@
     {"source": "sheep_walk.png", "output": "possessed_sheep_walk.png", "frames": 4, "anchor": "ground"},
     {"source": "sheep_charge.png", "output": "possessed_sheep_charge.png", "frames": 2, "anchor": "ground"},
     {"source": "sheep_hit.png", "output": "possessed_sheep_hit.png", "frames": 1, "anchor": "ground"},
-    {"source": "sheep_death.png", "output": "possessed_sheep_death.png", "frames": 1, "anchor": "center", "independent_scale": true}
+    {"source": "sheep_death.png", "output": "possessed_sheep_death.png", "frames": 1, "anchor": "ground", "independent_scale": true}
   ]
 }

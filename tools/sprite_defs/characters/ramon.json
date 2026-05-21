@@ -12,6 +12,6 @@
     {"source": "wall_slide.png", "frames": 2, "anchor": "center"},
     {"source": "wall_jump.png", "frames": 2, "anchor": "center"},
     {"source": "hit.png", "frames": 1, "anchor": "ground"},
-    {"source": "death.png", "frames": 1, "anchor": "center", "independent_scale": true}
+    {"source": "death.png", "frames": 1, "anchor": "ground", "independent_scale": true}
   ]
 }

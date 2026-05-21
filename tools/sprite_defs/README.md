@@ -34,7 +34,7 @@ Each character gets one JSON file in `tools/sprite_defs/characters/`.
     {"source": "walk.png", "frames": 6, "anchor": "ground"},
     {"source": "jump.png", "frames": 2, "anchor": "center"},
     {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "anchor": "ground"},
-    {"source": "death.png", "frames": 1, "anchor": "center", "independent_scale": true}
+    {"source": "death.png", "frames": 1, "anchor": "ground", "independent_scale": true}
   ]
 }
 ```
@@ -57,39 +57,51 @@ Each character gets one JSON file in `tools/sprite_defs/characters/`.
 | `output` | string | same as `source` | Output filename (use to rename, e.g. `sling_attack.png` -> `sling.png`) |
 | `frames` | int | *(required)* | How many sprite frames to extract from this source image |
 | `anchor` | string | `"ground"` | Placement mode: `"ground"` or `"center"` |
+| `normalize` | bool | `true` | If false, skip body-height normalization (e.g. crouch is intentionally shorter) |
 | `independent_scale` | bool | `false` | If true, this animation gets its own scale instead of the shared one |
 
 ## How Scaling Works
 
-The tool uses a **single shared scale factor** across all animations for a
-character (except those marked `independent_scale`). This ensures body
-proportions are perfectly consistent -- the idle, walk, attack, etc. all
-look like the same character at the same size.
+The tool ensures every animation shows the character at the **same body
+height**, compensating for AI-generated source images that draw each
+animation at a different size.
 
-1. All source images are loaded and each sprite frame is cropped to its
-   tight bounding box.
+### Step 1: Body-height normalization
 
-2. The **global maximum width and height** are found across ALL cropped
-   frames from ALL shared-scale animations.
+Idle is the reference. For each ground-anchored animation, the tool
+computes a **per-animation pre_scale** = idle_max_height / anim_max_height.
+This scales both UP (walk drawn shorter than idle) and DOWN (hit drawn
+taller than idle). All frames within one animation share the same pre_scale,
+preserving within-animation proportions (e.g. a slam pose is naturally
+shorter than a windup pose).
 
-3. One scale factor is computed:
-   ```
-   shared_scale = min((frame_width - 2) / global_max_w,
-                      (frame_height - 2) / global_max_h)
-   ```
-   The `-2` provides a 1px margin on each side of the frame.
+- Center-anchored animations (jump, wall_slide): pre_scale = 1.0
+- `"normalize": false` (e.g. crouch): pre_scale = 1.0
 
-4. Every frame of every shared-scale animation is scaled by `shared_scale`.
-   The tallest/widest animation fills the frame; shorter animations
-   naturally have proportional headroom.
+### Step 2: Shared scale from ground-anchored animations only
 
-5. Animations with `independent_scale: true` (typically death poses) compute
-   their own scale from their own max crop dimensions. They don't affect the
-   shared scale and aren't affected by it.
+The **global max width and height** are computed from pre-scaled
+ground-anchored crops only. Center-anchored animations are excluded --
+they don't drive the scale down.
 
-6. If a scaled frame overflows the target frame (because another animation's
-   crops drove a larger shared scale), it is **clipped** -- not rescaled.
-   This preserves the uniform scale.
+```
+shared_scale = min((frame_width - 2) / global_max_w,
+                   (frame_height - 2) / global_max_h)
+```
+
+### Step 3: Final scale per animation
+
+- Ground-anchored: `final_scale = pre_scale * shared_scale`
+- Center-anchored: `final_scale = 1.0 * shared_scale` (same body scale, may overflow and clip)
+- Independent: own scale from own dimensions
+
+### Result
+
+Every ground-anchored animation shows the character at the same pixel
+height. Center-anchored animations have the correct body proportions but
+content that extends beyond the frame is clipped (not rescaled).
+Animations with `independent_scale: true` (typically death) get their own
+scale and don't affect anything else.
 
 ## How Anchoring Works
 
@@ -98,7 +110,10 @@ look like the same character at the same size.
   attacking, crouching -- any pose where the character is on the ground.
 
 - **`"center"`**: The sprite is centered both horizontally and vertically.
-  Use for airborne poses (jump, wall_slide, wall_jump) and death animations.
+  Use for airborne poses (jump, wall_slide, wall_jump).
+
+Death animations should typically use `"anchor": "ground"` with
+`"independent_scale": true` -- the body lies on the ground, not floating.
 
 ## How to Add a New Character
 

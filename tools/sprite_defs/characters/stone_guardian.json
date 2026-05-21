@@ -8,6 +8,6 @@
     {"source": "stone_guardian_walk.png", "frames": 3, "anchor": "ground"},
     {"source": "stone_guardian_attack.png", "frames": 2, "anchor": "ground"},
     {"source": "stone_guardian_hit.png", "frames": 1, "anchor": "ground"},
-    {"source": "stone_guardian_death.png", "frames": 1, "anchor": "center", "independent_scale": true}
+    {"source": "stone_guardian_death.png", "frames": 1, "anchor": "ground", "independent_scale": true}
   ]
 }

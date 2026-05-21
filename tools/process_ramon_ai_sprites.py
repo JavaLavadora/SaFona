@@ -270,7 +270,7 @@ def scale_to_frame(
     """Scale a sprite to fit within target frame dimensions and place it.
 
     Scales uniformly to fill the frame as much as possible while
-    maintaining aspect ratio, using NEAREST interpolation. The sprite
+    maintaining aspect ratio, using LANCZOS interpolation. The sprite
     is centered horizontally and bottom-aligned (feet anchored) for
     upright poses. Death poses (lying down) are centered both ways.
 
@@ -297,7 +297,7 @@ def scale_to_frame(
     new_h = max(1, int(sh * scale))
 
     pil = Image.fromarray(sprite, "RGBA")
-    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
     scaled_arr = np.array(pil_scaled)
 
     # Place in frame

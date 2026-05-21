@@ -8,7 +8,7 @@
     {"source": "walk.png", "frames": 6, "anchor": "ground"},
     {"source": "jump.png", "frames": 2, "anchor": "center"},
     {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "anchor": "ground"},
-    {"source": "crouch.png", "frames": 2, "anchor": "ground"},
+    {"source": "crouch.png", "frames": 2, "anchor": "ground", "normalize": false},
     {"source": "wall_slide.png", "frames": 2, "anchor": "center"},
     {"source": "wall_jump.png", "frames": 2, "anchor": "center"},
     {"source": "hit.png", "frames": 1, "anchor": "ground"},

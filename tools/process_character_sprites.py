@@ -29,11 +29,13 @@ Config format (JSON):
     }
 
 Scaling rules:
-    - One shared scale factor is computed from the global maximum width and
-      height across ALL frames of ALL shared-scale animations.
-    - shared_scale = min((frame_w - 2) / global_max_w, (frame_h - 2) / global_max_h)
-    - The tallest/widest animation fills the frame; others keep proportional
-      headroom.  Body proportions are perfectly consistent.
+    - Body-height normalization: idle is the reference height.  Ground-anchored
+      animations that are shorter than idle get pre-scaled UP so the character
+      stays the same height (AI sources draw inconsistent sizes).  Taller
+      animations keep their natural size.  Set "normalize": false to opt out
+      (e.g. crouch).
+    - One shared scale factor is then computed from the pre-scaled global max
+      to fit the frame.  Final scale = pre_scale * shared_scale.
     - Animations with "independent_scale": true get their own scale.
 
 Anchor modes:
@@ -372,19 +374,20 @@ def process_character(config_path: Path) -> tuple[int, int]:
     1. Load each source image, remove green background, remove small
        components (<5000px), detect sprite regions, crop each frame,
        and clean green fringe.
-    2. Find the global maximum width and height across ALL cropped
-       frames from ALL animations that do NOT have independent_scale.
-    3. Compute ONE shared scale factor:
-       shared_scale = min((frame_w - 2) / global_max_w,
-                          (frame_h - 2) / global_max_h)
-    4. Apply shared_scale to every frame of every shared-scale animation.
-    5. For independent_scale animations: compute their own scale from
-       their own max crop dimensions.
-    6. Place each scaled frame using the anchor mode:
-       - "ground": center horizontally, bottom-align
-       - "center": center horizontally and vertically
-    7. If a scaled frame overflows, clip it (don't rescale).
-    8. Assemble frames into a horizontal sprite sheet and save as PNG.
+    2. Body-height normalization: find the idle animation's max crop
+       height as reference.  Ground-anchored animations that are shorter
+       get a pre-scale factor to match idle height (AI sources draw
+       animations at inconsistent sizes).  Taller animations and
+       center-anchored animations keep pre_scale 1.0.  Set
+       "normalize": false in the config to opt out (e.g. crouch).
+    3. Compute global max dimensions from all pre-scaled shared-scale
+       crops, then ONE shared scale factor to fit the frame.
+    4. Final scale per animation = pre_scale * shared_scale.
+    5. For independent_scale animations: own scale from own dimensions.
+    6. Place each scaled frame using anchor: "ground" = bottom-aligned,
+       "center" = vertically centered.
+    7. If a scaled frame overflows, clip (don't rescale).
+    8. Assemble frames into horizontal sprite sheet and save as PNG.
 
     Args:
         config_path: Path to character JSON config file.
@@ -470,16 +473,70 @@ def process_character(config_path: Path) -> tuple[int, int]:
         })
 
     # ------------------------------------------------------------------
-    # Step 2: Compute shared scale from global max dimensions
+    # Step 2: Body-height normalization
+    #
+    # AI sources draw animations at inconsistent sizes.  Use idle as
+    # the reference: ground-anchored animations that are SHORTER than
+    # idle get a pre_scale to match idle height.  Taller animations,
+    # center-anchored animations, and those with normalize:false keep
+    # pre_scale = 1.0.
+    # ------------------------------------------------------------------
+    reference_h = 0.0
+    for anim in animations:
+        if anim["independent_scale"]:
+            continue
+        src = anim["entry"]["source"].lower()
+        if "idle" in src:
+            reference_h = max(
+                float(c.shape[0]) for c in anim["cropped_frames"]
+            )
+            break
+
+    if reference_h == 0.0:
+        for anim in animations:
+            if not anim["independent_scale"] and anim["anchor"] == "ground":
+                reference_h = max(
+                    float(c.shape[0]) for c in anim["cropped_frames"]
+                )
+                break
+
+    log.info("  Reference height (idle): %.0f px", reference_h)
+
+    for anim in animations:
+        if anim["independent_scale"]:
+            anim["pre_scale"] = 1.0
+            continue
+
+        normalize = anim["entry"].get("normalize", True)
+        max_h = max(float(c.shape[0]) for c in anim["cropped_frames"])
+
+        if (
+            anim["anchor"] == "ground"
+            and normalize
+            and reference_h > 0
+            and max_h < reference_h
+        ):
+            anim["pre_scale"] = reference_h / max_h
+            log.info(
+                "    %s: pre_scale %.3f (crop %dpx -> %dpx to match idle)",
+                anim["entry"]["source"], anim["pre_scale"],
+                int(max_h), int(reference_h),
+            )
+        else:
+            anim["pre_scale"] = 1.0
+
+    # ------------------------------------------------------------------
+    # Step 3: Compute shared scale from pre-scaled global max
     # ------------------------------------------------------------------
     global_max_w = 0.0
     global_max_h = 0.0
     for anim in animations:
         if anim["independent_scale"]:
             continue
+        ps = anim["pre_scale"]
         for crop in anim["cropped_frames"]:
-            global_max_w = max(global_max_w, float(crop.shape[1]))
-            global_max_h = max(global_max_h, float(crop.shape[0]))
+            global_max_w = max(global_max_w, float(crop.shape[1]) * ps)
+            global_max_h = max(global_max_h, float(crop.shape[0]) * ps)
 
     usable_w = max(1, frame_w - 2)
     usable_h = max(1, frame_h - 2)
@@ -490,12 +547,12 @@ def process_character(config_path: Path) -> tuple[int, int]:
         shared_scale = 1.0
 
     log.info(
-        "  Shared scale: %.4f (global max %.0fx%.0f -> %dx%d frame)",
+        "  Shared scale: %.4f (pre-scaled max %.0fx%.0f -> %dx%d frame)",
         shared_scale, global_max_w, global_max_h, frame_w, frame_h,
     )
 
     # ------------------------------------------------------------------
-    # Step 3: Scale, place, assemble, and save each animation
+    # Step 4: Scale, place, assemble, and save each animation
     # ------------------------------------------------------------------
     successes = 0
 
@@ -507,7 +564,6 @@ def process_character(config_path: Path) -> tuple[int, int]:
         cropped_frames: list[np.ndarray] = anim["cropped_frames"]
 
         if independent:
-            # Compute scale from this animation's own max dimensions
             own_max_w = max(c.shape[1] for c in cropped_frames)
             own_max_h = max(c.shape[0] for c in cropped_frames)
             scale = min(usable_w / own_max_w, usable_h / own_max_h)
@@ -516,7 +572,7 @@ def process_character(config_path: Path) -> tuple[int, int]:
                 output_path.name, scale, own_max_w, own_max_h,
             )
         else:
-            scale = shared_scale
+            scale = anim["pre_scale"] * shared_scale
 
         frames: list[np.ndarray] = []
         for i, cropped in enumerate(cropped_frames):
@@ -524,10 +580,10 @@ def process_character(config_path: Path) -> tuple[int, int]:
             placed = place_in_frame(scaled, frame_w, frame_h, anchor)
             frames.append(placed)
             log.debug(
-                "    Frame %d: %dx%d -> %dx%d in %dx%d",
+                "    Frame %d: %dx%d -> %dx%d in %dx%d (scale=%.4f)",
                 i + 1, cropped.shape[1], cropped.shape[0],
                 scaled.shape[1], scaled.shape[0],
-                frame_w, frame_h,
+                frame_w, frame_h, scale,
             )
 
         sheet = assemble_sheet(frames)

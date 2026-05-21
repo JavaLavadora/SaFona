@@ -292,18 +292,18 @@ def place_in_frame(
 # Alpha thresholding
 # ---------------------------------------------------------------------------
 
-def hard_threshold_alpha(rgba: np.ndarray, threshold: int = 100) -> np.ndarray:
-    """Apply hard alpha threshold: below = 0, above = 255.
+def hard_threshold_alpha(rgba: np.ndarray, threshold: int = 32) -> np.ndarray:
+    """Apply soft alpha threshold: below cutoff becomes transparent, above keeps original.
 
     Args:
         rgba: RGBA numpy array.
-        threshold: Alpha cutoff value.
+        threshold: Alpha cutoff value. Pixels below this become fully transparent.
 
     Returns:
-        Modified RGBA array with binary alpha.
+        Modified RGBA array with cleaned alpha.
     """
     result = rgba.copy()
-    result[:, :, 3] = np.where(result[:, :, 3] < threshold, 0, 255)
+    result[:, :, 3] = np.where(result[:, :, 3] < threshold, 0, result[:, :, 3])
     return result
 
 

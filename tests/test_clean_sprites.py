@@ -141,7 +141,7 @@ class TestRgbToLab:
 
 
 class TestCleanAlpha:
-    """Tests for alpha channel cleanup."""
+    """Tests for soft alpha channel cleanup."""
 
     def test_fully_opaque_unchanged(self) -> None:
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
@@ -154,25 +154,30 @@ class TestCleanAlpha:
         result = clean_alpha(rgba)
         assert np.all(result[:, :, 3] == 0)
 
-    def test_semi_transparent_above_threshold_becomes_opaque(self) -> None:
+    def test_high_alpha_promoted_to_opaque(self) -> None:
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
         rgba[:, :, 3] = 200
-        result = clean_alpha(rgba, threshold=128)
+        result = clean_alpha(rgba)
         assert np.all(result[:, :, 3] == 255)
 
-    def test_semi_transparent_below_threshold_becomes_transparent(self) -> None:
+    def test_mid_alpha_preserved(self) -> None:
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 50
-        result = clean_alpha(rgba, threshold=128)
+        rgba[:, :, 3] = 80
+        result = clean_alpha(rgba)
+        assert np.all(result[:, :, 3] == 80)
+
+    def test_low_alpha_becomes_transparent(self) -> None:
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 20
+        result = clean_alpha(rgba, threshold=32)
         assert np.all(result[:, :, 3] == 0)
 
     def test_zeros_rgb_on_transparent_pixels(self) -> None:
         rgba = np.zeros((3, 3, 4), dtype=np.uint8)
-        rgba[:, :, :3] = [200, 100, 50]  # Non-zero RGB
-        rgba[:, :, 3] = 50  # Below threshold -> transparent
-        result = clean_alpha(rgba, threshold=128)
+        rgba[:, :, :3] = [200, 100, 50]
+        rgba[:, :, 3] = 20
+        result = clean_alpha(rgba, threshold=32)
         assert np.all(result[:, :, 3] == 0)
-        # RGB should be zeroed out (no "dirty alpha")
         assert np.all(result[:, :, :3] == 0)
 
     def test_does_not_modify_original(self) -> None:

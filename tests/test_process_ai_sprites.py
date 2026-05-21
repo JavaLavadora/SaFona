@@ -173,18 +173,24 @@ class TestPlaceInFrame:
 
 
 class TestHardThresholdAlpha:
-    """Tests for alpha hard-thresholding."""
+    """Tests for soft alpha thresholding."""
 
-    def test_below_threshold_transparent(self) -> None:
+    def test_below_cutoff_transparent(self) -> None:
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 50
-        result = hard_threshold_alpha(rgba, threshold=100)
+        rgba[:, :, 3] = 20
+        result = hard_threshold_alpha(rgba)
         assert np.all(result[:, :, 3] == 0)
 
-    def test_above_threshold_opaque(self) -> None:
+    def test_above_cutoff_preserves_original_alpha(self) -> None:
         rgba = np.zeros((5, 5, 4), dtype=np.uint8)
         rgba[:, :, 3] = 150
-        result = hard_threshold_alpha(rgba, threshold=100)
+        result = hard_threshold_alpha(rgba)
+        assert np.all(result[:, :, 3] == 150)
+
+    def test_fully_opaque_unchanged(self) -> None:
+        rgba = np.zeros((5, 5, 4), dtype=np.uint8)
+        rgba[:, :, 3] = 255
+        result = hard_threshold_alpha(rgba)
         assert np.all(result[:, :, 3] == 255)
 
 

@@ -177,23 +177,28 @@ def rgb_to_lab(rgb: np.ndarray) -> np.ndarray:
 # Pipeline stage 1: Alpha cleanup
 # ---------------------------------------------------------------------------
 
-def clean_alpha(rgba: np.ndarray, threshold: int = 128) -> np.ndarray:
-    """Snap semi-transparent pixels to fully opaque or fully transparent.
+def clean_alpha(rgba: np.ndarray, threshold: int = 32) -> np.ndarray:
+    """Apply soft alpha cleanup for the palette snapping pipeline.
 
-    Pixels with alpha >= threshold become opaque (255).
-    Pixels with alpha < threshold become transparent (0).
+    Pixels with alpha < threshold become fully transparent (0).
+    Pixels with alpha >= 128 become fully opaque (255) so palette
+    snapping and outline stages can identify them.
+    Pixels in between (threshold <= alpha < 128) keep their original
+    alpha, allowing anti-aliased edges.
 
     Args:
         rgba: RGBA image array of shape (H, W, 4).
-        threshold: Alpha cutoff value.
+        threshold: Alpha cutoff value below which pixels become transparent.
 
     Returns:
-        New RGBA array with binary alpha channel.
+        New RGBA array with cleaned alpha channel.
     """
     result = rgba.copy()
-    result[:, :, 3] = np.where(result[:, :, 3] >= threshold, 255, 0)
+    alpha = result[:, :, 3]
+    transparent_mask = alpha < threshold
+    opaque_mask = alpha >= 128
+    result[:, :, 3] = np.where(transparent_mask, 0, np.where(opaque_mask, 255, alpha))
     # Zero out RGB on fully transparent pixels to avoid "dirty alpha"
-    transparent_mask = result[:, :, 3] == 0
     result[:, :, :3][transparent_mask] = 0
     return result
 

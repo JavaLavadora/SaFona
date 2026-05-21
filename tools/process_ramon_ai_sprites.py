@@ -494,14 +494,14 @@ def main() -> None:
     parser.add_argument(
         "--frame-width",
         type=int,
-        default=24,
-        help="Width of each frame in pixels (default: 24)",
+        default=48,
+        help="Width of each frame in pixels (default: 48)",
     )
     parser.add_argument(
         "--frame-height",
         type=int,
-        default=32,
-        help="Height of each frame in pixels (default: 32)",
+        default=64,
+        help="Height of each frame in pixels (default: 64)",
     )
     parser.add_argument(
         "-v", "--verbose",

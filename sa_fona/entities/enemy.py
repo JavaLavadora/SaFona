@@ -123,11 +123,18 @@ class Enemy(Entity):
         enemy_type: str,
         definition: dict,
     ) -> None:
-        sprite_w = definition.get("hitbox", {}).get("w", 16)
-        sprite_h = definition.get("hitbox", {}).get("h", 16)
+        size = definition.get("size", {})
+        hitbox = definition.get("hitbox", {})
+        # Sprite frame dimensions from "size"; fall back to hitbox for backward compat
+        sprite_w = size.get("w", hitbox.get("w", 16))
+        sprite_h = size.get("h", hitbox.get("h", 16))
+        # Hitbox: explicit override, or derive from size with default 0.75 ratio
+        DEFAULT_HITBOX_RATIO = 0.75
+        hitbox_w = hitbox.get("w", int(sprite_w * DEFAULT_HITBOX_RATIO))
+        hitbox_h = hitbox.get("h", int(sprite_h * DEFAULT_HITBOX_RATIO))
         shrink = self._HITBOX_SHRINK
-        width = max(4, sprite_w - shrink * 2)
-        height = max(4, sprite_h - shrink * 2)
+        width = max(4, hitbox_w - shrink * 2)
+        height = max(4, hitbox_h - shrink * 2)
         super().__init__(x + shrink, y + shrink, width, height)
 
         self.enemy_type: str = enemy_type
@@ -167,9 +174,11 @@ class Enemy(Entity):
         # Sub-pixel position accumulator for smooth low-speed movement.
         self._sub_x: float = float(self.rect.x)
 
-        # Build placeholder sprite (visual size, larger than hitbox).
+        # Sprite frame dimensions (visual size, may be larger than hitbox).
         self._sprite_w = sprite_w
         self._sprite_h = sprite_h
+        self._hitbox_w = hitbox_w
+        self._hitbox_h = hitbox_h
         self._base_color = _ENEMY_COLORS.get(enemy_type, _DEFAULT_ENEMY_COLOR)
 
         self._idle_frames: list[pygame.Surface] = []
@@ -265,7 +274,7 @@ class Enemy(Entity):
         """
         # Common original frame sizes to try (width, height).
         # Larger sizes first to avoid cropping (e.g. 16x16 matching a 16x24 strip).
-        candidates = [(24, 32), (16, 24), (24, 24), (16, 16)]
+        candidates = [(48, 64), (32, 48), (32, 32), (24, 32), (16, 24), (24, 24), (16, 16)]
         for fw, fh in candidates:
             if fw == self._sprite_w and fh == self._sprite_h:
                 continue  # Already tried at target size.
@@ -786,10 +795,10 @@ class Enemy(Entity):
             if blink_phase % 2 == 1:
                 return
 
-        # Align the visual sprite so its bottom matches the hitbox bottom
-        # (feet on ground) and it is horizontally centered on the hitbox.
-        shrink = self._HITBOX_SHRINK
-        vis_x = self.rect.x - camera_offset[0] - shrink
+        # Center the sprite frame horizontally over the collision rect,
+        # bottom-aligned (feet on ground).  Same pattern as the player.
+        sprite_offset_x = (self._sprite_w - self.rect.width) // 2
+        vis_x = self.rect.x - camera_offset[0] - sprite_offset_x
         vis_y = self.rect.bottom - self._sprite_h - camera_offset[1]
 
         if self._sprite is not None:

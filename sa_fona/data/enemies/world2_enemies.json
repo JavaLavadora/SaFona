@@ -15,6 +15,10 @@
       "vertical_detection": 3.0
     },
     "sprite": "enemy_legionary",
+    "size": {
+      "w": 32,
+      "h": 48
+    },
     "hitbox": {
       "w": 24,
       "h": 36
@@ -58,6 +62,10 @@
       "vertical_detection": 3.0
     },
     "sprite": "enemy_war_dog",
+    "size": {
+      "w": 32,
+      "h": 24
+    },
     "hitbox": {
       "w": 30,
       "h": 21

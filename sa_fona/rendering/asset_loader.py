@@ -158,6 +158,10 @@ def load_ui_frame_strip(asset_key: str) -> list[pygame.Surface] | None:
 def load_portrait(portrait_key: str) -> pygame.Surface | None:
     """Load a portrait image by its manifest key.
 
+    If the loaded image is larger than the manifest dimensions (e.g.
+    an 88x88 PNG when the manifest specifies 44x44), it is scaled
+    down to fit.
+
     Args:
         portrait_key: Key in the manifest's "portraits" section
             (e.g. "ramon_neutral", "bep_happy").
@@ -173,7 +177,18 @@ def load_portrait(portrait_key: str) -> pygame.Surface | None:
     path = entry.get("path")
     if not path:
         return None
-    return load_image(path)
+    surface = load_image(path)
+    if surface is None:
+        return None
+    target_w = entry.get("width")
+    target_h = entry.get("height")
+    if (
+        target_w
+        and target_h
+        and (surface.get_width() != target_w or surface.get_height() != target_h)
+    ):
+        surface = pygame.transform.smoothscale(surface, (target_w, target_h))
+    return surface
 
 
 def clear_caches() -> None:

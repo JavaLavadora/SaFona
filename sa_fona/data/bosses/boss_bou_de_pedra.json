@@ -6,6 +6,10 @@
   "sprite": "boss_bou_de_pedra",
   "music_slot": "boss_1_theme",
   "intro_dialogue_id": "boss_1_intro",
+  "size": {
+    "w": 80,
+    "h": 72
+  },
   "hitbox": {
     "w": 60,
     "h": 54

@@ -126,7 +126,7 @@ class TestCropAndCleanPose:
 
 
 class TestScalePoseToFrame:
-    """Tests for the two-step scaling pipeline."""
+    """Tests for the LANCZOS scaling pipeline."""
 
     def test_output_fits_in_frame(self) -> None:
         pose = np.ones((60, 40, 4), dtype=np.uint8) * 200
@@ -139,6 +139,16 @@ class TestScalePoseToFrame:
         pose = np.zeros((0, 0, 4), dtype=np.uint8)
         scaled = scale_pose_to_frame(pose, 16, 16)
         assert scaled.shape == (16, 16, 4)
+
+    def test_lanczos_produces_antialiased_edges(self) -> None:
+        """LANCZOS downscale should produce semi-transparent edge pixels."""
+        pose = np.zeros((200, 200, 4), dtype=np.uint8)
+        pose[20:180, 20:180, :3] = 255
+        pose[20:180, 20:180, 3] = 255
+        scaled = scale_pose_to_frame(pose, 32, 32)
+        alpha = scaled[:, :, 3]
+        has_partial_alpha = np.any((alpha > 0) & (alpha < 255))
+        assert has_partial_alpha, "LANCZOS should produce anti-aliased edges"
 
 
 class TestPlaceInFrame:

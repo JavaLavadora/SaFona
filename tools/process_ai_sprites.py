@@ -205,7 +205,7 @@ def _clean_green_fringe(crop: np.ndarray) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Scaling pipeline: LANCZOS intermediate -> NEAREST final
+# Scaling pipeline: LANCZOS
 # ---------------------------------------------------------------------------
 
 def scale_pose_to_frame(
@@ -215,11 +215,8 @@ def scale_pose_to_frame(
 ) -> np.ndarray:
     """Scale a pose to fit within target frame dimensions.
 
-    Uses a two-step approach: LANCZOS to an intermediate size
-    (2x target) then NEAREST to final, preserving pixel-art quality.
-
-    The pose is scaled uniformly to fill the frame as much as possible
-    while maintaining aspect ratio.
+    Uses LANCZOS interpolation for smooth downscaling that preserves
+    gradients and produces anti-aliased edges.
 
     Args:
         pose: Tightly cropped RGBA array.
@@ -234,25 +231,15 @@ def scale_pose_to_frame(
 
     ph, pw = pose.shape[:2]
 
-    # Compute uniform scale to fit in frame (with 1px margin)
     usable_w = max(1, frame_w - 2)
     usable_h = max(1, frame_h - 2)
     scale = min(usable_w / pw, usable_h / ph)
 
-    # Intermediate size at 2x for LANCZOS quality
-    inter_w = max(1, int(pw * scale * 2))
-    inter_h = max(1, int(ph * scale * 2))
-
-    # Final size
     final_w = max(1, int(pw * scale))
     final_h = max(1, int(ph * scale))
 
     pil = Image.fromarray(pose, "RGBA")
-
-    # Step 1: LANCZOS to intermediate
-    pil_inter = pil.resize((inter_w, inter_h), Image.LANCZOS)
-    # Step 2: NEAREST to final
-    pil_final = pil_inter.resize((final_w, final_h), Image.NEAREST)
+    pil_final = pil.resize((final_w, final_h), Image.LANCZOS)
 
     return np.array(pil_final)
 
@@ -728,7 +715,7 @@ def _scale_to_frame(
     frame_h: int,
     is_death: bool = False,
 ) -> np.ndarray:
-    """Scale a sprite into target frame using NEAREST interpolation.
+    """Scale a sprite into target frame using LANCZOS interpolation.
 
     Centers horizontally, bottom-aligns (feet anchored) for normal
     poses. Death poses are centered vertically.
@@ -755,7 +742,7 @@ def _scale_to_frame(
     new_h = max(1, int(sh * scale))
 
     pil = Image.fromarray(sprite, "RGBA")
-    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
     scaled_arr = np.array(pil_scaled)
 
     frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)
@@ -807,7 +794,7 @@ def _scale_to_frame_uniform(
     new_h = max(1, int(sh * scale))
 
     pil = Image.fromarray(sprite, "RGBA")
-    pil_scaled = pil.resize((new_w, new_h), Image.NEAREST)
+    pil_scaled = pil.resize((new_w, new_h), Image.LANCZOS)
     scaled_arr = np.array(pil_scaled)
 
     frame = np.zeros((frame_h, frame_w, 4), dtype=np.uint8)

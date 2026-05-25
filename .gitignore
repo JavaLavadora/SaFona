@@ -24,3 +24,6 @@ build/
 
 # Saves (generated at runtime)
 saves/
+
+# PyInstaller
+*.spec.bak

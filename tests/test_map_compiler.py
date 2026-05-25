@@ -192,3 +192,24 @@ class TestCompileAllMaps:
         assert count == 1
         assert (tmp_path / "good_level.json").exists()
         assert not (tmp_path / "bad_level.json").exists()
+
+
+# ── Frozen mode (PyInstaller) ─────────────────────────────────────
+
+
+def test_compile_all_maps_skips_in_frozen_mode(tmp_path):
+    """In frozen mode, compile_all_maps returns 0 immediately."""
+    import sys
+    from unittest.mock import patch
+
+    # Create a fake .map file to prove it gets skipped
+    levels_dir = tmp_path / "levels"
+    levels_dir.mkdir()
+    (levels_dir / "test.map").write_text("test")
+
+    with patch.object(sys, 'frozen', True, create=True), \
+         patch('sa_fona.level.map_compiler.compile_map_file') as mock_compile:
+        result = compile_all_maps(levels_dir)
+
+    assert result == 0
+    mock_compile.assert_not_called()

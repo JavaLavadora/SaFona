@@ -87,6 +87,11 @@ def compile_all_maps(levels_dir: Path | None = None) -> int:
     Returns:
         Number of levels that were (re)compiled.
     """
+    # In frozen (PyInstaller) builds, .map sources aren't bundled —
+    # all levels are pre-compiled .json files.
+    if getattr(sys, 'frozen', False):
+        return 0
+
     if levels_dir is None:
         from sa_fona.config.settings import DATA_DIR
         levels_dir = DATA_DIR / "levels"

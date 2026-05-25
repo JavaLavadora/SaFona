@@ -1,6 +1,6 @@
-# 06 — Ramon: Sling Attack
+# 03 — Balchar: Jump
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -47,26 +47,21 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  96x48 (3 frames)
-  - Frame count: 3
+  - Sheet size:  64x48 (2 frames)
+  - Frame count: 2
   - Frame size:  32x48 each
   - Facing:      RIGHT
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
-The sling cord extends above the head into the headroom area. The CHARACTER BODY stays the same size as idle — only the sling uses the extra space.
+Extended limbs may use the full frame height including headroom.
 
 ANIMATION DESCRIPTION:
-  Frame 1: Wind-up — right arm pulled back with sling extended behind,
-           body rotated slightly away from target, weight on back foot
-  Frame 2: Mid-rotation — sling swinging overhead in arc,
-           body rotating toward target, dynamic motion blur implied by sling position
-  Frame 3: Release — arm fully extended forward, sling snapping forward,
-           body leaning into throw, weight shifted to front foot
-
-  The fona (sling) is the key element — show the cord and pouch clearly in each phase.
+  Frame 1: Rising — legs tucked slightly, arms up, sling trailing behind,
+           body angled slightly upward
+  Frame 2: Falling — legs extended down, arms slightly above head,
+           sling streaming upward, body angled slightly downward
 
 RULES:
-  - Same identity lock rules as all Ramon animations
-  - Sling must be clearly visible and readable in all 3 frames
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```

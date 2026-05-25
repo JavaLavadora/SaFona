@@ -13,7 +13,7 @@
 
 ### 1.1 Concept Summary
 
-Sa Fona is a 2D retro platformer set across the Balearic Islands through different historical eras. The player controls Ramon, a grumpy talayotic slinger who gets cursed into time-traveling with his annoying (but lovable) myotragus companion Bep. Each world represents a different period of Mallorcan history or folklore, blending real events and local legends with lighthearted parody. The game features a dimoni mask power-up system inspired by Mallorcan village demons, satisfying sling-based combat with tap-and-charge mechanics, and a reluctant-hero story in the spirit of Shrek.
+Sa Fona is a 2D retro platformer set across the Balearic Islands through different historical eras. The player controls Balchar, a grumpy talayotic slinger who gets cursed into time-traveling with his annoying (but lovable) myotragus companion Bep. Each world represents a different period of Mallorcan history or folklore, blending real events and local legends with lighthearted parody. The game features a dimoni mask power-up system inspired by Mallorcan village demons, satisfying sling-based combat with tap-and-charge mechanics, and a reluctant-hero story in the spirit of Shrek.
 
 ### 1.2 Genre & Platform
 
@@ -36,7 +36,7 @@ Sa Fona is a 2D retro platformer set across the Balearic Islands through differe
 
 ### 1.5 References & Inspirations
 
-- **Shrek** -- Reluctant hero, buddy dynamic between Ramon and Bep, parody tone
+- **Shrek** -- Reluctant hero, buddy dynamic between Balchar and Bep, parody tone
 - **Crash Bandicoot** -- Mask power-up system (Aku Aku -> dimoni masks)
 - **Castlevania** -- Sling-as-whip melee feel, gothic atmosphere (World 3)
 - **Asterix** -- Historical comedy, small hero vs. empires
@@ -69,7 +69,7 @@ After Phase 1 sign-off, remaining worlds (W2 complete, W3–W5, W5.5) are built 
 
 ### 2.1 Premise & Inciting Incident
 
-Ramon, a foner from the talayotic period (~1000 BC Mallorca), is napping against a talayot. His myotragus, Bep, wanders off and eats the sacred herbs growing on a dimoni's altar -- the dimoni's prized garden. The dimoni arrives furious, curses Bep, and storms off. Ramon wakes up, sees Bep chewing with a guilty face: "...What did you eat now?"
+Balchar, a foner from the talayotic period (~1000 BC Mallorca), is napping against a talayot. His myotragus, Bep, wanders off and eats the sacred herbs growing on a dimoni's altar -- the dimoni's prized garden. The dimoni arrives furious, curses Bep, and storms off. Balchar wakes up, sees Bep chewing with a guilty face: "...What did you eat now?"
 
 The curse has two effects: Bep gains the ability to speak (and won't shut up), and Bep becomes a living time-travel trigger -- after moments of great energy (boss defeats), the curse activates, Bep glows, sneezes, and rips open a time portal.
 
@@ -78,28 +78,28 @@ The player does not know any of this during World 1. It plays as a straight tala
 ### 2.2 Full Story Arc
 
 **World 1 -- Sa Talaia (Talayotic ~1000 BC)**
-Ramon and Bep navigate their own era. Something feels off -- possessed sheep, unnatural energy, a creeping wrongness. They defeat Es Bou de Pedra. The dimoni de Sant Joan appears, impressed and grudgingly grateful. It grants its mask -- the Stone Slam -- to Llorenç (who will be met in the next world, but narratively the mask is entrusted for safekeeping). Then Bep starts glowing. He sneezes. A time portal rips open. The dimoni from the intro appears, laughing: "You thought we were done? That sheep ate my herbs. Every dimoni on this island wants a piece of him now. Good luck." Ramon and Bep are sucked in.
+Balchar and Bep navigate their own era. Something feels off -- possessed sheep, unnatural energy, a creeping wrongness. They defeat Es Bou de Pedra. The dimoni de Sant Joan appears, impressed and grudgingly grateful. It grants its mask -- the Stone Slam -- to Llorenç (who will be met in the next world, but narratively the mask is entrusted for safekeeping). Then Bep starts glowing. He sneezes. A time portal rips open. The dimoni from the intro appears, laughing: "You thought we were done? That sheep ate my herbs. Every dimoni on this island wants a piece of him now. Good luck." Balchar and Bep are sucked in.
 
-Ramon: "...I just wanted a nap."
+Balchar: "...I just wanted a nap."
 
 **World 2 -- Mallorca Romana (Roman Conquest, 123 BC)**
-Ramon is confused by roads and tall architecture. Romans mistake him for a barbarian rebel. He meets Llorenc, a fellow talayotic warrior from Menorca who has been researching dimoni activity and tracked the time disturbance. Llorenc is fascinated by the curse; Ramon is annoyed. They become reluctant allies. Ramon now has Stone Slam from World 1's dimoni -- and it proves devastatingly effective against Roman shield formations. After defeating Quintus Metellus, the local dimoni de Manacor appears, impressed by Ramon's tenacity against the organized invaders. It grants the Double Jump mask to Llorenc for safekeeping. This establishes the shop mechanic.
+Balchar is confused by roads and tall architecture. Romans mistake him for a barbarian rebel. He meets Llorenc, a fellow talayotic warrior from Menorca who has been researching dimoni activity and tracked the time disturbance. Llorenc is fascinated by the curse; Balchar is annoyed. They become reluctant allies. Balchar now has Stone Slam from World 1's dimoni -- and it proves devastatingly effective against Roman shield formations. After defeating Quintus Metellus, the local dimoni de Manacor appears, impressed by Balchar's tenacity against the organized invaders. It grants the Double Jump mask to Llorenc for safekeeping. This establishes the shop mechanic.
 
 **World 3 -- El Comte Mal (Feudal Mallorca, legend-based)**
-Dark feudal Mallorca. The Comte Mal, a powerful vampire nobleman, has captured and imprisoned a dimoni to siphon its supernatural power. An old witch, La Bruixa, maintains the binding ritual for the Comte -- she is a pawn, used by him, not an enemy in her own right. Strange fires burn across the Comte's lands. Ramon uses Stone Slam and the newly acquired Double Jump to navigate the gothic towers and claustrophobic corridors. After freeing the dimoni by defeating the Comte, the grateful dimoni grants its Fire Dash mask to Llorenc. This cements the narrative rule: dimonis don't trust Ramon (he's cursed, chaotic, everything explodes around him), so all masks go to Llorenc.
+Dark feudal Mallorca. The Comte Mal, a powerful vampire nobleman, has captured and imprisoned a dimoni to siphon its supernatural power. An old witch, La Bruixa, maintains the binding ritual for the Comte -- she is a pawn, used by him, not an enemy in her own right. Strange fires burn across the Comte's lands. Balchar uses Stone Slam and the newly acquired Double Jump to navigate the gothic towers and claustrophobic corridors. After freeing the dimoni by defeating the Comte, the grateful dimoni grants its Fire Dash mask to Llorenc. This cements the narrative rule: dimonis don't trust Balchar (he's cursed, chaotic, everything explodes around him), so all masks go to Llorenc.
 
 **World 4 -- Els Pirates (Ottoman/Barbary Raids, 1500s-1600s)**
-Ottoman pirate raids on the Mallorcan coast. Coastal watchtowers, burning villages, moonlit beaches. Locals beg Ramon to help defend. He sighs deeply: "First Romans, then a vampire, now pirates. Is there a single century where people leave this island alone?" Fire Dash proves invaluable for burning through wooden pirate barricades and dashing across gaps between ships. After defeating Dragut, the local dimoni de Pollenca emerges from the shadows and grants the Smoke Vanish mask.
+Ottoman pirate raids on the Mallorcan coast. Coastal watchtowers, burning villages, moonlit beaches. Locals beg Balchar to help defend. He sighs deeply: "First Romans, then a vampire, now pirates. Is there a single century where people leave this island alone?" Fire Dash proves invaluable for burning through wooden pirate barricades and dashing across gaps between ships. After defeating Dragut, the local dimoni de Pollenca emerges from the shadows and grants the Smoke Vanish mask.
 
 **World 5 -- S'Invasio (Modern Day)**
-Ramon arrives in the present. His ancestral land has been turned into hotel chains. "...I think I preferred the pirates." A satirical world full of tourists, real estate agents, influencers, and party buses. Smoke Vanish lets Ramon phase through tourist crowds and dodge influencer camera flashes. He defeats El Magnat, a real estate tycoon, on a luxury hotel rooftop. But the Magnat pulls out a phone: "You think Mallorca was my endgame? I own IBIZA." A helicopter arrives. He escapes. The overwhelmed dimoni de Sa Pobla grants Tourist Rage.
+Balchar arrives in the present. His ancestral land has been turned into hotel chains. "...I think I preferred the pirates." A satirical world full of tourists, real estate agents, influencers, and party buses. Smoke Vanish lets Balchar phase through tourist crowds and dodge influencer camera flashes. He defeats El Magnat, a real estate tycoon, on a luxury hotel rooftop. But the Magnat pulls out a phone: "You think Mallorca was my endgame? I own IBIZA." A helicopter arrives. He escapes. The overwhelmed dimoni de Sa Pobla grants Tourist Rage.
 
 **World 5.5 -- Eivissa (Modern Ibiza)**
-Bep's curse activates one last time -- but instead of a time jump, it's a geographic jump. They're sneezed to Ibiza. The Magnat has built a mega-resort empire powered by enslaved fameliars (little demons from Santa Eularia folklore). Shorter but harder world. Ramon uses all his collected powers -- including the newly acquired Tourist Rage for crowd control -- to bring it down. Final confrontation with El Magnat empowered by familiar energy.
+Bep's curse activates one last time -- but instead of a time jump, it's a geographic jump. They're sneezed to Ibiza. The Magnat has built a mega-resort empire powered by enslaved fameliars (little demons from Santa Eularia folklore). Shorter but harder world. Balchar uses all his collected powers -- including the newly acquired Tourist Rage for crowd control -- to bring it down. Final confrontation with El Magnat empowered by familiar energy.
 
 ### 2.3 Narrative Tone & Voice
 
-The game is a lighthearted parody. Real historical events and genuine Mallorcan folklore are the foundation, but everything is viewed through the lens of a protagonist who finds it all deeply inconvenient. The humor comes from the contrast: the world is dramatic and high-stakes, Ramon is not.
+The game is a lighthearted parody. Real historical events and genuine Mallorcan folklore are the foundation, but everything is viewed through the lens of a protagonist who finds it all deeply inconvenient. The humor comes from the contrast: the world is dramatic and high-stakes, Balchar is not.
 
 - Dialogue is short and punchy
 - Historical commentary is always filtered through character perspective
@@ -108,11 +108,11 @@ The game is a lighthearted parody. Real historical events and genuine Mallorcan 
 
 ### 2.4 Ending & Post-Credits
 
-El Magnat phase 2 is defeated. His empire crumbles. The curse breaks -- all dimoni debts are settled through the journey. Bep stops glowing. Ramon looks at Bep. Looks at Llorenc. Looks at the player.
+El Magnat phase 2 is defeated. His empire crumbles. The curse breaks -- all dimoni debts are settled through the journey. Bep stops glowing. Balchar looks at Bep. Looks at Llorenc. Looks at the player.
 
 "...I'm taking a nap."
 
-Credits roll over pixel art: Ramon and Bep walking along a Mediterranean coast toward Mallorca. Llorenc waves goodbye from Ibiza with Bruna.
+Credits roll over pixel art: Balchar and Bep walking along a Mediterranean coast toward Mallorca. Llorenc waves goodbye from Ibiza with Bruna.
 
 **Post-credits**: Bep is grazing peacefully near a talayot. He spots a strange plant. He eats it. His eyes widen. Screen cuts to black. A single bleat. Silence.
 
@@ -120,7 +120,7 @@ Credits roll over pixel art: Ramon and Bep walking along a Mediterranean coast t
 
 ## 3. CHARACTERS
 
-### 3.1 Ramon -- Protagonist
+### 3.1 Balchar -- Protagonist
 
 - **What he is**: A foner -- a talayotic warrior and slinger from ~1000 BC Mallorca
 - **Personality**: Grumpy, laconic, reluctant. Just wants to be left alone. Dry Mallorcan humor. Never asked to be a hero. Complains about everything but quietly does the right thing when it matters (without admitting it).
@@ -129,40 +129,40 @@ Credits roll over pixel art: Ramon and Bep walking along a Mediterranean coast t
 
 ### 3.2 Bep -- Companion
 
-- **What he is**: A myotragus balearicus (extinct Balearic bovid, sheep-like). Ramon's companion animal.
-- **Personality**: Cheerful, oblivious, unconditionally loyal. Loves Ramon despite constant rejection. Talks too much after being cursed. Comic relief. Occasionally says something accidentally wise.
+- **What he is**: A myotragus balearicus (extinct Balearic bovid, sheep-like). Balchar's companion animal.
+- **Personality**: Cheerful, oblivious, unconditionally loyal. Loves Balchar despite constant rejection. Talks too much after being cursed. Comic relief. Occasionally says something accidentally wise.
 - **Gameplay role**:
-  - Hints mechanics through dialogue ("Ramon! I bet if you hold that button longer the rock goes further!" / "That wall looks jumpable!")
+  - Hints mechanics through dialogue ("Balchar! I bet if you hold that button longer the rock goes further!" / "That wall looks jumpable!")
   - Triggers time-travel portals after each boss (involuntary curse activation: glows -> sneezes -> portal opens)
   - Visual companion on screen with idle animations (chews on things, falls asleep, gets startled by enemies)
   - Does NOT have a gameplay button or direct mechanical interaction -- purely narrative and cosmetic presence
 - **Visual direction**: Small, round, sheep-like with stubby horns. Expressive eyes. Faint glowing aura after the curse.
-- **Dialogue style**: Enthusiastic, rambling. "Ramon! Did you see that? You were amazing! ...Ramon? Ramon, are you ignoring me? That's okay, I still think you're great."
+- **Dialogue style**: Enthusiastic, rambling. "Balchar! Did you see that? You were amazing! ...Balchar? Balchar, are you ignoring me? That's okay, I still think you're great."
 
 ### 3.3 Llorenc -- Shop/Lore NPC
 
 - **What he is**: A talayotic warrior from Menorca. Researcher, collector, nerd.
-- **Personality**: Enthusiastic about artifacts and dimoni lore. Friendly rivalry with Ramon based on the classic Mallorca-vs-Menorca banter. Genuine friends despite the jabs.
+- **Personality**: Enthusiastic about artifacts and dimoni lore. Friendly rivalry with Balchar based on the classic Mallorca-vs-Menorca banter. Genuine friends despite the jabs.
 - **Gameplay role**:
   - Appears between worlds and at level-end save points
   - Runs the **Mask Shop**: player swaps dimoni powers here
   - Sells **consumables** (health recovery, temporary buffs)
   - Sells **max heart upgrades** (permanent, increasingly expensive)
   - Provides optional lore about each era and dimoni
-- **Why he holds the masks**: Established through plot (Worlds 1-3). Dimonis don't trust Ramon -- he's cursed, chaotic, destruction follows him. They entrust their masks to Llorenc, the calm, respectful researcher. Ramon has to visit Llorenc to equip powers. This is both narrative and a gameplay gate.
+- **Why he holds the masks**: Established through plot (Worlds 1-3). Dimonis don't trust Balchar -- he's cursed, chaotic, destruction follows him. They entrust their masks to Llorenc, the calm, respectful researcher. Balchar has to visit Llorenc to equip powers. This is both narrative and a gameplay gate.
 - **Companion**: Bruna, a Menorcan cow. Calm, stoic. Looks at Bep with quiet disdain. Bep is terrified of her.
-- **Visual direction**: Similar build to Ramon but slightly taller. Carries a satchel full of artifacts. Always has a scroll or mask in hand. Bruna stands behind him at the shop.
-- **Dialogue style**: Wordy, excited. "Fascinating! This mask channels the fire dimoni of the Comte Mal's domain. In Menorca we have similar legends but -- you don't care, do you." Ramon: "No."
+- **Visual direction**: Similar build to Balchar but slightly taller. Carries a satchel full of artifacts. Always has a scroll or mask in hand. Bruna stands behind him at the shop.
+- **Dialogue style**: Wordy, excited. "Fascinating! This mask channels the fire dimoni of the Comte Mal's domain. In Menorca we have similar legends but -- you don't care, do you." Balchar: "No."
 
 ### 3.4 Dimonis -- Per-World NPCs
 
-**[REVISED v3.0]** Each world features a dimoni that appears **after the boss is defeated** as a post-boss reward moment. The dimoni is impressed (or grudgingly grateful) that Ramon dealt with the local threat, and grants its mask power to Llorenc. The dimoni may appear briefly earlier in the world for **narrative foreshadowing** (a glimpse, a voice, environmental signs of its presence), but the mask is **never given until the boss is beaten**.
+**[REVISED v3.0]** Each world features a dimoni that appears **after the boss is defeated** as a post-boss reward moment. The dimoni is impressed (or grudgingly grateful) that Balchar dealt with the local threat, and grants its mask power to Llorenc. The dimoni may appear briefly earlier in the world for **narrative foreshadowing** (a glimpse, a voice, environmental signs of its presence), but the mask is **never given until the boss is beaten**.
 
 | World | Dimoni | Personality | Foreshadowing | Mask Granted Post-Boss |
 |-------|--------|-------------|---------------|----------------------|
 | 1 -- Sa Talaia | Es Dimoni de Sant Joan | The original offended dimoni. Furious, vindictive, dramatic. | Appears in the intro curse scene. His energy corrupts the landscape. | Stone Slam (post-Es Bou de Pedra) |
 | 2 -- Mallorca Romana | Es Dimoni de Manacor | Intense, impatient, fed up with Roman order. | Strange energy disruptions in Roman structures. Bep senses something familiar. | Double Jump (post-Metellus) |
-| 3 -- El Comte Mal | Captured dimoni (unnamed, from the Comte's lands) | Imprisoned, weakened. Grateful when freed but doesn't trust Ramon. | Strange fires, flickering torches, La Bruixa's rituals hint at the imprisoned dimoni. | Fire Dash (post-Comte Mal) |
+| 3 -- El Comte Mal | Captured dimoni (unnamed, from the Comte's lands) | Imprisoned, weakened. Grateful when freed but doesn't trust Balchar. | Strange fires, flickering torches, La Bruixa's rituals hint at the imprisoned dimoni. | Fire Dash (post-Comte Mal) |
 | 4 -- Els Pirates | Es Dimoni de Pollenca | Sneaky, nocturnal, whisper-voiced. Fits the stealth theme. Hates the noise pirates make. | Moonlit shadows move strangely. Whispers in the wind near coastal ruins. | Smoke Vanish (post-Dragut) |
 | 5 -- S'Invasio | Es Dimoni de Sa Pobla | The most iconic Mallorcan dimoni. Overwhelmed by modernity. Confused by phones. | Modern construction has disturbed ancient sites. Strange energy in the hotel foundations. | Tourist Rage (post-El Magnat P1) |
 
@@ -220,14 +220,14 @@ Credits roll over pixel art: Ramon and Bep walking along a Mediterranean coast t
 **Movement**
 - Left/right movement
 - Single jump (baseline)
-- Wall jump: automatic -- when the player is against a wall and presses jump, Ramon kicks off it. No special input required, triggered by context.
+- Wall jump: automatic -- when the player is against a wall and presses jump, Balchar kicks off it. No special input required, triggered by context.
 
 **Sling Combat (the fona)**
 
 The sling has two modes on a single button:
 
-- **Tap attack**: Ramon swings the loaded sling as a melee weapon -- short range hit, like a whip crack. Quick, no cost. This is the primary combat tool for close encounters.
-- **Hold attack**: Ramon loads a stone and begins charging. The longer the button is held, the more powerful the shot (visual/audio feedback as charge builds). Released when the player lets go. Fires a ranged projectile. **Unlimited basic ammo** -- the charge time is the balancing cost. Useful for hitting distant targets, specific boss weak points, and triggering ranged switches/mechanisms.
+- **Tap attack**: Balchar swings the loaded sling as a melee weapon -- short range hit, like a whip crack. Quick, no cost. This is the primary combat tool for close encounters.
+- **Hold attack**: Balchar loads a stone and begins charging. The longer the button is held, the more powerful the shot (visual/audio feedback as charge builds). Released when the player lets go. Fires a ranged projectile. **Unlimited basic ammo** -- the charge time is the balancing cost. Useful for hitting distant targets, specific boss weak points, and triggering ranged switches/mechanisms.
 
 **[NEW] Charge Levels**: The hold attack has 3 charge tiers for clear player feedback:
 - **Tier 1** (0.3-0.8s hold): Quick shot. 1x damage, medium range. Sling glows faintly.
@@ -287,9 +287,9 @@ Masks are earned at the **end of each world**, after defeating the boss, as a po
 
 **[NEW] Mask Quick-Swap Mechanic** *(per [Issue #5](https://github.com/Tonigit/SaFona/issues/5))*:
 
-At the start of World 5.5 (Eivissa), Ramon unlocks the ability to **cycle through all collected masks in real time** using shoulder buttons (L1/R1 on gamepad, Q/E on keyboard). This replaces the need to visit Llorenç's shop to swap masks during W5.5.
+At the start of World 5.5 (Eivissa), Balchar unlocks the ability to **cycle through all collected masks in real time** using shoulder buttons (L1/R1 on gamepad, Q/E on keyboard). This replaces the need to visit Llorenç's shop to swap masks during W5.5.
 
-- **Unlock trigger**: Automatic at the start of W5.5-1. Narrative justification: the curse reaching its peak in Eivissa destabilizes all mask bindings, letting Ramon channel them freely without Llorenç as intermediary.
+- **Unlock trigger**: Automatic at the start of W5.5-1. Narrative justification: the curse reaching its peak in Eivissa destabilizes all mask bindings, letting Balchar channel them freely without Llorenç as intermediary.
 - **Cycling**: L1 cycles left (previous mask), R1 cycles right (next mask) through the collected mask list. The cycle wraps around.
 - **Cooldown**: 0.3-second cooldown between swaps to prevent accidental cycling. During cooldown, swap input is ignored (no queuing).
 - **HUD feedback**: The mask icon in the top-right HUD updates in real time when cycling. A brief swap animation (icon slides out/in) confirms the change.
@@ -300,7 +300,7 @@ At the start of World 5.5 (Eivissa), Ramon unlocks the ability to **cycle throug
 ### 4.3 Health & Damage
 
 - **Hearts system** (Zelda-style)
-- Ramon starts with **3 hearts** (6 half-hearts)
+- Balchar starts with **3 hearts** (6 half-hearts)
 - **Minimum damage**: Half a heart
 - **Maximum damage**: 2 hearts (boss heavy attacks only)
 - Additional max hearts can be purchased at Llorenc's shop (permanent upgrade, increasingly expensive)
@@ -418,7 +418,7 @@ This matrix maps how masks earned in previous worlds serve traversal, combat, an
 The post-boss mask acquisition creates a powerful "earned reward" loop. Each boss fight is a climax that proves the player's mastery of their current toolkit, and the mask reward immediately makes the player excited for the next world. The synergies are designed so the new mask feels like the *answer* to the next world's challenges:
 
 - **Stone Slam → W2 (Romans)**: Romans rely on rigid formations and stone architecture. Stone Slam breaks both — it shatters shields from above and collapses their engineered structures. Thematically, the ancient talayotic power disrupts Roman order.
-- **Double Jump → W3 (Gothic)**: The Comte's domain is vertical — towers, manors, ceilings that close in. Double Jump gives Ramon the vertical freedom to survive claustrophobic gothic spaces. It also provides escape routes from the Comte's teleportation ambushes.
+- **Double Jump → W3 (Gothic)**: The Comte's domain is vertical — towers, manors, ceilings that close in. Double Jump gives Balchar the vertical freedom to survive claustrophobic gothic spaces. It also provides escape routes from the Comte's teleportation ambushes.
 - **Fire Dash → W4 (Pirates)**: Pirate ships are wooden. Pirate fortifications are wooden. The gaps between ships and shore demand horizontal speed. Fire Dash burns through all of it and provides the horizontal mobility that naval combat environments demand.
 - **Smoke Vanish → W5 (Modern)**: Modern Mallorca is about crowds, surveillance (influencer cameras), and restricted access (VIP areas, "Staff Only"). Smoke Vanish provides the stealth toolkit to navigate a world where the "enemies" are overwhelming numbers and detection systems.
 - **Tourist Rage → W5.5 (Ibiza)**: The familiar swarms in Ibiza are the densest enemy encounters in the game. Tourist Rage's AoE crowd control is the direct answer to being overwhelmed by bottle imps and neon fameliars in every room.
@@ -485,7 +485,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Available masks**: Stone Slam + Double Jump + Fire Dash + Smoke Vanish (earned post-W4 boss)
 - **New skill to master**: Smoke Vanish applied to modern crowd/stealth challenges
 - **Teaching structure**:
-  - Level 5-1: Magaluf strip. Smoke Vanish taught here — thick tourist crowds block the path, phasing through them is the "aha!" moment. Influencer camera flashes create detection cones — vanishing through them is immediately intuitive. Bep: "We can go right through them?! That's sneaky, Ramon!"
+  - Level 5-1: Magaluf strip. Smoke Vanish taught here — thick tourist crowds block the path, phasing through them is the "aha!" moment. Influencer camera flashes create detection cones — vanishing through them is immediately intuitive. Bep: "We can go right through them?! That's sneaky, Balchar!"
   - Level 5-2: Palma airport. "Staff Only" doors (thin walls) accessible via Smoke Vanish. Conveyor belt platforming. Dense enemy groups where vanish repositioning is key.
   - Level 5-3: Beach resort. Influencer stun mechanics demand Smoke Vanish to dodge flash cones. Party bus hazards. Indoor sections with no escape room force creative vanish usage.
   - Level 5-4: Hotel construction site. Vertical scaffolding climb. All 4 masks useful in combination — Stone Slam through floors, Double Jump up scaffolding, Fire Dash through barricades, Smoke Vanish past security cameras.
@@ -509,7 +509,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 
 **[REVISED v3.0]** Worlds 2-5 follow a repeating structure so the game feels familiar but fresh:
 
-1. **Arrival**: Bep's portal drops Ramon and Bep into the new era. Cutscene: Ramon reacts to the setting, Bep is excited.
+1. **Arrival**: Bep's portal drops Balchar and Bep into the new era. Cutscene: Balchar reacts to the setting, Bep is excited.
 2. **Dimoni foreshadowing** *(optional, narrative only)*: Early in the world, environmental hints suggest a dimoni's presence — strange energy, atmospheric disturbances, Bep sensing something. The dimoni may appear briefly (a shadow, a voice) but does NOT grant any mask. This builds anticipation for the post-boss reward.
 3. **Levels**: 4 platforming/combat levels with increasing difficulty. Levels 1-2 teach the player how the **newest available mask** (earned from the previous world's boss) applies to this world's theme. Levels 3-4 demand mastery of combining all available masks. Each level ends at a save point where Llorenc may appear.
 4. **Boss**: Final level is the boss encounter. Preceded by a boss intro cutscene. Boss tests the player's full available toolkit (all masks from previous worlds).
@@ -536,8 +536,8 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: Simple gaps (2-3 tile wide). Low walls requiring jump. One slightly taller cliff introducing wall jump context (optional path, main path goes around).
 - **Collectibles**: 15-20 sling stones in breakable pots and tall grass. 1 heart pickup near the end. 0 secrets (pure tutorial).
 - **Teaching beats**:
-  - Bep teaches movement: "Ramon! Move! The sheep are acting strange!"
-  - First gap: Bep says "Jump, Ramon! You've done it a thousand times!"
+  - Bep teaches movement: "Balchar! Move! The sheep are acting strange!"
+  - First gap: Bep says "Jump, Balchar! You've done it a thousand times!"
   - First wall: "That wall looks climbable... if you jump at it!"
   - First sheep: Bep panics, prompting player to try attacking.
 - **End**: Save point. Llorenc NOT present yet (he appears in World 2).
@@ -583,7 +583,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 #### Boss: Es Bou de Pedra
 *(Full details in Section 6)*
 
-- **Story beat (post-boss)**: The reveal. Es Bou de Pedra crumbles. The dimoni de Sant Joan appears — dramatic, vindictive, but grudgingly impressed. "You destroyed my guardian, you fool. Take this, before something worse finds you." Grants the Stone Slam mask to Llorenç (who arrives via the time portal's pull — this is a compressed narrative beat). Then Bep glows, sneezes, portal opens. Ramon and Bep are pulled into the portal. The game's real premise begins. **Stone Slam is now permanently available from World 2 onward.**
+- **Story beat (post-boss)**: The reveal. Es Bou de Pedra crumbles. The dimoni de Sant Joan appears — dramatic, vindictive, but grudgingly impressed. "You destroyed my guardian, you fool. Take this, before something worse finds you." Grants the Stone Slam mask to Llorenç (who arrives via the time portal's pull — this is a compressed narrative beat). Then Bep glows, sneezes, portal opens. Balchar and Bep are pulled into the portal. The game's real premise begins. **Stone Slam is now permanently available from World 2 onward.**
 
 ---
 
@@ -594,7 +594,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Enemies**: Roman legionaries (shield formations), war dogs, tax collectors.
 - **Available masks**: **Stone Slam** (earned post-W1 boss). Especially relevant here — Roman shield formations crumble under the shockwave, stone architecture breaks open to reveal shortcuts.
 - **Mask earned post-boss**: Double Jump (Mask of Manacor). Given by Es Dimoni de Manacor after Metellus is defeated.
-- **Llorenc introduction**: Appears at the start of this world. Has been tracking the time disturbance. Excited to meet Ramon. Ramon is not excited. Shop mechanic fully introduced here with personality and lore. Llorenc now holds the Stone Slam mask — Ramon equips it at the shop.
+- **Llorenc introduction**: Appears at the start of this world. Has been tracking the time disturbance. Excited to meet Balchar. Balchar is not excited. Shop mechanic fully introduced here with personality and lore. Llorenc now holds the Stone Slam mask — Balchar equips it at the shop.
 
 #### Level 2-1: "Sa Via Nova" (The New Road)
 - **Layout**: Horizontal with a tall vertical section midway. Roman road leading to a newly built settlement. The vertical section is a Roman atrium with multi-level platforms.
@@ -603,8 +603,8 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: First section uses single jump + wall jump through Roman structures. A cracked Roman floor at the atrium entrance — Stone Slam reveals a shortcut below. High ledges in the atrium hint at future vertical potential (not reachable yet — tease for Double Jump later).
 - **Collectibles**: 25-30 sling stones. 1 heart pickup. 1 secret: beneath a cracked atrium floor accessible only with Stone Slam (10 bonus stones — teaches that the mask opens new exploration).
 - **Teaching beats**:
-  - World arrival cutscene: Ramon: "Who paved over my goat path?"
-  - Llorenc introduction and shop tutorial. Llorenc gives Ramon the Stone Slam mask.
+  - World arrival cutscene: Balchar: "Who paved over my goat path?"
+  - Llorenc introduction and shop tutorial. Llorenc gives Balchar the Stone Slam mask.
   - First cracked floor: Bep says "Remember that crumbly floor feeling? This mask might help!"
   - First legionary: Bep says "His shield blocks everything! That ground-pound might scatter them!"
   - Stone Slam shockwave vs. shield formation: the key "aha!" moment for the mask's combat utility in this world.
@@ -629,7 +629,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: Barricade walls requiring wall jump. A training ground arena where enemies spawn in waves (first wave encounter). Tent rooftops as platforms. Stone column that can be shattered with Stone Slam to create a stepping platform across a wide gap.
 - **Collectibles**: 35-40 sling stones. 2 heart pickups. 1 secret: behind a tent row, a hidden path with 15 stones and an ensaimada.
 - **Teaching beats**:
-  - Shield formation: "They're standing together! That ground-pound scatters them, Ramon!"
+  - Shield formation: "They're standing together! That ground-pound scatters them, Balchar!"
   - Wave arena: teaches crowd management -- Stone Slam shockwave is the key tool for groups.
   - War dog packs: teach prioritizing fast enemies (dogs are low to ground, Stone Slam less effective — forces sling usage).
   - Stone column destruction: teaches that Stone Slam creates traversal options, not just combat advantages.
@@ -644,14 +644,14 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Teaching beats**:
   - Enemy combinations ramp up: "They're everywhere! Use everything you've learned!"
   - Pre-boss corridor: calm, atmospheric. Roman banners, torches. Builds tension.
-  - Optional Llorenc dialogue: "The general Metellus conquered these islands in 123 BC. Brilliant tactician. You'll be fine." Ramon: "Inspiring."
+  - Optional Llorenc dialogue: "The general Metellus conquered these islands in 123 BC. Brilliant tactician. You'll be fine." Balchar: "Inspiring."
 - **End**: Boss gate. Amphitheater center stage.
 
 #### Boss: Quintus Caecilius Metellus
 *(Full details in Section 6)*
 
 - **Story beat (post-boss)**: Metellus falls. The dimoni de Manacor emerges from the shadows of the amphitheater — intense, impatient. "Finally. These organized fools have been stifling my territory for too long. Take this before the next era's problems find you." Grants Double Jump mask to Llorenç. Bep glows. Portal opens. **Double Jump is now permanently available from World 3 onward.**
-- **Llorenc**: "Technically it's a road, and it's quite well-eng--" Ramon: "I didn't ask."
+- **Llorenc**: "Technically it's a road, and it's quite well-eng--" Balchar: "I didn't ask."
 
 ---
 
@@ -671,12 +671,12 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: Narrow branch platforms. Moving log bridges over dark pits. A tall tree canopy section with platforms at different heights — Double Jump is needed to reach the upper path (which has better rewards). A wall jump + Double Jump chain to reach a high branch with a heart pickup.
 - **Collectibles**: 25-30 sling stones. 2 heart pickups. 1 secret: behind a cluster of trees, a hidden glade with 15 stones (accessible from any world revisit).
 - **Teaching beats**:
-  - World arrival cutscene: Dark, ominous. Ramon: "...This is worse." Bep: "I like the trees!" (a bat swoops past) "I don't like the trees!"
+  - World arrival cutscene: Dark, ominous. Balchar: "...This is worse." Bep: "I like the trees!" (a bat swoops past) "I don't like the trees!"
   - Undead servants: Bep says "They keep getting back up!" (they take 2 hits to kill -- teaches persistence in combat).
   - Vampire bats: swoop with a visible shadow on the ground beforehand -- teaches looking for visual cues.
   - Tree canopy: "We can jump AGAIN in the air now! This is amazing!" — teaches Double Jump application in gothic vertical environment.
   - Strange fires in the background foreshadow the imprisoned dimoni's leaking power.
-- **End**: Save point with Llorenc shop. Llorenc: "The legends say the Comte Mal sold his soul. In Menorca we have better taste in—" Ramon: "Llorenc."
+- **End**: Save point with Llorenc shop. Llorenc: "The legends say the Comte Mal sold his soul. In Menorca we have better taste in—" Balchar: "Llorenc."
 
 #### Level 3-2: "Es Poble Perdut" (The Lost Village)
 - **Layout**: Mixed horizontal and vertical. An abandoned village with collapsed buildings, a church tower, and underground catacombs.
@@ -686,7 +686,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Collectibles**: 30-35 sling stones. 2 heart pickups. 1 secret: in the catacombs, a hidden chamber accessible by Stone Slam (20 stones, an oli d'oliva).
 - **Teaching beats**:
   - Church tower climb: the definitive Double Jump teaching moment. The tower is tall, narrow, and requires precise Double Jump + wall jump combos. Bep: "Keep going up! I think I can see something at the top!"
-  - Cursed villagers: erratic movement contrasts the predictable undead. Bep: "That one moves funny... careful, Ramon!"
+  - Cursed villagers: erratic movement contrasts the predictable undead. Bep: "That one moves funny... careful, Balchar!"
   - Collapsing floors: visual cue (dust particles from cracks). Teaches observation.
   - La Bruixa cutscene: spotted from a distance performing a ritual. Sets up the imprisoned dimoni story.
 - **End**: Save point with Llorenc shop.
@@ -700,7 +700,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Teaching beats**:
   - Tight corridors: teach careful movement. Rushing gets you hit by traps.
   - Chandelier section: Double Jump mastery. The chandeliers are just out of single-jump reach — must Double Jump to each one.
-  - Ceiling trap: "The ceiling's coming down! Jump higher, Ramon!" Double Jump is the escape.
+  - Ceiling trap: "The ceiling's coming down! Jump higher, Balchar!" Double Jump is the escape.
   - Multiple trap types layer together: spikes + bats = precision under pressure.
   - Strange fire in the estate's hearths burns unnaturally. Bep: "That flame felt alive! Like it wanted to help us!" Foreshadows the dimoni.
 - **End**: Save point with Llorenc shop.
@@ -709,7 +709,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Layout**: Vertical. The Comte's inner tower. Dark, oppressive. Ascending toward the great hall (boss arena). Most trap-dense level so far.
 - **Difficulty**: 7/10
 - **Enemy composition**: 3 undead servants, 5 vampire bats (positioned along vertical ascent), 3 cursed villagers. Heavy bat presence makes climbing treacherous.
-- **Platforming challenges**: Spiral ascent with crumbling platforms. Bat gauntlets while wall jumping. A section with extinguishing/relighting torches (dark sections where you can only see Ramon's outline). A challenging vertical gap requiring precise Double Jump + wall jump chain (the tightest platforming in W3, demanding mastery of the skill). A wide pit that hints at a future horizontal traversal power (unreachable now — tease for Fire Dash).
+- **Platforming challenges**: Spiral ascent with crumbling platforms. Bat gauntlets while wall jumping. A section with extinguishing/relighting torches (dark sections where you can only see Balchar's outline). A challenging vertical gap requiring precise Double Jump + wall jump chain (the tightest platforming in W3, demanding mastery of the skill). A wide pit that hints at a future horizontal traversal power (unreachable now — tease for Fire Dash).
 - **Collectibles**: 30-35 sling stones. 2 heart pickups. 1 secret: a side room behind a thin wall (visible but requires Smoke Vanish from W4 to access -- retroactive replay secret).
 - **Teaching beats**:
   - Dark sections: audio cues become important (enemy footsteps, bat screeches). Teaches listening.
@@ -740,9 +740,9 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: Beach-to-tower climb using cliff faces and tower windows. A wooden barricade blocks the tower stairway — Fire Dash burns right through it (first teaching moment for the new mask in this world's context). A water gap between the shore and a docked ship — dash across. Narrow watchtower interior with sniper sightlines (cover-based platforming).
 - **Collectibles**: 25-30 sling stones. 1 heart pickup. 1 secret: inside a sealed room behind a wooden door that Fire Dash burns through (15 bonus stones — reinforces the mask's utility in this world).
 - **Teaching beats**:
-  - World arrival: "First Romans, then a vampire, now pirates. Is there a single century where people leave this island alone?" Bep: "I think they like it here! I like it here too!" Ramon: "You like everything."
+  - World arrival: "First Romans, then a vampire, now pirates. Is there a single century where people leave this island alone?" Bep: "I think they like it here! I like it here too!" Balchar: "You like everything."
   - Wooden barricade: Bep says "That's a wooden wall! Remember that fire power?" Player uses Fire Dash to burn through — instant satisfaction.
-  - Water gap: "We can't swim... but can we dash across?!" First water-gap Fire Dash. The invulnerability frames carry Ramon over the water.
+  - Water gap: "We can't swim... but can we dash across?!" First water-gap Fire Dash. The invulnerability frames carry Balchar over the water.
   - Sniper sightline: snipers positioned on ledges. Fire Dash can close distance rapidly, or player can use cover.
   - Dimoni de Pollenca foreshadowing: moonlit shadows move strangely near the watchtower base. A whisper in the wind.
 - **End**: Save point with Llorenc shop.
@@ -751,7 +751,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Layout**: Horizontal. A coastal fishing village under pirate attack. Burning buildings, fleeing NPCs, chaos. Dynamic level with fire hazards.
 - **Difficulty**: 6/10
 - **Enemy composition**: 5 scimitar pirates, 3 musket snipers (on rooftops), 2 powder monkeys (first encounter -- throw timed bombs that explode after 2 seconds, area denial).
-- **Platforming challenges**: Rooftop running across burning buildings (some roofs collapse). Fire Dash through burning debris sections (invulnerability frames make Ramon immune to fire during the dash). Sniper gauntlets along streets — Fire Dash to close distance or use cover. A dock section with swinging ropes between boats. Wooden pirate fortifications blocking paths — Fire Dash burns through all of them.
+- **Platforming challenges**: Rooftop running across burning buildings (some roofs collapse). Fire Dash through burning debris sections (invulnerability frames make Balchar immune to fire during the dash). Sniper gauntlets along streets — Fire Dash to close distance or use cover. A dock section with swinging ropes between boats. Wooden pirate fortifications blocking paths — Fire Dash burns through all of them.
 - **Collectibles**: 30-35 sling stones. 2 heart pickups. 1 secret: inside a collapsed house, accessible by Stone Slam through the floor then Fire Dash through debris (combination of W1 + W3 powers). 20 stones inside.
 - **Teaching beats**:
   - Powder monkeys: Bep says "That little one threw something! Run! RUN!" Teaches bomb avoidance timing.
@@ -787,7 +787,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 #### Boss: Dragut
 *(Full details in Section 6)*
 
-- **Story beat (post-boss)**: Dragut falls. The dimoni de Pollença emerges from the moonlit shadows — sneaky, whisper-voiced. "Finally quiet. Those pirates were insufferable. Take this — perhaps it will teach you to be subtle." Grants Smoke Vanish mask to Llorenç. Portal opens. **Smoke Vanish is now permanently available from World 5 onward.** Dragut: "You fight well for a man from the rocks." Ramon: "Everyone on this island fights well. That's why you keep losing."
+- **Story beat (post-boss)**: Dragut falls. The dimoni de Pollença emerges from the moonlit shadows — sneaky, whisper-voiced. "Finally quiet. Those pirates were insufferable. Take this — perhaps it will teach you to be subtle." Grants Smoke Vanish mask to Llorenç. Portal opens. **Smoke Vanish is now permanently available from World 5 onward.** Dragut: "You fight well for a man from the rocks." Balchar: "Everyone on this island fights well. That's why you keep losing."
 
 ---
 
@@ -806,12 +806,12 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Platforming challenges**: Minimal platforming. This is a crowd-navigation level. Beach umbrella hopping. Hotel pool as a pit hazard. Party bus crosses the screen periodically (telegraphed by engine sound and screen edge indicator). Tourist crowds form walls — Smoke Vanish phases right through them.
 - **Collectibles**: 30-35 sling stones. 2 heart pickups. 1 secret: inside a beach shack, accessible by Stone Slam through the floor (15 stones).
 - **Teaching beats**:
-  - Arrival cutscene: Ramon sees modern Mallorca. "...I think I preferred the pirates." Bep: "What's a hotel?" Ramon: "Where they charge you to sleep." Bep: "You can sleep anywhere!" Ramon: "...I know, Bep."
+  - Arrival cutscene: Balchar sees modern Mallorca. "...I think I preferred the pirates." Bep: "What's a hotel?" Balchar: "Where they charge you to sleep." Bep: "You can sleep anywhere!" Balchar: "...I know, Bep."
   - Tourist crowd wall: Bep says "There's too many of them! Maybe we can sneak through?" Player uses Smoke Vanish to phase through the crowd — instant relief, no combat needed.
   - Influencer: camera flash creates a visible cone. Smoke Vanish phases through the stun effect entirely. "We went invisible! Their magic box can't see us!"
   - Dimoni de Sa Pobla foreshadowing: hotel foundations disturb ancient sites. Strange energy pulses from underground.
   - Party bus: Bep screams before it appears. "WHAT IS THAT THING?!"
-- **End**: Save point with Llorenc shop. Llorenc: "Fascinating. In Menorca, tourism is more... dignified." Ramon: "Is it." Llorenc: "...No."
+- **End**: Save point with Llorenc shop. Llorenc: "Fascinating. In Menorca, tourism is more... dignified." Balchar: "Is it." Llorenc: "...No."
 
 #### Level 5-2: "S'Aeroport" (The Airport)
 - **Layout**: Horizontal with conveyor sections. Palma airport interior. Conveyor belts as moving platforms, luggage carousels as hazards, boarding gates as checkpoints.
@@ -842,13 +842,13 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Layout**: Vertical. Climbing a hotel under construction via scaffolding, cranes, and unfinished floors. The approach to El Magnat's penthouse.
 - **Difficulty**: 8/10
 - **Enemy composition**: 5 tourists, 4 real estate agents, 2 influencers, 1 party bus (drives across an unfinished floor). High density, mixed types.
-- **Platforming challenges**: Scaffolding platforming (narrow, some sections collapse). Crane arm as a moving platform (swings slowly, player must time jumps). Unfinished floors with gaps (Double Jump + Fire Dash). Wind gusts on upper floors push Ramon sideways (new environmental hazard). This is the "all masks" showcase — Stone Slam through floors, Double Jump up scaffolding, Fire Dash through barricades, Smoke Vanish past security cameras.
+- **Platforming challenges**: Scaffolding platforming (narrow, some sections collapse). Crane arm as a moving platform (swings slowly, player must time jumps). Unfinished floors with gaps (Double Jump + Fire Dash). Wind gusts on upper floors push Balchar sideways (new environmental hazard). This is the "all masks" showcase — Stone Slam through floors, Double Jump up scaffolding, Fire Dash through barricades, Smoke Vanish past security cameras.
 - **Collectibles**: 35-40 sling stones. 2 heart pickups. 1 secret: inside the crane cabin (requires Fire Dash through a metal barricade). 25 stones and an aigua de font.
 - **Teaching beats**:
   - Construction site: everything is unstable. The level reinforces careful platforming.
   - Crane section: dramatic set piece. Wind + moving platform + enemies = peak difficulty before boss.
   - All 4 masks useful: this level is the first to truly demand fluid mask switching at the shop (or strategic mask choice before entering).
-  - Top of the crane: panoramic view of Palma. Quiet moment. Bep: "It's beautiful up here." Ramon: "...It was better before."
+  - Top of the crane: panoramic view of Palma. Quiet moment. Bep: "It's beautiful up here." Balchar: "...It was better before."
 - **End**: Boss gate. Penthouse elevator.
 
 #### Boss: El Magnat (Phase 1)
@@ -865,7 +865,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Enemies**: Fameliars (bottle imps, neon fameliars, VIP fameliars).
 - **Available masks**: **All 5 masks + quick-swap.** Tourist Rage (earned post-W5 boss) is especially relevant here — the familiar swarms are the densest enemy encounters in the game, and Tourist Rage's AoE crowd control is the direct answer.
 - **No new mask earned**: This is the final world. The player must use all previously collected masks strategically. Mask swapping is the meta-skill.
-- **[NEW] Quick-swap unlock**: At the start of W5.5-1, the mask quick-swap mechanic activates automatically (see Section 4.2). Narrative beat: as Ramon arrives in Eivissa, all his collected masks flare simultaneously. Bep: "Something's different... they're all awake!" The curse reaching its peak destabilizes the mask bindings — Ramon can now channel any mask freely without Llorenç as intermediary. From this point, shoulder buttons (L1/R1) or Q/E cycle through masks in real time. This is the mechanical payoff for collecting all five masks.
+- **[NEW] Quick-swap unlock**: At the start of W5.5-1, the mask quick-swap mechanic activates automatically (see Section 4.2). Narrative beat: as Balchar arrives in Eivissa, all his collected masks flare simultaneously. Bep: "Something's different... they're all awake!" The curse reaching its peak destabilizes the mask bindings — Balchar can now channel any mask freely without Llorenç as intermediary. From this point, shoulder buttons (L1/R1) or Q/E cycle through masks in real time. This is the mechanical payoff for collecting all five masks.
 - **Length**: 3 levels + boss (shorter but significantly harder).
 
 #### Level 5.5-1: "Sa Discoteca Antiga" (The Ancient Disco)
@@ -886,7 +886,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
   - Bep (at level start, after quick-swap unlock): "They're all responding to you now! Try switching — the shoulder buttons!" (Or Q/E prompt on keyboard.)
   - VIP fameliars: "That big one has a shield! Like those Roman soldiers, but... shinier."
   - The final combination section is the real teaching beat: players must learn to use quick-swap fluidly mid-action.
-- **End**: Save point with Llorenc shop. Llorenc: "I've catalogued all the masks. They're all remarkable. Ramon, we've come so far—" Ramon: "Shop. Now."
+- **End**: Save point with Llorenc shop. Llorenc: "I've catalogued all the masks. They're all remarkable. Balchar, we've come so far—" Balchar: "Shop. Now."
 
 #### Level 5.5-2: "Es Mega-Resort" (The Mega-Resort)
 - **Layout**: Horizontal with large rooms. The Magnat's mega-resort interior. Massive lobbies, VIP lounges, back-stage corridors. The longest level in the game.
@@ -909,7 +909,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 - **Teaching beats**:
   - This level is pure execution. Minimal Bep commentary -- even he's nervous.
   - The cliff face with Es Vedra in the background is the game's most dramatic visual set piece.
-  - Final approach before the boss: Bep quietly says "We can do this, Ramon." Ramon says nothing. (The only time Ramon's silence is played for sincerity rather than comedy.)
+  - Final approach before the boss: Bep quietly says "We can do this, Balchar." Balchar says nothing. (The only time Balchar's silence is played for sincerity rather than comedy.)
 - **End**: Boss gate. The Magnat's penthouse balcony.
 
 #### Boss: El Magnat (Phase 2)
@@ -1004,7 +1004,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 **Phase 3: "The Legion" (30%-0% HP)**
 - 2 legionaries spawn on each side of the arena (4 total, respawn in pairs every 15 seconds if killed). Metellus fights simultaneously.
 - **Metellus continues Phase 2 patterns** but with legionaries adding pressure.
-- **Legionary behavior**: Same as normal legionaries -- shield front, attackable from above or behind. They slowly advance toward Ramon.
+- **Legionary behavior**: Same as normal legionaries -- shield front, attackable from above or behind. They slowly advance toward Balchar.
 - **Stone Slam crowd control**: Stone Slam shockwave scatters ALL legionaries in range, stunning them for 2 seconds. This is the primary crowd management tool — slam, then rush Metellus during the stun window. This is the definitive Stone Slam combat test.
 - **Punish windows**: Metellus's recovery windows remain the same, but the player must clear/stun legionaries first.
 - **Death**: Metellus drops to one knee. "You fight like the old slingers of legend. Perhaps these islands weren't so easy to conquer." Collapses.
@@ -1024,11 +1024,11 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
 **Health Pool**: ~40 tap-hits.
 
 **Phase 1: "The Aristocrat" (100%-60% HP)**
-- **Pattern A -- Teleport Strike**: The Comte vanishes in a cloud of bats (tell: 0.8s, bats swirl around him + a shadow appears at his destination 0.5s before he materializes). Appears next to Ramon and slashes with clawed hands. Punish window: 2.0s after the slash as he adjusts his cape dramatically.
+- **Pattern A -- Teleport Strike**: The Comte vanishes in a cloud of bats (tell: 0.8s, bats swirl around him + a shadow appears at his destination 0.5s before he materializes). Appears next to Balchar and slashes with clawed hands. Punish window: 2.0s after the slash as he adjusts his cape dramatically.
   - Damage: 1 heart
 - **Pattern B -- Bat Swarm**: Raises a hand (tell: 0.8s, hand glows red) and sends 5 bats in a wave pattern across the room. Bats move in a sine wave vertically. Jump through gaps between them — Double Jump provides extra height to dodge the upper wave. Punish window: 1.5s while his hand is extended.
   - Damage: 0.5 hearts per bat
-- **Pattern C -- Blood Drain**: If Ramon is within melee range for too long, the Comte reaches out (tell: 0.5s, eyes flash red) to grab. If successful, drains 1.5 hearts and heals himself for 5% HP. Mash buttons to break free faster. Teaches staying mobile.
+- **Pattern C -- Blood Drain**: If Balchar is within melee range for too long, the Comte reaches out (tell: 0.5s, eyes flash red) to grab. If successful, drains 1.5 hearts and heals himself for 5% HP. Mash buttons to break free faster. Teaches staying mobile.
   - Damage: 1.5 hearts (grab), but breakable
 - **Double Jump utility**: Double Jump to the chandelier platforms provides a safe zone from Teleport Strike (the Comte only teleports to ground level in Phase 1). Punish from above with charged sling shots.
 - **Phase transition**: At 60% HP, the Comte hisses in frustration. "Enough." He turns toward the chained dimoni and begins draining its power. The room darkens, fire braziers flare.
@@ -1077,7 +1077,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
   - Damage: 1.5 hearts (explosion)
 - **Fire Dash utility**: Dash across the beach to reach the rowboats faster. Dash through cannon impact zones during their detonation (invulnerability frames). This phase rewards aggressive use of Fire Dash to minimize time on the exposed beach.
 - **Objective**: Survive the bombardment while reaching the rowboats at the water's edge. 3-4 volleys, then a rowboat section (Fire Dash across water gaps between small boats to reach the ship).
-- **Phase transition**: Ramon reaches the ship's hull. Dragut: "Coming aboard? Bold. I like bold. Kill him."
+- **Phase transition**: Balchar reaches the ship's hull. Dragut: "Coming aboard? Bold. I like bold. Kill him."
 
 **Phase 2: "The Boarding" (Ship Hull + Deck)**
 - **Gauntlet section**, not a boss HP phase. Fight through 6 pirate crew members on the deck (scimitar pirates + 2 powder monkeys).
@@ -1096,7 +1096,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
   - Damage: 1.5 hearts (slam), 0.5 hearts (rope)
 - **Fire Dash Mastery Test**: Dragut's 4-slash combo is specifically designed so that Fire Dash allows dashing through the entire combo if timed at the start — you end up behind him with invulnerability frames. Without Fire Dash, the player must retreat or wall-jump the mast to escape. Both work, but Fire Dash is cleaner and more aggressive.
 - **Ship rock**: The deck still rocks gently. At ~15% HP, the rocking intensifies (the ship is breaking apart from the battle).
-- **Death**: Dragut drops to one knee, scimitars clattering. "You fight well for a man from the rocks." Ramon: "Everyone on this island fights well. That's why you keep losing." Dragut laughs, then collapses.
+- **Death**: Dragut drops to one knee, scimitars clattering. "You fight well for a man from the rocks." Balchar: "Everyone on this island fights well. That's why you keep losing." Dragut laughs, then collapses.
 
 **What skilled players can do differently**: Parry the scimitar throw with a timed sling tap (returns it for 3x damage -- hidden mechanic, not required). Fire Dash through every combo for aggressive counterattacks. Stay in melee range and chain Fire Dash repositioning.
 
@@ -1174,7 +1174,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
   - Damage: 2 hearts (slam), 1 heart (shockwave)
 - **Pattern B -- Neon Familiar Trail**: Summons 2 neon fameliars that race across the arena, leaving damaging light trails (tell: 0.8s, portals open at arena edges). Trails persist for 5 seconds. Limits movement. Fire Dash through trails (invulnerability frames).
   - Damage: 1 heart (trail contact)
-- **Pattern C -- VIP Shield**: Summons a VIP familiar as a bodyguard (tell: 0.8s, golden portal). The VIP has a shield and blocks Ramon's attacks until dispatched (3 hits from behind, or Stone Slam stuns it, or Smoke Vanish to get behind).
+- **Pattern C -- VIP Shield**: Summons a VIP familiar as a bodyguard (tell: 0.8s, golden portal). The VIP has a shield and blocks Balchar's attacks until dispatched (3 hits from behind, or Stone Slam stuns it, or Smoke Vanish to get behind).
 - **Pattern D -- Money Meteor** continues with 4 meteors now.
 - **Stone Slam utility**: After the Ground Slam, if the player uses Stone Slam on the cracked ground, rubble rises and hits the Magnat for bonus damage. Reward for reading the environment.
 - **Phase transition**: At 30% HP, the Magnat screams. Familiar energy surges. The arena shrinks to its final size (~60% of original). "EVERYONE HAS A PRICE!"
@@ -1189,7 +1189,7 @@ The post-boss mask acquisition creates a powerful "earned reward" loop. Each bos
   5. **Scythe Sweep**: Magnat swoops across the arena with arms extended (tell: 0.8s, he banks into a glide). **Smoke Vanish** to phase through. Without Vanish, extremely tight jump timing required.
   6. **Punish Window**: After the full cycle, Magnat lands, exhausted, for 4.0 seconds. All-out attack. This is the main damage window for the entire phase.
 - Each cycle takes ~30 seconds. The fight requires 3-4 full cycles to kill.
-- **On defeat**: The Magnat staggers. "Everyone... has a price..." Ramon: "I don't even know what money is." The familiar energy explodes outward. The Magnat collapses. His empire literally crumbles -- the resort disintegrates around them. The fameliars are freed, cheering as they scatter.
+- **On defeat**: The Magnat staggers. "Everyone... has a price..." Balchar: "I don't even know what money is." The familiar energy explodes outward. The Magnat collapses. His empire literally crumbles -- the resort disintegrates around them. The fameliars are freed, cheering as they scatter.
 
 **What skilled players can do differently**: Skip mask switches -- each attack CAN be dodged without the "right" mask, but it's significantly harder. Speedrunners will find that staying in Fire Dash and timing perfectly can bypass most of the cycle. Stone Slam during the Ground Slam creates extra damage in Phase 2 for a faster kill.
 
@@ -1281,8 +1281,8 @@ This curve means:
 
 ### 8.2 Sprite Size Guidelines
 
-- **Ramon**: 24x32 pixels (or similar, proportional to a stocky warrior)
-- **Bep**: 16x16 pixels (small, round, always near Ramon)
+- **Balchar**: 24x32 pixels (or similar, proportional to a stocky warrior)
+- **Bep**: 16x16 pixels (small, round, always near Balchar)
 - **Standard enemies**: 16x24 to 24x32 pixels depending on type
 - **Bosses**: 48x48 to 96x96+ pixels (large, imposing)
 - **Tiles**: 16x16 pixel grid
@@ -1324,7 +1324,7 @@ Each character needs a sprite sheet covering:
 - Current mask icon displayed top-right (with cooldown radial fill indicator)
 - Sling stone count displayed below mask icon
 - Special ammo indicator (if equipped) near stone count with recharge visual
-- **[NEW] Charge indicator**: When holding the sling attack, a small charge meter appears near Ramon (not in the HUD -- world-space) showing Tier 1/2/3 progression
+- **[NEW] Charge indicator**: When holding the sling attack, a small charge meter appears near Balchar (not in the HUD -- world-space) showing Tier 1/2/3 progression
 - **[NEW] No-mask indicator**: In World 1 (before any mask is earned), the mask icon slot shows an empty/greyed-out placeholder. This primes the player to expect a mask will eventually fill that slot.
 - Minimal UI -- retro clean, no clutter
 
@@ -1384,7 +1384,7 @@ jump               -- basic jump
 double_jump        -- second jump (slightly different sound)
 wall_jump          -- kick off wall
 land               -- landing on ground
-damage_taken       -- Ramon hit
+damage_taken       -- Balchar hit
 heart_pickup       -- health restored
 stone_pickup       -- currency collected
 mask_equip         -- swapping dimoni mask
@@ -1448,7 +1448,7 @@ No code changes needed. The system is hot-swappable during development.
 - Each mask shows: icon, name, power description, button prompt
 - Items show: name, effect, cost in sling stones
 - Llorenc has optional dialogue for each mask/item (lore tidbits, one-liners)
-- Bruna visible in the background. Bep hides behind Ramon if Bruna is on screen.
+- Bruna visible in the background. Bep hides behind Balchar if Bruna is on screen.
 - **[NEW] Insufficient funds feedback**: If the player tries to buy something they can't afford, the item shakes and Llorenc has a quip: "That one's expensive. Try breaking more pots."
 
 ### 10.4 Pause Menu
@@ -1461,7 +1461,7 @@ No code changes needed. The system is hot-swappable during development.
 
 - After boss defeat + dimoni mask reward + Bep's portal: a brief animated cutscene of the mask being granted, then the portal opening and the characters being pulled in
 - Loading screen: pixel art vignette of the next era with the world name and date
-- Arrival: brief cutscene of Ramon and Bep arriving, reacting to the new setting
+- Arrival: brief cutscene of Balchar and Bep arriving, reacting to the new setting
 
 ---
 

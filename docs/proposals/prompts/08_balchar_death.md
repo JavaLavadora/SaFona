@@ -1,6 +1,6 @@
-# 07 — Ramon: Hit
+# 08 — Balchar: Death
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -52,14 +52,14 @@ SPRITE CONSTRAINTS:
   - Facing:      RIGHT
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
-Recoil pose may use headroom. Body proportions stay identical to idle.
+Horizontal pose uses width, not headroom.
 
 ANIMATION DESCRIPTION:
-  Single frame: Recoil — body bent backward from impact,
-  arms flung slightly outward, grimacing expression,
-  slight backward lean as if struck in the chest.
+  Single frame: Collapsed — body slumped on the ground,
+  lying on back or side, limbs limp, sling dropped nearby.
+  Clear "defeated" pose, not graphic.
 
 RULES:
-  - Same identity lock rules as all Ramon animations
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```

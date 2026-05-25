@@ -1,6 +1,6 @@
 # 45 — Llorenç: Master Idle Sprite
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as world-style reference. Llorenç is a friendly NPC in Ramon's world.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as world-style reference. Llorenç is a friendly NPC in Balchar's world.
 
 ---
 
@@ -21,7 +21,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Layout:        Single horizontal row, poses numbered, clear spacing
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon
+  - Must belong to the same world as Balchar
   - Same shading logic and pixel density
   - Same outline treatment
   - Friendly NPC — warmer body language than enemies
@@ -29,16 +29,16 @@ STYLE CONSISTENCY RULES:
 CHARACTER IDENTITY:
   - Name:    Llorenç
   - Role:    Friendly NPC shopkeeper / scholar from Menorca
-  - Culture: Talayotic warrior-scholar (same era as Ramon)
-  - Differentiators: Slightly taller and leaner than Ramon, friendly expression,
+  - Culture: Talayotic warrior-scholar (same era as Balchar)
+  - Differentiators: Slightly taller and leaner than Balchar, friendly expression,
                      cream linen shirt, olive green vest, terracotta apron,
                      leather satchel. Enthusiastic about artifacts.
 
 VISUAL DETAILS:
-  - Body:      Lean, slightly taller than Ramon
+  - Body:      Lean, slightly taller than Balchar
   - Clothing:  Cream linen shirt, olive green vest over it, terracotta apron
   - Hair:      Dark hair and beard
-  - Expression: Friendly, enthusiastic (contrast to Ramon's grumpiness)
+  - Expression: Friendly, enthusiastic (contrast to Balchar's grumpiness)
   - Accessories: Leather satchel visible at side
   - Size:      20x36 pixels
 

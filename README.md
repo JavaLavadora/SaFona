@@ -15,7 +15,7 @@
 
 ---
 
-Sa Fona is a pixel-art platformer with combat, set across different historical eras of the Balearic Islands. You play as **Ramon**, a grumpy talayotic slinger cursed into time-traveling alongside **Bep**, his myotragus companion who accidentally ate a dimoni's sacred herbs.
+Sa Fona is a pixel-art platformer with combat, set across different historical eras of the Balearic Islands. You play as **Balchar**, a grumpy talayotic slinger cursed into time-traveling alongside **Bep**, his myotragus companion who accidentally ate a dimoni's sacred herbs.
 
 <p align="center">
   <img src="assets/screenshots/gameplay.png" alt="Gameplay" width="720">
@@ -23,7 +23,7 @@ Sa Fona is a pixel-art platformer with combat, set across different historical e
 
 ## Story
 
-Ramon was napping against a talayot when Bep wandered to a dimoni's altar and ate its sacred herbs. Es Dimoni de Sant Joan, furious, cursed Bep — granting him speech and turning him into a time-travel trigger. Now every dimoni on the island wants a piece of Bep, and Ramon is dragged along for the ride through Mallorca's history: from the talayotic era to Roman occupation, the age of pirates, and beyond.
+Balchar was napping against a talayot when Bep wandered to a dimoni's altar and ate its sacred herbs. Es Dimoni de Sant Joan, furious, cursed Bep — granting him speech and turning him into a time-travel trigger. Now every dimoni on the island wants a piece of Bep, and Balchar is dragged along for the ride through Mallorca's history: from the talayotic era to Roman occupation, the age of pirates, and beyond.
 
 ## Features
 

@@ -72,7 +72,7 @@ sa_fona/
 |
 |-- entities/
 |   |-- entity.py                # Base entity: position, velocity, rect, sprite, update/render
-|   |-- player.py                # Ramon: moveset, sling, mask activation, state machine
+|   |-- player.py                # Balchar: moveset, sling, mask activation, state machine
 |   |-- companion.py             # Bep: follow AI, idle animations, dialogue triggers
 |   |-- enemy.py                 # Base enemy + EnemyFactory (JSON-driven)
 |   |-- enemy_behaviors.py       # Behavior components: patrol, chase, flee, shield, swoop
@@ -104,7 +104,7 @@ sa_fona/
 |   |-- shop_ui.py               # Tabs (masks/items), selection, price display, feedback
 |   |-- menu_ui.py               # Reusable menu widgets: buttons, sliders, selection lists
 |   |-- level_select_ui.py       # World grid, per-level cards, completion badges
-|   |-- charge_indicator.py      # In-world charge meter near Ramon (Tier 1/2/3)
+|   |-- charge_indicator.py      # In-world charge meter near Balchar (Tier 1/2/3)
 |   |-- boss_health_bar.py       # Top-of-screen boss HP bar with phase markers
 |   |-- transition.py            # Screen fade, wipe, and world-transition vignettes
 |
@@ -157,7 +157,7 @@ sa_fona/
 |
 |-- assets/
 |   |-- sprites/
-|   |   |-- ramon/
+|   |   |-- balchar/
 |   |   |-- bep/
 |   |   |-- enemies/
 |   |   |-- bosses/
@@ -502,7 +502,7 @@ class CombatSystem:
 
 ```python
 class SlingSystem:
-    """Handles Ramon's sling tap/hold/charge/release mechanics.
+    """Handles Balchar's sling tap/hold/charge/release mechanics.
 
     Detects tap vs. hold from InputState. On tap, spawns a melee hitbox.
     On hold, tracks charge time across 3 tiers with visual/audio feedback.
@@ -1760,13 +1760,13 @@ This is the **single source of truth** for all economy values. The project owner
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Ramon! Move! The sheep are acting strange!",
+        "text": "Balchar! Move! The sheep are acting strange!",
         "sfx": "bep_bleat",
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "...They're always strange.",
         "sfx": null,
         "auto_advance_ms": null
@@ -2022,14 +2022,14 @@ This is the **single source of truth** for all economy values. The project owner
 ```json
 {
   "sprites": {
-    "ramon_idle": { "path": "assets/sprites/ramon/idle.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
-    "ramon_walk": { "path": "assets/sprites/ramon/walk.png", "frame_width": 24, "frame_height": 32, "frame_count": 6 },
-    "ramon_jump": { "path": "assets/sprites/ramon/jump.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
-    "ramon_attack_tap": { "path": "assets/sprites/ramon/attack_tap.png", "frame_width": 32, "frame_height": 32, "frame_count": 3 },
-    "ramon_attack_charge": { "path": "assets/sprites/ramon/attack_charge.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
-    "ramon_wall_slide": { "path": "assets/sprites/ramon/wall_slide.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
-    "ramon_damage": { "path": "assets/sprites/ramon/damage.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
-    "ramon_death": { "path": "assets/sprites/ramon/death.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
+    "balchar_idle": { "path": "assets/sprites/balchar/idle.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
+    "balchar_walk": { "path": "assets/sprites/balchar/walk.png", "frame_width": 24, "frame_height": 32, "frame_count": 6 },
+    "balchar_jump": { "path": "assets/sprites/balchar/jump.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
+    "balchar_attack_tap": { "path": "assets/sprites/balchar/attack_tap.png", "frame_width": 32, "frame_height": 32, "frame_count": 3 },
+    "balchar_attack_charge": { "path": "assets/sprites/balchar/attack_charge.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
+    "balchar_wall_slide": { "path": "assets/sprites/balchar/wall_slide.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
+    "balchar_damage": { "path": "assets/sprites/balchar/damage.png", "frame_width": 24, "frame_height": 32, "frame_count": 2 },
+    "balchar_death": { "path": "assets/sprites/balchar/death.png", "frame_width": 24, "frame_height": 32, "frame_count": 4 },
     "bep_idle": { "path": "assets/sprites/bep/idle.png", "frame_width": 16, "frame_height": 16, "frame_count": 4 },
     "bep_follow": { "path": "assets/sprites/bep/follow.png", "frame_width": 16, "frame_height": 16, "frame_count": 4 },
     "enemy_possessed_sheep": { "path": "assets/sprites/enemies/possessed_sheep.png", "frame_width": 16, "frame_height": 16, "frame_count": 4 },

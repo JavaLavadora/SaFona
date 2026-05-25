@@ -205,7 +205,7 @@ The Bou de Pedra boss has 6 attack patterns across 3 phases. The boss already ha
 
 ## 7. AI Sprite Generation Prompts
 
-The following prompts are ready to paste into an AI image generator. Each follows the format established in `tools/sprite_defs/ramon_ai_prompt.md`.
+The following prompts are ready to paste into an AI image generator. Each follows the format established in `tools/sprite_defs/balchar_ai_prompt.md`.
 
 ---
 

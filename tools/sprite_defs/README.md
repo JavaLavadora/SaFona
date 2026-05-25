@@ -24,13 +24,13 @@ Both steps are run by `tools/reprocess_all_sprites.sh` for the full batch.
 conda activate safona
 
 # Process one character
-python tools/process_character_sprites.py tools/sprite_defs/characters/ramon.json
+python tools/process_character_sprites.py tools/sprite_defs/characters/balchar.json
 
 # Process all characters
 python tools/process_character_sprites.py tools/sprite_defs/characters/*.json
 
 # Verbose mode (shows per-frame crop and scale details)
-python tools/process_character_sprites.py -v tools/sprite_defs/characters/ramon.json
+python tools/process_character_sprites.py -v tools/sprite_defs/characters/balchar.json
 
 # Full pipeline (all characters + palette cleanup + outline)
 bash tools/reprocess_all_sprites.sh
@@ -44,8 +44,8 @@ Each character gets one JSON file in `tools/sprite_defs/characters/`.
 {
   "frame_width": 48,
   "frame_height": 64,
-  "source_dir": "assets/ai_sources/ramon",
-  "output_dir": "assets/sprites/ramon",
+  "source_dir": "assets/ai_sources/balchar",
+  "output_dir": "assets/sprites/balchar",
   "animations": [
     {"source": "idle.png", "frames": 4, "scale_pct": 80},
     {"source": "walk.png", "frames": 6, "scale_pct": 80},
@@ -191,7 +191,7 @@ For each animation source, the script:
 
 | Config | Frame Size | Animations |
 |--------|-----------|------------|
-| `ramon.json` | 48x64 | idle, walk, jump, sling, crouch, wall_slide, wall_jump, hit, death |
+| `balchar.json` | 48x64 | idle, walk, jump, sling, crouch, wall_slide, wall_jump, hit, death |
 | `stone_guardian.json` | 48x64 | idle, walk, attack, hit, death |
 | `rival_warrior.json` | 32x48 | idle, walk, attack, block, hit, death |
 | `possessed_sheep.json` | 32x32 | idle, walk, charge, hit, death |

@@ -192,7 +192,7 @@ D1 (Core Engine Bootstrap)
 
 ### Deliverable 3: Player Entity & Movement
 
-**Purpose**: Create Ramon as a playable entity with the full core moveset (walk, jump, wall jump) using placeholder graphics, establishing the entity base class that all future entities will extend.
+**Purpose**: Create Balchar as a playable entity with the full core moveset (walk, jump, wall jump) using placeholder graphics, establishing the entity base class that all future entities will extend.
 
 **Depends on**: Deliverable 2
 
@@ -200,14 +200,14 @@ D1 (Core Engine Bootstrap)
 
 **Acceptance criteria**:
 - [ ] Entity base class exists with position, velocity, rect, sprite reference, update/render methods
-- [ ] Player entity (Ramon) extends Entity with a state machine (idle, running, jumping, falling, wall_sliding, wall_jumping)
+- [ ] Player entity (Balchar) extends Entity with a state machine (idle, running, jumping, falling, wall_sliding, wall_jumping)
 - [ ] Left/right movement with configurable speed
 - [ ] Single jump with configurable force, variable jump height (hold jump for higher, release for lower)
 - [ ] Wall jump: automatic when pressing jump while against a wall and airborne
-- [ ] Wall slide: Ramon slides down walls slowly when pressing into them while airborne
+- [ ] Wall slide: Balchar slides down walls slowly when pressing into them while airborne
 - [ ] Player integrates with PhysicsSystem for gravity and collision
 - [ ] Player responds to InputState actions (move_left, move_right, jump_pressed, jump_held, jump_released)
-- [ ] Placeholder rendering: Ramon is a colored rectangle (24x32 pixels) with different colors per state (idle=blue, running=green, jumping=yellow, wall_sliding=cyan)
+- [ ] Placeholder rendering: Balchar is a colored rectangle (24x32 pixels) with different colors per state (idle=blue, running=green, jumping=yellow, wall_sliding=cyan)
 - [ ] Animation system stub exists (Animation class with frame durations, but uses placeholder colored surfaces)
 - [ ] A GameplayScene exists that loads a test level, spawns the player, and runs physics + camera
 - [ ] The movement feels responsive and satisfying at 60 FPS
@@ -225,7 +225,7 @@ D1 (Core Engine Bootstrap)
 
 ### Deliverable 4: Sling Combat & Projectiles
 
-**Purpose**: Implement Ramon's sling weapon with tap-attack (melee) and hold-to-charge (ranged projectile with 3 tiers), plus the projectile entity system.
+**Purpose**: Implement Balchar's sling weapon with tap-attack (melee) and hold-to-charge (ranged projectile with 3 tiers), plus the projectile entity system.
 
 **Depends on**: Deliverable 3
 
@@ -233,9 +233,9 @@ D1 (Core Engine Bootstrap)
 
 **Acceptance criteria**:
 - [ ] SlingSystem detects tap vs. hold from InputState (attack_pressed, attack_held, attack_released)
-- [ ] Tap attack creates a short-lived melee hitbox in front of Ramon (whip-crack feel)
+- [ ] Tap attack creates a short-lived melee hitbox in front of Balchar (whip-crack feel)
 - [ ] Hold attack tracks charge time across 3 tiers with thresholds from `economy.json`
-- [ ] Charge tier visual feedback: a ChargeIndicator UI element near Ramon changes color per tier (Tier 1 = faint glow, Tier 2 = bright, Tier 3 = flash)
+- [ ] Charge tier visual feedback: a ChargeIndicator UI element near Balchar changes color per tier (Tier 1 = faint glow, Tier 2 = bright, Tier 3 = flash)
 - [ ] On release, a Projectile entity spawns with damage and range based on charge tier
 - [ ] Projectile entity moves in a direction, checks collision with tilemap (destroyed on hit) and entities
 - [ ] Projectile base class supports future special ammo types (extensible, not built yet)
@@ -332,7 +332,7 @@ D1 (Core Engine Bootstrap)
 - [ ] Dialogue data loads from JSON files (`data/dialogue/world1_dialogue.json`, `data/dialogue/bep_hints.json`)
 - [ ] Trigger system: rectangular trigger zones in levels that fire events when the player enters them
 - [ ] Trigger types implemented: dialogue trigger (starts a dialogue sequence), level_end trigger (completes the level)
-- [ ] Companion entity (Bep): follows Ramon with simple AI (stays near, catches up when far), placeholder rendering (16x16 green rectangle)
+- [ ] Companion entity (Bep): follows Balchar with simple AI (stays near, catches up when far), placeholder rendering (16x16 green rectangle)
 - [ ] Bep does NOT have gameplay interaction -- purely visual + dialogue trigger
 - [ ] Save point trigger type exists (marks where Llorencc shop appears later -- for now just marks level progress)
 - [ ] The game launches and runs without errors

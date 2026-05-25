@@ -29,9 +29,9 @@ All prompts share these requirements:
 
 ## Asset Checklist
 
-### 1. Player -- Ramon
+### 1. Player -- Balchar
 
-- [ ] **Ramon Movement & Combat Animations** -- `assets/ai_sources/ramon/image.png`
+- [ ] **Balchar Movement & Combat Animations** -- `assets/ai_sources/balchar/image.png`
 
   > Pixel art sprite sheet of a Balearic slinger warrior character, 16-bit SNES style, on a solid bright green (#00FF00) background. Show the following poses in a single horizontal row, evenly spaced, all the same character at the same scale:
   >
@@ -71,7 +71,7 @@ All prompts share these requirements:
   - `death.png` -- 1-2 frames (24x32) -- from pose 13
 
   *Frame dimensions*: 24x32 pixels per frame (matching `PLAYER_WIDTH=24`, `PLAYER_HEIGHT=32`)
-  *Notes*: This is the v3 prompt, extending v2 with hit and death poses. Existing v2 sprites in `assets/sprites/ramon/` cover poses 1-11 but lack hit/death.
+  *Notes*: This is the v3 prompt, extending v2 with hit and death poses. Existing v2 sprites in `assets/sprites/balchar/` cover poses 1-11 but lack hit/death.
 
 ---
 
@@ -175,7 +175,7 @@ All prompts share these requirements:
   > 10) Hit/stunned -- recoiling backward, dazed expression, club lowered
   > 11) Death -- falling backward, club dropping, defeated
   >
-  > Design: a rival warrior from a competing talayotic tribe. Slightly taller and leaner than Ramon. Leather tunic (darker brown), leather arm wrappings, stone club weapon, messy dark hair, war paint stripes on face. Hostile but clearly human -- not a monster. Approximately 16 wide x 24 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+  > Design: a rival warrior from a competing talayotic tribe. Slightly taller and leaner than Balchar. Leather tunic (darker brown), leather arm wrappings, stone club weapon, messy dark hair, war paint stripes on face. Hostile but clearly human -- not a monster. Approximately 16 wide x 24 tall pixels when scaled. Clean pixel art, no anti-aliasing. Number each pose clearly (1, 2, 3...) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
 
   *Pose mapping:*
   - 1-2 → idle (standing, variant)
@@ -351,11 +351,11 @@ All prompts share these requirements:
 
   > Pixel art sprite sheet of a friendly talayotic warrior-scholar NPC, 16-bit SNES style, on a solid bright green (#00FF00) background. Show the following poses in a single horizontal row:
   >
-  > 1) Standing idle -- slightly taller than Ramon, similar bronze-age clothing but with a leather satchel slung across chest full of scrolls and artifacts. Holding a scroll in one hand. Friendly smile. Dark hair, tanned skin, leather tunic, sandals. Facing right.
+  > 1) Standing idle -- slightly taller than Balchar, similar bronze-age clothing but with a leather satchel slung across chest full of scrolls and artifacts. Holding a scroll in one hand. Friendly smile. Dark hair, tanned skin, leather tunic, sandals. Facing right.
   > 2) Talking/excited -- same character, hands animated (one gesturing, one holding artifact), mouth open, enthusiastic expression
   > 3) Showing wares -- arms spread, displaying items, shopkeeper pose
   >
-  > Character design: Llorencc is a talayotic warrior from Menorca who doubles as a scholar/collector. Slightly taller and leaner than Ramon. Wears a leather tunic (lighter brown than rival warriors), leather satchel/bag always visible, often holding a scroll or artifact. Friendly enthusiastic expression (contrast to Ramon's grumpiness). Clean pixel art, no anti-aliasing. Approximately 20 wide x 36 tall pixels when scaled. Number each pose clearly (1, 2, 3) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
+  > Character design: Llorencc is a talayotic warrior from Menorca who doubles as a scholar/collector. Slightly taller and leaner than Balchar. Wears a leather tunic (lighter brown than rival warriors), leather satchel/bag always visible, often holding a scroll or artifact. Friendly enthusiastic expression (contrast to Balchar's grumpiness). Clean pixel art, no anti-aliasing. Approximately 20 wide x 36 tall pixels when scaled. Number each pose clearly (1, 2, 3) placed above or below each character. Arrange all poses in a single horizontal row, evenly spaced.
 
   *Pose mapping:*
   - 1 → idle standing
@@ -683,32 +683,32 @@ All prompts share these requirements:
 
 The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as colored rectangles with initials. Each character needs portrait variants matching the dialogue data's `"portrait"` field values.
 
-#### 13a. Ramon Portraits
+#### 13a. Balchar Portraits
 
-- [ ] **Ramon Dialogue Portraits** -- `assets/ai_sources/portrait_ramon/image.png`
+- [ ] **Balchar Dialogue Portraits** -- `assets/ai_sources/portrait_balchar/image.png`
 
-  > Pixel art portrait set of Ramon the Balearic slinger, 16-bit SNES style, on a solid bright green (#00FF00) background. Show the following face portraits in a single horizontal row, each a square headshot:
+  > Pixel art portrait set of Balchar the Balearic slinger, 16-bit SNES style, on a solid bright green (#00FF00) background. Show the following face portraits in a single horizontal row, each a square headshot:
   >
-  > 1) ramon_neutral -- straight-faced, slightly bored, deadpan expression, facing slightly left (toward the dialogue text)
-  > 2) ramon_annoyed -- furrowed brow, slight frown, exasperated, the default Ramon mood
-  > 3) ramon_surprised -- eyebrows raised, mouth slightly open, caught off guard
-  > 4) ramon_determined -- narrowed eyes, set jaw, ready for battle
+  > 1) balchar_neutral -- straight-faced, slightly bored, deadpan expression, facing slightly left (toward the dialogue text)
+  > 2) balchar_annoyed -- furrowed brow, slight frown, exasperated, the default Balchar mood
+  > 3) balchar_surprised -- eyebrows raised, mouth slightly open, caught off guard
+  > 4) balchar_determined -- narrowed eyes, set jaw, ready for battle
   >
   > Character: medium-length dark hair swept back with cloth headband, deeply tanned olive skin, strong jaw, perpetually unimpressed expression as default. Close-up face and upper shoulders only. Each portrait approximately 44x44 pixels. Clean pixel art, no anti-aliasing. Consistent face proportions across all expressions. Number each portrait clearly (1, 2, 3, 4) placed above or below each portrait. Arrange all portraits in a single horizontal row, evenly spaced.
 
   *Pose mapping:*
-  - 1 → ramon_neutral
-  - 2 → ramon_annoyed
-  - 3 → ramon_surprised
-  - 4 → ramon_determined
+  - 1 → balchar_neutral
+  - 2 → balchar_annoyed
+  - 3 → balchar_surprised
+  - 4 → balchar_determined
 
   *Will generate*:
-  - `ramon_neutral.png` -- 44x44
-  - `ramon_annoyed.png` -- 44x44
-  - `ramon_surprised.png` -- 44x44
-  - `ramon_determined.png` -- 44x44
+  - `balchar_neutral.png` -- 44x44
+  - `balchar_annoyed.png` -- 44x44
+  - `balchar_surprised.png` -- 44x44
+  - `balchar_determined.png` -- 44x44
 
-  *Notes*: Used in `world1_dialogue.json` with portrait values: `"ramon_annoyed"`, `"ramon_neutral"`. Adding surprised and determined for future dialogue.
+  *Notes*: Used in `world1_dialogue.json` with portrait values: `"balchar_annoyed"`, `"balchar_neutral"`. Adding surprised and determined for future dialogue.
 
 #### 13b. Bep Portraits
 
@@ -917,7 +917,7 @@ The dialogue system uses 44x44 pixel portrait boxes. Currently rendered as color
   > 2) Tier 2 glow -- a brighter orange energy bar, slightly wider (16x4 pixels), more intense
   > 3) Tier 3 glow -- a blazing white-red energy bar, widest (20x4 pixels), with small spark particles, dramatic
   >
-  > Clean pixel art. These float above Ramon's head while charging the sling. Number each tier clearly (1, 2, 3) placed above or below each sprite. Arrange all tiers in a single horizontal row, evenly spaced.
+  > Clean pixel art. These float above Balchar's head while charging the sling. Number each tier clearly (1, 2, 3) placed above or below each sprite. Arrange all tiers in a single horizontal row, evenly spaced.
 
   *Pose mapping:*
   - 1 → tier 1 glow (yellow, dim)
@@ -1014,7 +1014,7 @@ These are lower priority visual polish items. Generate these after all essential
 
 | # | Asset | Folder | Priority | Status |
 |---|-------|--------|----------|--------|
-| 1 | Ramon (13 poses) | `assets/ai_sources/ramon/` | HIGH | Existing v2 covers 11 poses |
+| 1 | Balchar (13 poses) | `assets/ai_sources/balchar/` | HIGH | Existing v2 covers 11 poses |
 | 2 | Bep (12 poses) | `assets/ai_sources/bep/` | HIGH | Existing covers idle only |
 | 3a | Possessed Sheep (10 poses) | `assets/ai_sources/possessed_sheep/` | HIGH | Existing covers idle+walk |
 | 3b | Rival Warrior (11 poses) | `assets/ai_sources/rival_warrior/` | HIGH | Existing covers idle+walk |
@@ -1037,7 +1037,7 @@ These are lower priority visual polish items. Generate these after all essential
 | 11a | W1 Outdoor Background | `assets/ai_sources/bg_world1/` | MEDIUM | None |
 | 11b | W1 Cave Background | `assets/ai_sources/bg_world1_cave/` | MEDIUM | None |
 | 11c | W1 Talayot Background | `assets/ai_sources/bg_world1_talayot/` | MEDIUM | None |
-| 12a | Ramon Portraits (4) | `assets/ai_sources/portrait_ramon/` | HIGH | None |
+| 12a | Balchar Portraits (4) | `assets/ai_sources/portrait_balchar/` | HIGH | None |
 | 12b | Bep Portraits (4) | `assets/ai_sources/portrait_bep/` | HIGH | None |
 | 12c | Dimoni Portrait (3) | `assets/ai_sources/portrait_dimoni/` | MEDIUM | None |
 | 12d | Llorencc Portrait (2) | `assets/ai_sources/portrait_llorencc/` | MEDIUM | None |
@@ -1079,6 +1079,6 @@ To maintain visual consistency across all W1 assets:
 - **Dimoni energy**: Amber/orange glow, RGB(255,180,50) to RGB(255,220,80)
 - **Possessed enemy aura**: Dark reddish-purple, RGB(120,40,60) to RGB(180,60,80)
 - **Bronze-age leather**: Warm brown, RGB(139,90,43) to RGB(180,120,60)
-- **Ramon's tunic**: White with warm shadow, RGB(220,215,200) to RGB(255,250,240)
-- **Ramon's sash**: Bright red, RGB(200,40,40) to RGB(220,60,60)
+- **Balchar's tunic**: White with warm shadow, RGB(220,215,200) to RGB(255,250,240)
+- **Balchar's sash**: Bright red, RGB(200,40,40) to RGB(220,60,60)
 - **Boss core energy**: Red glow, RGB(255,80,80) with varying alpha

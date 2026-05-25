@@ -1,8 +1,8 @@
-# Ramon Sprite Generation Prompt
+# Balchar Sprite Generation Prompt
 
-Used to generate the AI reference image for all Ramon animations.
+Used to generate the AI reference image for all Balchar animations.
 Source image: `assets/example_with_sprite_guide.png`
-Processing script output: `assets/sprites/ramon/` (idle, walk, jump, wall_slide, wall_jump, sling)
+Processing script output: `assets/sprites/balchar/` (idle, walk, jump, wall_slide, wall_jump, sling)
 
 ## Prompt
 
@@ -31,9 +31,9 @@ Character design: medium-length dark hair swept backwards held by a cloth headba
 - Walk animation: 6 frames cycling walk_a / idle / walk_b
 - Sling frames saved separately for future attack animation integration
 
-## Processing Notes (v2 — tools/process_ramon_sprites.py)
+## Processing Notes (v2 — tools/process_balchar_sprites.py)
 
-- New AI image (assets/ai_sources/ramon/image.png): 1536x1024, 9 actual poses on green background
+- New AI image (assets/ai_sources/balchar/image.png): 1536x1024, 9 actual poses on green background
 - 7 top-level regions detected; rightmost (x=879..1507, w=628) split by density into 3 sling sub-poses
 - Poses: idle, 4 walk frames, jump ascending, sling wind-up, sling mid-rotation, sling release
 - Jump descending synthesized from jump ascending (1px shift down)

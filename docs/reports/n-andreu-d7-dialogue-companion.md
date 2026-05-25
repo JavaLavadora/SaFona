@@ -18,7 +18,7 @@
 
 ### 2. Dialogue Box UI (`sa_fona/ui/dialogue_box.py`)
 - Bottom-screen text box with semi-transparent background, border, speaker name, and portrait
-- Portrait: colored square (green for Bep, blue for Ramon, grey for narrator) with speaker initial
+- Portrait: colored square (green for Bep, blue for Balchar, grey for narrator) with speaker initial
 - Letter-by-letter text reveal at configurable speed (default 30 chars/s)
 - Word-wrapped text rendering that fits within the box
 - `advance()`: if text is mid-reveal, finish it; if fully revealed, move to next line; if last line, complete dialogue

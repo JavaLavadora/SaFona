@@ -1,6 +1,6 @@
-# 02 — Ramon: Walk Cycle
+# 05 — Balchar: Wall Jump
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -47,26 +47,21 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  192x48 (6 frames)
-  - Frame count: 6
+  - Sheet size:  64x48 (2 frames)
+  - Frame count: 2
   - Frame size:  32x48 each
-  - Facing:      RIGHT
+  - Facing:      RIGHT (jumping away from wall to the left)
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Dynamic pose may use full frame including headroom.
 
 ANIMATION DESCRIPTION:
-  Frame 1: Contact — right foot forward, left foot back, slight lean forward
-  Frame 2: Low point — weight transfers to right foot, body dips slightly
-  Frame 3: Passing — left leg swings forward past right, body upright
-  Frame 4: Contact — left foot forward, right foot back, slight lean forward
-  Frame 5: Low point — weight transfers to left foot, body dips slightly
-  Frame 6: Passing — right leg swings forward past left, body upright
-
-  Sling held loosely at side, swings naturally with walk motion.
+  Frame 1: Push-off — legs coiled against wall, body leaning away,
+           arms reaching in jump direction
+  Frame 2: Airborne — body fully extended away from wall, legs trailing,
+           dynamic diagonal pose
 
 RULES:
-  - Only legs, arms, and slight torso bob may change
-  - Head stays at fixed Y position
-  - Maintain readable silhouette at all frames
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```

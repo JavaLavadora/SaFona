@@ -1,6 +1,6 @@
-# 09 — Ramon: Crouch
+# 06 — Balchar: Sling Attack
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -24,7 +24,7 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
   - Same palette (15 colors), no new colors
-  - Same head position relative to body, belt height, clothing details
+  - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
 REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
@@ -47,31 +47,26 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  64x48 (2 frames)
-  - Frame count: 2
+  - Sheet size:  96x48 (3 frames)
+  - Frame count: 3
   - Frame size:  32x48 each
   - Facing:      RIGHT
 
-BODY SIZE RULE: Character body must be the SAME SIZE as the master idle
-sprite. The body occupies the lower 2/3 of the frame height. The upper 1/3
-is intentional headroom. Do NOT scale the body to fill the entire frame.
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+The sling cord extends above the head into the headroom area. The CHARACTER BODY stays the same size as idle — only the sling uses the extra space.
 
-ANIMATION FRAMES:
-  Frame 1: Crouch idle — Ramon crouching low, knees bent deeply,
-           torso hunched forward, head ducked down. One hand on ground
-           for balance, sling held loosely in the other. Compact pose —
-           character height is roughly HALF of standing height.
-           Feet remain at the same baseline as idle (Y 47).
+ANIMATION DESCRIPTION:
+  Frame 1: Wind-up — right arm pulled back with sling extended behind,
+           body rotated slightly away from target, weight on back foot
+  Frame 2: Mid-rotation — sling swinging overhead in arc,
+           body rotating toward target, dynamic motion blur implied by sling position
+  Frame 3: Release — arm fully extended forward, sling snapping forward,
+           body leaning into throw, weight shifted to front foot
 
-  Frame 2: Crouch idle variant — slight shift in weight or arm position
-           for subtle idle animation while crouching.
+  The fona (sling) is the key element — show the cord and pouch clearly in each phase.
 
-IMPORTANT POSE NOTES:
-  - The crouch must make Ramon significantly shorter (roughly half height)
-  - Knees bent, body compressed downward
-  - Head is lower than standing position (ducking under obstacles)
-  - Feet stay planted at the same Y baseline as all other animations
-  - The crouch pose should look like he's hiding or ducking, not sitting
-
-BACKGROUND: Solid green (#00FF00)
+RULES:
+  - Same identity lock rules as all Balchar animations
+  - Sling must be clearly visible and readable in all 3 frames
+  - Background: solid green (#00FF00)
 ```

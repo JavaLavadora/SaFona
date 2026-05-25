@@ -1,6 +1,6 @@
 # 55 — Tileset: World 1 Cave (Sa Cova des Foner)
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
 
 ---
 
@@ -52,7 +52,7 @@ TILE CONSTRAINTS:
   - Designed for auto-tiling (16 variants generated from these 4)
 
 STYLE RULES:
-  - Match character contrast and shading from Ramon's sprites
+  - Match character contrast and shading from Balchar's sprites
   - Top-left light source
   - Moderate texture — visible stone grain but not noisy
   - Cool blue-grey tones, moss accents

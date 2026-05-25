@@ -1,6 +1,6 @@
-# 04 — Ramon: Wall Slide
+# 09 — Balchar: Crouch
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -24,7 +24,7 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
   - Same palette (15 colors), no new colors
-  - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
+  - Same head position relative to body, belt height, clothing details
   - No redesign, no reinterpretation
 
 REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
@@ -50,17 +50,28 @@ SPRITE CONSTRAINTS:
   - Sheet size:  64x48 (2 frames)
   - Frame count: 2
   - Frame size:  32x48 each
-  - Facing:      RIGHT (body pressed against wall to the right)
+  - Facing:      RIGHT
 
-BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle
+sprite. The body occupies the lower 2/3 of the frame height. The upper 1/3
+is intentional headroom. Do NOT scale the body to fill the entire frame.
 
-ANIMATION DESCRIPTION:
-  Frame 1: Sliding down — body pressed flat against wall (right side),
-           both hands touching wall surface, legs slightly bent,
-           slow descent pose
-  Frame 2: Slight variation — legs position shifts slightly for friction effect
+ANIMATION FRAMES:
+  Frame 1: Crouch idle — Balchar crouching low, knees bent deeply,
+           torso hunched forward, head ducked down. One hand on ground
+           for balance, sling held loosely in the other. Compact pose —
+           character height is roughly HALF of standing height.
+           Feet remain at the same baseline as idle (Y 47).
 
-RULES:
-  - Same identity lock rules as all Ramon animations
-  - Background: solid green (#00FF00)
+  Frame 2: Crouch idle variant — slight shift in weight or arm position
+           for subtle idle animation while crouching.
+
+IMPORTANT POSE NOTES:
+  - The crouch must make Balchar significantly shorter (roughly half height)
+  - Knees bent, body compressed downward
+  - Head is lower than standing position (ducking under obstacles)
+  - Feet stay planted at the same Y baseline as all other animations
+  - The crouch pose should look like he's hiding or ducking, not sitting
+
+BACKGROUND: Solid green (#00FF00)
 ```

@@ -9,7 +9,7 @@
 5. **User feedback = developer task.** When the user reports bugs or requests changes, spawn a developer agent. The PM does NOT implement fixes.
 
 ## Overview
-Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame (Python)**. Set across the Balearic Islands through different historical eras, the player controls Ramon, a grumpy talayotic slinger cursed into time-traveling with his myotragus companion Bep.
+Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame (Python)**. Set across the Balearic Islands through different historical eras, the player controls Balchar, a grumpy talayotic slinger cursed into time-traveling with his myotragus companion Bep.
 
 ## Tech Stack
 - **Framework**: Pygame (Python)

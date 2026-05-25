@@ -226,4 +226,5 @@ class Game:
         driver = pygame.display.get_driver()
         print(f"  Driver : {driver}")
         print("=" * 50)
-        sys.stdout.flush()
+        if sys.stdout is not None:
+            sys.stdout.flush()

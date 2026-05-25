@@ -103,13 +103,27 @@ class SaveSystem:
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 json.dump(self._state, fh, indent=2)
-            os.replace(tmp_path, self._save_path)
+            # On Windows, os.replace can fail with PermissionError if
+            # antivirus or another process has the target file locked.
+            # Retry a few times before falling back to direct write.
+            import time
+            for attempt in range(3):
+                try:
+                    os.replace(tmp_path, self._save_path)
+                    return
+                except PermissionError:
+                    if attempt < 2:
+                        time.sleep(0.1)
+            # Fallback: write directly if atomic replace keeps failing.
+            with open(self._save_path, "w", encoding="utf-8") as fh:
+                json.dump(self._state, fh, indent=2)
         except BaseException:
+            pass
+        finally:
             try:
                 os.unlink(tmp_path)
             except OSError:
                 pass
-            raise
 
     def load(self) -> dict[str, Any] | None:
         """Load game state from disk.

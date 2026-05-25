@@ -53,6 +53,8 @@ class CutsceneScene(BaseScene):
         self._on_load_level = on_load_level
         self._fast_forward = fast_forward
 
+        self._input_cooldown: float = 0.5
+
         self._steps: list[dict[str, Any]] = cutscene_data.get("steps", [])
         self._step_index: int = 0
         self._done: bool = False
@@ -137,6 +139,9 @@ class CutsceneScene(BaseScene):
         if self._done:
             return
 
+        if self._input_cooldown > 0:
+            return
+
         if self._dialogue_active:
             if input_state.jump_pressed or input_state.interact_pressed:
                 complete = self._dialogue_box.advance()
@@ -152,6 +157,9 @@ class CutsceneScene(BaseScene):
         """
         if self._done:
             return
+
+        if self._input_cooldown > 0:
+            self._input_cooldown -= dt
 
         # Always tick effects (even during dialogue/transition).
         self._effects.update(dt)

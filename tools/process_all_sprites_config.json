@@ -314,6 +314,30 @@
       ]
     },
     {
+      "input": "assets/ai_sources/portrait_llull/image.png",
+      "min_area": 3000,
+      "outputs": [
+        {
+          "file": "assets/portraits/llull_neutral.png",
+          "poses": [1],
+          "frame_width": 88,
+          "frame_height": 88
+        },
+        {
+          "file": "assets/portraits/llull_wise.png",
+          "poses": [2],
+          "frame_width": 88,
+          "frame_height": 88
+        },
+        {
+          "file": "assets/portraits/llull_concerned.png",
+          "poses": [3],
+          "frame_width": 88,
+          "frame_height": 88
+        }
+      ]
+    },
+    {
       "input": "assets/ai_sources/fx_dust/image.png",
       "min_area": 3000,
       "outputs": [

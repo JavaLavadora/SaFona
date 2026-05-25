@@ -1,4 +1,4 @@
-"""Process AI-generated Ramon sprite image into game-ready sprite sheets.
+"""Process AI-generated Balchar sprite image into game-ready sprite sheets.
 
 Takes a single AI image with character poses on a green (#00FF00)
 background and produces individual sprite sheets for each animation:
@@ -14,11 +14,11 @@ Wall slide is still synthesized from the idle pose (flipped + shift).
 
 Usage:
     conda activate safona
-    python tools/process_ramon_sprites.py [input_image]
+    python tools/process_balchar_sprites.py [input_image]
 
 Defaults:
-    input:  assets/ai_sources/ramon/image.png
-    output: assets/sprites/ramon/
+    input:  assets/ai_sources/balchar/image.png
+    output: assets/sprites/balchar/
 """
 
 from __future__ import annotations
@@ -558,9 +558,9 @@ def main() -> None:
     input_path = (
         Path(sys.argv[1])
         if len(sys.argv) > 1
-        else PROJECT_ROOT / "assets" / "ai_sources" / "ramon" / "image.png"
+        else PROJECT_ROOT / "assets" / "ai_sources" / "balchar" / "image.png"
     )
-    output_dir = PROJECT_ROOT / "assets" / "sprites" / "ramon"
+    output_dir = PROJECT_ROOT / "assets" / "sprites" / "balchar"
 
     print(f"Input: {input_path}")
     print(f"Output: {output_dir}/")

@@ -1,6 +1,6 @@
 """Charge indicator UI element displayed near the player during sling charge.
 
-Shows a small visual indicator near Ramon that changes color based on
+Shows a small visual indicator near Balchar that changes color based on
 the current charge tier. Uses charge_indicator.png frame strip when
 available (3 frames for tiers 1-3), falling back to colored rectangles.
 

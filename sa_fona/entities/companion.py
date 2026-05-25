@@ -1,4 +1,4 @@
-"""Companion entity (Bep): follows Ramon with simple AI.
+"""Companion entity (Bep): follows Balchar with simple AI.
 
 Bep is a purely visual companion that follows the player around.
 No gameplay interaction -- just visual presence and dialogue trigger.
@@ -34,7 +34,7 @@ BOB_SPEED = 3.0
 
 
 class Companion(Entity):
-    """Bep, the myotragus companion who follows Ramon around.
+    """Bep, the myotragus companion who follows Balchar around.
 
     Purely visual: follows the player with simple chase/lerp AI,
     rendered as a green placeholder rectangle. Does not interact

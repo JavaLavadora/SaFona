@@ -101,11 +101,11 @@ class TestParseGpl:
         with pytest.raises(ValueError, match="out of 0-255 range"):
             parse_gpl(gpl)
 
-    def test_parses_ramon_palette(self) -> None:
-        ramon_gpl = PROJECT_ROOT / "assets" / "palettes" / "ramon.gpl"
-        if not ramon_gpl.exists():
-            pytest.skip("ramon.gpl not available")
-        colors = parse_gpl(ramon_gpl)
+    def test_parses_balchar_palette(self) -> None:
+        balchar_gpl = PROJECT_ROOT / "assets" / "palettes" / "balchar.gpl"
+        if not balchar_gpl.exists():
+            pytest.skip("balchar.gpl not available")
+        colors = parse_gpl(balchar_gpl)
         assert len(colors) == 15
         assert colors.dtype == np.uint8
 
@@ -982,8 +982,8 @@ class TestResolvePalettePath:
     """Tests for palette path resolution."""
 
     def test_resolves_to_palettes_dir(self) -> None:
-        p = resolve_palette_path("ramon")
-        assert p.name == "ramon.gpl"
+        p = resolve_palette_path("balchar")
+        assert p.name == "balchar.gpl"
         assert "palettes" in str(p)
 
 
@@ -991,7 +991,7 @@ class TestCli:
     """Tests for the CLI entry point."""
 
     def test_missing_input_returns_error(self) -> None:
-        exit_code = main(["nonexistent.png", "--palette", "ramon"])
+        exit_code = main(["nonexistent.png", "--palette", "balchar"])
         assert exit_code == 1
 
     def test_missing_palette_returns_error(self, tmp_path: Path) -> None:

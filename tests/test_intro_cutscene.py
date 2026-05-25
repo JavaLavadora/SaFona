@@ -31,7 +31,7 @@ class TestIntroCutsceneData:
     def test_intro_has_key_characters(self):
         data = CutsceneScene.load_cutscene_data("intro")
         speakers = {s.get("speaker", "") for s in data["steps"] if s["type"] == "dialogue"}
-        assert "Ramon" in speakers
+        assert "Balchar" in speakers
         assert "Bep" in speakers
         assert "Es Dimoni de Sant Joan" in speakers
 

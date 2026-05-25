@@ -15,8 +15,8 @@ Palette files are GIMP .gpl text files stored in assets/palettes/.
 
 Usage:
     conda activate safona
-    python tools/clean_sprites.py assets/sprites/ramon/idle.png --palette ramon
-    python tools/clean_sprites.py idle.png --palette ramon --verbose --dry-run
+    python tools/clean_sprites.py assets/sprites/balchar/idle.png --palette balchar
+    python tools/clean_sprites.py idle.png --palette balchar --verbose --dry-run
     python tools/clean_sprites.py tile.png --palette world1 --no-outline
 """
 
@@ -785,7 +785,7 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description="Clean up AI-generated sprite PNGs by enforcing palette compliance.",
-        epilog="Example: python tools/clean_sprites.py assets/sprites/ramon/idle.png --palette ramon",
+        epilog="Example: python tools/clean_sprites.py assets/sprites/balchar/idle.png --palette balchar",
     )
     parser.add_argument(
         "input",
@@ -826,7 +826,7 @@ def resolve_palette_path(name: str) -> Path:
     """Resolve a palette name to its .gpl file path.
 
     Args:
-        name: Palette name (e.g., "ramon").
+        name: Palette name (e.g., "balchar").
 
     Returns:
         Absolute path to the .gpl file.

@@ -10,8 +10,8 @@ from sa_fona.ui.dialogue_box import DialogueBox
 
 # Sample dialogue data for tests.
 _SAMPLE_LINES = [
-    {"speaker": "bep", "portrait": "bep_excited", "text": "Hello, Ramon!"},
-    {"speaker": "ramon", "portrait": "ramon_annoyed", "text": "Leave me alone."},
+    {"speaker": "bep", "portrait": "bep_excited", "text": "Hello, Balchar!"},
+    {"speaker": "balchar", "portrait": "balchar_annoyed", "text": "Leave me alone."},
 ]
 
 _SINGLE_LINE = [

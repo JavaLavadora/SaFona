@@ -13,10 +13,10 @@ from sa_fona.level.tilemap import TILE_SIZE
 from sa_fona.scenes.base_scene import BaseScene
 from sa_fona.systems.physics import PhysicsSystem
 
-# Ramon placeholder dimensions and color.
-_RAMON_WIDTH = PLAYER_SPRITE_WIDTH
-_RAMON_HEIGHT = PLAYER_SPRITE_HEIGHT
-_RAMON_COLOR = (50, 100, 200)
+# Balchar placeholder dimensions and color.
+_BALCHAR_WIDTH = PLAYER_SPRITE_WIDTH
+_BALCHAR_HEIGHT = PLAYER_SPRITE_HEIGHT
+_BALCHAR_COLOR = (50, 100, 200)
 
 # Movement parameters.
 _MOVE_SPEED = 150.0  # px/s horizontal
@@ -80,7 +80,7 @@ class DemoTilemapScene(BaseScene):
         spawn_x = self._level_data.player_spawn[0] * TILE_SIZE
         spawn_y = self._level_data.player_spawn[1] * TILE_SIZE
         self._player_rect = pygame.Rect(
-            spawn_x, spawn_y, _RAMON_WIDTH, _RAMON_HEIGHT
+            spawn_x, spawn_y, _BALCHAR_WIDTH, _BALCHAR_HEIGHT
         )
         self._velocity: list[float] = [0.0, 0.0]
         self._on_ground: bool = False
@@ -96,12 +96,12 @@ class DemoTilemapScene(BaseScene):
         self._event_bus = event_bus or EventBus()
         self._event_bus.subscribe("screen_shake", self._on_screen_shake)
 
-        self._ramon_surface: pygame.Surface | None = None
+        self._balchar_surface: pygame.Surface | None = None
 
     def on_enter(self) -> None:
-        """Pre-render the Ramon placeholder surface."""
-        self._ramon_surface = pygame.Surface((_RAMON_WIDTH, _RAMON_HEIGHT))
-        self._ramon_surface.fill(_RAMON_COLOR)
+        """Pre-render the Balchar placeholder surface."""
+        self._balchar_surface = pygame.Surface((_BALCHAR_WIDTH, _BALCHAR_HEIGHT))
+        self._balchar_surface.fill(_BALCHAR_COLOR)
 
     def handle_input(self, input_state: InputState) -> None:
         """Process input for movement, jumping, shake, and quit.
@@ -163,9 +163,9 @@ class DemoTilemapScene(BaseScene):
         self._tilemap.render_layer(surface, "midground", cam_offset)
 
         # Draw player.
-        if self._ramon_surface is not None:
+        if self._balchar_surface is not None:
             screen_rect = self._camera.apply(self._player_rect)
-            surface.blit(self._ramon_surface, (screen_rect.x, screen_rect.y))
+            surface.blit(self._balchar_surface, (screen_rect.x, screen_rect.y))
 
         # Foreground layer on top.
         self._tilemap.render_layer(surface, "foreground", cam_offset)

@@ -1,4 +1,4 @@
-"""Ramon sprite definitions — idle, walk, jump animations.
+"""Balchar sprite definitions — idle, walk, jump animations.
 
 24x32 pixels per frame. Balearic foner (slinger).
 
@@ -19,9 +19,9 @@ MIRROR = True: sprites are drawn facing left, mirrored to face right
 at generation time.
 """
 
-from tools.sprite_defs.palettes import RAMON_PALETTE
+from tools.sprite_defs.palettes import BALCHAR_PALETTE
 
-PALETTE = RAMON_PALETTE
+PALETTE = BALCHAR_PALETTE
 WIDTH = 24
 HEIGHT = 32
 MIRROR = True

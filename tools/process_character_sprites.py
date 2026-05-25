@@ -5,16 +5,16 @@ A standalone CLI tool that reads a simple JSON config per character and
 produces properly scaled, snapped, horizontal sprite sheets.
 
 Usage:
-    python tools/process_character_sprites.py tools/sprite_defs/characters/ramon.json
+    python tools/process_character_sprites.py tools/sprite_defs/characters/balchar.json
     python tools/process_character_sprites.py tools/sprite_defs/characters/*.json
-    python tools/process_character_sprites.py -v tools/sprite_defs/characters/ramon.json
+    python tools/process_character_sprites.py -v tools/sprite_defs/characters/balchar.json
 
 Config format (JSON):
     {
       "frame_width": 48,
       "frame_height": 64,
-      "source_dir": "assets/ai_sources/ramon",
-      "output_dir": "assets/sprites/ramon",
+      "source_dir": "assets/ai_sources/balchar",
+      "output_dir": "assets/sprites/balchar",
       "animations": [
         {"source": "idle.png", "frames": 4, "scale_pct": 80},
         {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "scale_pct": 100},

@@ -1,8 +1,8 @@
 {
   "frame_width": 48,
   "frame_height": 64,
-  "source_dir": "assets/ai_sources/ramon",
-  "output_dir": "assets/sprites/ramon",
+  "source_dir": "assets/ai_sources/balchar",
+  "output_dir": "assets/sprites/balchar",
   "animations": [
     {"source": "idle.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
     {"source": "walk.png", "frames": 6, "scale_pct": 120, "vertical_snap": "bottom"},

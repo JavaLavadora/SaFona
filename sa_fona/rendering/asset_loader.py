@@ -164,7 +164,7 @@ def load_portrait(portrait_key: str) -> pygame.Surface | None:
 
     Args:
         portrait_key: Key in the manifest's "portraits" section
-            (e.g. "ramon_neutral", "bep_happy").
+            (e.g. "balchar_neutral", "bep_happy").
 
     Returns:
         A pygame Surface, or None if not found.

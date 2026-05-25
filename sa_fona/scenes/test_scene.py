@@ -8,10 +8,10 @@ from sa_fona.core.input_handler import InputState
 from sa_fona.config.settings import PLAYER_SPRITE_HEIGHT, PLAYER_SPRITE_WIDTH
 from sa_fona.scenes.base_scene import BaseScene
 
-# Ramon placeholder dimensions and color.
-_RAMON_WIDTH = PLAYER_SPRITE_WIDTH
-_RAMON_HEIGHT = PLAYER_SPRITE_HEIGHT
-_RAMON_COLOR = (50, 100, 200)
+# Balchar placeholder dimensions and color.
+_BALCHAR_WIDTH = PLAYER_SPRITE_WIDTH
+_BALCHAR_HEIGHT = PLAYER_SPRITE_HEIGHT
+_BALCHAR_COLOR = (50, 100, 200)
 
 # Movement speed in pixels per second.
 _MOVE_SPEED = 150.0
@@ -25,7 +25,7 @@ _TITLE_MARGIN_TOP = 10
 class TestScene(BaseScene):
     """Proof-of-life scene with a movable blue rectangle.
 
-    Displays a blue rectangle representing Ramon at the center of the
+    Displays a blue rectangle representing Balchar at the center of the
     screen. The rectangle moves with arrow keys / WASD input. Pressing
     ESC (pause_pressed) sets the quit_requested flag.
     """
@@ -40,9 +40,9 @@ class TestScene(BaseScene):
         self._screen_width = screen_width
         self._screen_height = screen_height
 
-        # Ramon position (center of screen).
-        self._x = float((screen_width - _RAMON_WIDTH) // 2)
-        self._y = float((screen_height - _RAMON_HEIGHT) // 2)
+        # Balchar position (center of screen).
+        self._x = float((screen_width - _BALCHAR_WIDTH) // 2)
+        self._y = float((screen_height - _BALCHAR_HEIGHT) // 2)
 
         # Velocity components for this frame.
         self._vx = 0.0
@@ -52,7 +52,7 @@ class TestScene(BaseScene):
 
         self._font: pygame.font.Font | None = None
         self._title_surface: pygame.Surface | None = None
-        self._ramon_surface: pygame.Surface | None = None
+        self._balchar_surface: pygame.Surface | None = None
 
     def on_enter(self) -> None:
         """Initialize font and pre-render static surfaces."""
@@ -61,8 +61,8 @@ class TestScene(BaseScene):
         self._title_surface = self._font.render(
             _TITLE_TEXT, True, _TITLE_COLOR
         )
-        self._ramon_surface = pygame.Surface((_RAMON_WIDTH, _RAMON_HEIGHT))
-        self._ramon_surface.fill(_RAMON_COLOR)
+        self._balchar_surface = pygame.Surface((_BALCHAR_WIDTH, _BALCHAR_HEIGHT))
+        self._balchar_surface.fill(_BALCHAR_COLOR)
 
     def handle_input(self, input_state: InputState) -> None:
         """Process input to set velocity and check for quit.
@@ -81,7 +81,7 @@ class TestScene(BaseScene):
             self.quit_requested = True
 
     def update(self, dt: float) -> None:
-        """Update Ramon's position based on velocity and delta time.
+        """Update Balchar's position based on velocity and delta time.
 
         Args:
             dt: Seconds since the last frame.
@@ -90,11 +90,11 @@ class TestScene(BaseScene):
         self._y += self._vy * dt
 
         # Clamp to screen bounds.
-        self._x = max(0.0, min(self._x, self._screen_width - _RAMON_WIDTH))
-        self._y = max(0.0, min(self._y, self._screen_height - _RAMON_HEIGHT))
+        self._x = max(0.0, min(self._x, self._screen_width - _BALCHAR_WIDTH))
+        self._y = max(0.0, min(self._y, self._screen_height - _BALCHAR_HEIGHT))
 
     def render(self, surface: pygame.Surface) -> None:
-        """Render the title text and Ramon rectangle.
+        """Render the title text and Balchar rectangle.
 
         Args:
             surface: The pygame Surface to draw on.
@@ -106,6 +106,6 @@ class TestScene(BaseScene):
             title_x = (self._screen_width - self._title_surface.get_width()) // 2
             surface.blit(self._title_surface, (title_x, _TITLE_MARGIN_TOP))
 
-        # Draw Ramon placeholder.
-        if self._ramon_surface is not None:
-            surface.blit(self._ramon_surface, (int(self._x), int(self._y)))
+        # Draw Balchar placeholder.
+        if self._balchar_surface is not None:
+            surface.blit(self._balchar_surface, (int(self._x), int(self._y)))

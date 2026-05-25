@@ -494,25 +494,25 @@ class TestDialogueCoherence:
                     f"Speaker '{speaker}' should be lowercase in {seq_id}"
                 )
 
-    def test_ramon_tone_grumpy(self):
-        """Ramon's dialogue should be consistently grumpy/reluctant."""
+    def test_balchar_tone_grumpy(self):
+        """Balchar's dialogue should be consistently grumpy/reluctant."""
         data = self._load_json(DATA_DIR / "dialogue" / "world1_dialogue.json")
-        ramon_lines = []
+        balchar_lines = []
         for seq in data.values():
             for line in seq.get("lines", []):
-                if line.get("speaker") == "ramon":
-                    ramon_lines.append(line["text"])
+                if line.get("speaker") == "balchar":
+                    balchar_lines.append(line["text"])
 
-        # Ramon should have at least a few lines.
-        assert len(ramon_lines) >= 3
+        # Balchar should have at least a few lines.
+        assert len(balchar_lines) >= 3
 
         # At least one grumpy/reluctant indicator.
         grumpy_indicators = ["...", "Don't", "annoyed", "luck", "warning"]
         has_grump = any(
             any(ind.lower() in text.lower() for ind in grumpy_indicators)
-            for text in ramon_lines
+            for text in balchar_lines
         )
-        assert has_grump, "Ramon should sound grumpy in his dialogue"
+        assert has_grump, "Balchar should sound grumpy in his dialogue"
 
     def test_bep_tone_cheerful_or_scared(self):
         """Bep's dialogue should sound cheerful, excited, or scared."""

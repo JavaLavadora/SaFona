@@ -127,7 +127,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Clean shadow artefacts from sprite sheets")
     parser.add_argument(
         "--assets-dir",
-        default="assets/sprites/ramon",
+        default="assets/sprites/balchar",
         help="Directory containing sprite sheets",
     )
     parser.add_argument(

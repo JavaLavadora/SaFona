@@ -1,4 +1,4 @@
-"""Player entity (Ramon) with a state-machine driven moveset.
+"""Player entity (Balchar) with a state-machine driven moveset.
 
 States: idle, running, jumping, falling, wall_sliding, wall_jumping.
 Receives physics results from the scene integration layer.  Input is
@@ -63,7 +63,7 @@ _STATE_KEY: dict[PlayerState, str] = {
 
 
 class Player(Entity):
-    """Ramon -- the playable character.
+    """Balchar -- the playable character.
 
     Extends Entity with a finite-state machine for movement,
     variable-height jumping, wall sliding, and wall jumping.
@@ -168,7 +168,7 @@ class Player(Entity):
         }
         for attr, name in anim_paths.items():
             frames = load_frame_strip(
-                f"assets/sprites/ramon/{name}.png",
+                f"assets/sprites/balchar/{name}.png",
                 PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT,
             )
             if frames:

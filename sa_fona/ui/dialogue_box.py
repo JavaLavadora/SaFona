@@ -38,14 +38,14 @@ PORTRAIT_BORDER_COLOR = (200, 180, 130)
 # Fallback map for portrait keys used in dialogues but missing from the
 # asset manifest.  Maps the missing key to the closest available portrait.
 _PORTRAIT_FALLBACK: dict[str, str] = {
-    "ramon_annoyed": "ramon_angry",
+    "balchar_annoyed": "balchar_angry",
     "bep_neutral": "bep_happy",
 }
 
 # Speaker -> portrait color mapping.
 _SPEAKER_COLORS: dict[str, tuple[int, int, int]] = {
     "bep": (50, 180, 80),
-    "ramon": (50, 100, 200),
+    "balchar": (50, 100, 200),
     "narrator": (150, 150, 150),
 }
 _DEFAULT_PORTRAIT_COLOR: tuple[int, int, int] = (120, 100, 140)
@@ -242,7 +242,7 @@ class DialogueBox:
         found in the asset manifest.
 
         Args:
-            portrait_key: The portrait identifier (e.g. "ramon_neutral").
+            portrait_key: The portrait identifier (e.g. "balchar_neutral").
 
         Returns:
             A pygame Surface, or None if not found.

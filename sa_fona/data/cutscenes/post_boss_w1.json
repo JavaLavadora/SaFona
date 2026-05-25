@@ -44,9 +44,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "A mask. Fine.",
-      "portrait": "ramon_neutral"
+      "portrait": "balchar_neutral"
     },
     {
       "type": "spawn_effect",
@@ -62,14 +62,14 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ramon... I feel strange... something is happening!",
+      "text": "Balchar... I feel strange... something is happening!",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Bep, what are you--",
-      "portrait": "ramon_surprised"
+      "portrait": "balchar_surprised"
     },
     {
       "type": "wait",
@@ -119,14 +119,14 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ramon! We have to go through the portal before it closes! I can feel it pulling us!",
+      "text": "Balchar! We have to go through the portal before it closes! I can feel it pulling us!",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "This is your fault, Bep.",
-      "portrait": "ramon_angry"
+      "portrait": "balchar_angry"
     },
     {
       "type": "wait",

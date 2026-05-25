@@ -70,7 +70,7 @@ class GameplayScene(BaseScene):
     """Playable level scene with player, physics, and camera.
 
     Loads a level JSON, creates a PhysicsSystem and Camera, spawns
-    the Player entity (Ramon), and orchestrates per-frame updates.
+    the Player entity (Balchar), and orchestrates per-frame updates.
 
     Args:
         screen_width: Viewport width in pixels.

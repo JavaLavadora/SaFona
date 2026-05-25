@@ -9,14 +9,14 @@ All palettes are SNES 15-bit compliant:
     - Each palette has at most 15 unique non-transparent colors.
 """
 
-# ── Ramon (Player) ────────────────────────────────────────────
+# ── Balchar (Player) ────────────────────────────────────────────
 # Deeply tanned Balearic foner. White headwrap, open white tunic,
 # bright red sash, dark brown pants, leather boots and arm bracers.
 # Sling held in hand with dangling cord.
 #
 # Consolidated from 24 to 15 unique colors. Multiple keys may share
 # the same RGBA value so that existing sprite art is not broken.
-RAMON_PALETTE: dict[str, tuple[int, int, int, int]] = {
+BALCHAR_PALETTE: dict[str, tuple[int, int, int, int]] = {
     ".": (0, 0, 0, 0),
     # Tunic brightest / highlight
     "T": (248, 248, 240, 255),

@@ -51,20 +51,20 @@ Standard format (adapt to whatever the architecture specifies):
     "scene_id": "w1_l1_bep_intro",
     "trigger": "first_encounter",
     "speakers": {
-        "ramon": {"portrait": "ramon_neutral", "name": "Ramon"},
+        "balchar": {"portrait": "balchar_neutral", "name": "Balchar"},
         "bep": {"portrait": "bep_excited", "name": "Bep"}
     },
     "lines": [
         {
             "speaker": "bep",
-            "text": "Ramon! Look at this place! Everything is so... rocky!",
+            "text": "Balchar! Look at this place! Everything is so... rocky!",
             "portrait_override": "bep_excited",
             "sfx": null
         },
         {
-            "speaker": "ramon",
+            "speaker": "balchar",
             "text": "It's a talayot. You've seen it every day of your life.",
-            "portrait_override": "ramon_deadpan",
+            "portrait_override": "balchar_deadpan",
             "sfx": null
         },
         {
@@ -74,7 +74,7 @@ Standard format (adapt to whatever the architecture specifies):
             "sfx": "bep_bleat"
         },
         {
-            "speaker": "ramon",
+            "speaker": "balchar",
             "text": "...Let's just go.",
             "portrait_override": null,
             "sfx": null
@@ -89,7 +89,7 @@ Standard format (adapt to whatever the architecture specifies):
 
 Follow each character's established voice strictly:
 
-**Ramon** — Maximum 2 short sentences. Deadpan. Never enthusiastic.
+**Balchar** — Maximum 2 short sentences. Deadpan. Never enthusiastic.
 ```
 GOOD: "No."  /  "This is your fault, Bep."  /  "I just wanted a nap."
 BAD:  "What an incredible adventure this is turning out to be!"
@@ -98,13 +98,13 @@ BAD:  "I'm worried about what this curse means for our future."
 
 **Bep** — Enthusiastic, rambling, oblivious. 1-3 sentences.
 ```
-GOOD: "Ramon! Did you see that? You were amazing! ...Ramon? That's okay!"
+GOOD: "Balchar! Did you see that? You were amazing! ...Balchar? That's okay!"
 BAD:  "I'm concerned about the structural integrity of this talayot."
 ```
 
-**Llorenç** — Academic excitement. Gets cut off by Ramon.
+**Llorenç** — Academic excitement. Gets cut off by Balchar.
 ```
-GOOD: "Fascinating! This mask channels the fire dimoni of—" Ramon: "No."
+GOOD: "Fascinating! This mask channels the fire dimoni of—" Balchar: "No."
 BAD:  "Here is a mask. It does fire." (too flat — Llorenç is a nerd)
 ```
 
@@ -112,13 +112,13 @@ BAD:  "Here is a mask. It does fire." (too flat — Llorenç is a nerd)
 
 **Bosses** — Arrogant, thematic. Memorable one-liners.
 ```
-GOOD: El Magnat: "Everyone has a price!" Ramon: "I don't even know what money is."
+GOOD: El Magnat: "Everyone has a price!" Balchar: "I don't even know what money is."
 ```
 
 ### Step 4 — Language Guidelines
 
 **English with Balearic terms:**
-- Character names: Ramon, Bep, Llorenç, Bruna
+- Character names: Balchar, Bep, Llorenç, Bruna
 - Places: Sa Talaia, Pollença, Sa Pobla, Eivissa
 - Cultural terms: foner, talayot, dimoni, myotragus, fona, pedres de fona, taula, naveta
 - Historical terms: Comte Mal, fameliars
@@ -126,7 +126,7 @@ GOOD: El Magnat: "Everyone has a price!" Ramon: "I don't even know what money is
 
 **Context through dialogue, not glossary:**
 ```
-GOOD: Bep: "What's a foner?" Ramon: "Someone who throws rocks." Bep: "That's what you do!" Ramon: "...Yes."
+GOOD: Bep: "What's a foner?" Balchar: "Someone who throws rocks." Bep: "That's what you do!" Balchar: "...Yes."
 BAD:  [Glossary popup: "Foner — a Balearic slinger from the talayotic period"]
 ```
 
@@ -135,7 +135,7 @@ Local terms should feel natural. A player who doesn't know Catalan should unders
 ### Step 5 — Write Content by Type
 
 **Cutscene Scripts** — `data/dialogue/cutscenes/`
-- World arrivals (Ramon reacts, Bep excited)
+- World arrivals (Balchar reacts, Bep excited)
 - Dimoni encounters (each world after W1)
 - Boss introductions (2-3 exchanges, unskippable first time)
 - Post-boss transitions (Bep glows, portal opens)
@@ -163,7 +163,7 @@ Local terms should feel natural. A player who doesn't know Catalan should unders
 ### Step 6 — Quality Checks
 
 Before delivering, verify:
-- [ ] Ramon never speaks more than 2 short sentences at once
+- [ ] Balchar never speaks more than 2 short sentences at once
 - [ ] Bep's hints communicate gameplay information without breaking character
 - [ ] No dialogue is longer than necessary — cut ruthlessly
 - [ ] Every interaction is either funny, informative, or both
@@ -188,12 +188,12 @@ Notify **Na Francina** (PM) that content is ready:
 
 | World | Era | Key Historical Facts | Comedic Angle |
 |-------|-----|---------------------|---------------|
-| 1 | Talayotic ~1000 BC | Balearic slingers famous in ancient world, talayot stone towers, bull worship figurines | Ramon is just a guy who wants to nap |
-| 2 | Roman 123 BC | Quintus Caecilius Metellus conquered Balearics, founded Palmaria (Palma), brought roads | Ramon confused by straight lines and bureaucracy |
+| 1 | Talayotic ~1000 BC | Balearic slingers famous in ancient world, talayot stone towers, bull worship figurines | Balchar is just a guy who wants to nap |
+| 2 | Roman 123 BC | Quintus Caecilius Metellus conquered Balearics, founded Palmaria (Palma), brought roads | Balchar confused by straight lines and bureaucracy |
 | 3 | Feudal legends | Comte Mal vampire legend, rural witchcraft, feudal oppression | Gothic horror through the eyes of someone who doesn't scare |
 | 4 | 1550s-1600s | Dragut attacked Pollença 1550, coastal watchtowers, Barbary raids | "Is there a single century where people leave this island alone?" |
-| 5 | Modern | Mass tourism, gentrification, "Se Vende" culture, Magaluf | Ramon's ancestral land is now a hotel |
-| 5.5 | Modern Ibiza | Santa Eulària fameliars folklore, mega-resort culture, Es Vedrà | The final insult to Ramon's patience |
+| 5 | Modern | Mass tourism, gentrification, "Se Vende" culture, Magaluf | Balchar's ancestral land is now a hotel |
+| 5.5 | Modern Ibiza | Santa Eulària fameliars folklore, mega-resort culture, Es Vedrà | The final insult to Balchar's patience |
 
 ## Handoff Report
 

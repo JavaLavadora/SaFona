@@ -1,8 +1,8 @@
-"""Process AI-generated Ramon sprite sheets into game-ready sprite sheets.
+"""Process AI-generated Balchar sprite sheets into game-ready sprite sheets.
 
-Takes individual AI source images from assets/ai_sources/ramon/ (one per
+Takes individual AI source images from assets/ai_sources/balchar/ (one per
 animation) with green backgrounds and number labels, and produces
-horizontal sprite sheets at pixel-art resolution in assets/sprites/ramon/.
+horizontal sprite sheets at pixel-art resolution in assets/sprites/balchar/.
 
 Processing pipeline:
 1. Chroma key removal  -- green background to transparent
@@ -15,16 +15,16 @@ Processing pipeline:
 6. Frame placement -- center horizontally, bottom-align (feet anchored)
    in target frame; death pose is vertically centered instead
 7. Assembly -- combine frames into a single horizontal sprite sheet
-8. Save -- output to assets/sprites/ramon/
+8. Save -- output to assets/sprites/balchar/
 
 Reusable for other characters: accepts source_dir, output_dir, frame_size,
 and a mapping of source->target filenames with expected frame counts.
 
 Usage:
     conda activate safona
-    python tools/process_ramon_ai_sprites.py
-    python tools/process_ramon_ai_sprites.py --source-dir assets/ai_sources/ramon \\
-        --output-dir assets/sprites/ramon --frame-width 24 --frame-height 32
+    python tools/process_balchar_ai_sprites.py
+    python tools/process_balchar_ai_sprites.py --source-dir assets/ai_sources/balchar \\
+        --output-dir assets/sprites/balchar --frame-width 24 --frame-height 32
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # Default mapping: source filename -> (target filename, expected frame count)
-RAMON_MAPPING: list[dict[str, Any]] = [
+BALCHAR_MAPPING: list[dict[str, Any]] = [
     {"source": "idle.png", "target": "idle.png", "frames": 4},
     {"source": "walk.png", "target": "walk.png", "frames": 6},
     {"source": "jump.png", "target": "jump.png", "frames": 2},
@@ -336,7 +336,7 @@ def scale_to_frame_uniform(
     """Scale a sprite using a pre-computed uniform scale factor.
 
     All non-death animations share the same scale (computed from idle
-    dimensions) so Ramon's body stays the same size across poses.
+    dimensions) so Balchar's body stays the same size across poses.
 
     Args:
         sprite: Tightly cropped RGBA array.
@@ -493,7 +493,7 @@ def process_all(
       Pass 1 -- Load every animation, crop all frames, record dimensions.
       Pass 2 -- Compute ONE scale from IDLE animation dimensions, then
                 apply it to ALL non-death animations. Death gets its own
-                independent scale. This ensures Ramon's body stays the
+                independent scale. This ensures Balchar's body stays the
                 same size across all poses (idle, walk, jump, hit, etc.).
 
     Args:
@@ -502,13 +502,13 @@ def process_all(
         frame_w: Width of each frame.
         frame_h: Height of each frame.
         mapping: List of dicts with 'source', 'target', 'frames' keys.
-            Defaults to RAMON_MAPPING.
+            Defaults to BALCHAR_MAPPING.
 
     Returns:
         Tuple of (successes, failures).
     """
     if mapping is None:
-        mapping = RAMON_MAPPING
+        mapping = BALCHAR_MAPPING
 
     # ------------------------------------------------------------------
     # Pass 1: Load, chroma-remove, detect, crop all animations
@@ -673,20 +673,20 @@ def process_all(
 
 
 def main() -> None:
-    """CLI entry point for processing Ramon AI sprites."""
+    """CLI entry point for processing Balchar AI sprites."""
     parser = argparse.ArgumentParser(
         description="Process AI-generated sprite sheets into game-ready format.",
     )
     parser.add_argument(
         "--source-dir",
         type=Path,
-        default=PROJECT_ROOT / "assets" / "ai_sources" / "ramon",
+        default=PROJECT_ROOT / "assets" / "ai_sources" / "balchar",
         help="Directory containing AI source PNGs",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=PROJECT_ROOT / "assets" / "sprites" / "ramon",
+        default=PROJECT_ROOT / "assets" / "sprites" / "balchar",
         help="Directory for output sprite sheets",
     )
     parser.add_argument(
@@ -712,7 +712,7 @@ def main() -> None:
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    log.info("Ramon AI Sprite Processor")
+    log.info("Balchar AI Sprite Processor")
     log.info("  Source: %s", args.source_dir)
     log.info("  Output: %s", args.output_dir)
     log.info("  Frame size: %dx%d", args.frame_width, args.frame_height)

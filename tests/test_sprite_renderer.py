@@ -21,7 +21,7 @@ class TestSpriteRendererPlaceholders:
     def _manifest(self) -> dict:
         """Return a small test manifest."""
         return {
-            "ramon_idle": {
+            "balchar_idle": {
                 "frame_width": 24,
                 "frame_height": 32,
                 "frame_count": 4,
@@ -43,10 +43,10 @@ class TestSpriteRendererPlaceholders:
             },
         }
 
-    def test_load_and_get_frame_ramon_blue(self) -> None:
-        """Ramon assets should produce blue (50, 100, 200) surfaces."""
+    def test_load_and_get_frame_balchar_blue(self) -> None:
+        """Balchar assets should produce blue (50, 100, 200) surfaces."""
         renderer = SpriteRenderer(self._manifest())
-        frame = renderer.get_frame("ramon_idle", 0)
+        frame = renderer.get_frame("balchar_idle", 0)
 
         assert frame.get_size() == (24, 32)
         assert frame.get_at((0, 0))[:3] == (50, 100, 200)
@@ -75,20 +75,20 @@ class TestSpriteRendererPlaceholders:
     def test_frame_count_matches_manifest(self) -> None:
         """Number of generated frames should match manifest frame_count."""
         renderer = SpriteRenderer(self._manifest())
-        renderer.load_sprite_sheet("ramon_idle")
+        renderer.load_sprite_sheet("balchar_idle")
 
         # All 4 frames should be accessible.
         for i in range(4):
-            renderer.get_frame("ramon_idle", i)
+            renderer.get_frame("balchar_idle", i)
 
         with pytest.raises(IndexError):
-            renderer.get_frame("ramon_idle", 4)
+            renderer.get_frame("balchar_idle", 4)
 
     def test_get_frame_auto_loads(self) -> None:
         """get_frame should auto-load the sprite sheet if not loaded."""
         renderer = SpriteRenderer(self._manifest())
         # No explicit load_sprite_sheet call.
-        frame = renderer.get_frame("ramon_idle", 0)
+        frame = renderer.get_frame("balchar_idle", 0)
 
         assert frame is not None
 
@@ -102,8 +102,8 @@ class TestSpriteRendererPlaceholders:
     def test_cached_frames_are_same_objects(self) -> None:
         """Subsequent calls to get_frame should return the cached surface."""
         renderer = SpriteRenderer(self._manifest())
-        frame_a = renderer.get_frame("ramon_idle", 0)
-        frame_b = renderer.get_frame("ramon_idle", 0)
+        frame_a = renderer.get_frame("balchar_idle", 0)
+        frame_b = renderer.get_frame("balchar_idle", 0)
 
         assert frame_a is frame_b
 
@@ -164,7 +164,7 @@ class TestAnimation:
     def test_create_animation_via_renderer(self) -> None:
         """SpriteRenderer.create_animation should produce a working Animation."""
         manifest = {
-            "ramon_idle": {
+            "balchar_idle": {
                 "frame_width": 24,
                 "frame_height": 32,
                 "frame_count": 4,
@@ -172,7 +172,7 @@ class TestAnimation:
         }
         renderer = SpriteRenderer(manifest)
         anim = renderer.create_animation(
-            "ramon_idle", [0, 1, 2, 3], [0.1, 0.1, 0.1, 0.1]
+            "balchar_idle", [0, 1, 2, 3], [0.1, 0.1, 0.1, 0.1]
         )
 
         assert isinstance(anim, Animation)

@@ -1,6 +1,6 @@
 # 56 — Tileset: World 1 Talayot (Es Talayot Sagrat)
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
 
 ---
 
@@ -24,7 +24,7 @@ ENVIRONMENT: Interior of ancient stone tower. Precisely cut limestone blocks,
   faint carved bull motifs, torch-lit amber glow, stone archways.
   Warmer than cave, more architectural than outdoor.
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for contrast/shading match]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for contrast/shading match]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   32,24,16     Dark outline
@@ -53,7 +53,7 @@ TILE CONSTRAINTS:
   - Designed for auto-tiling (16 variants generated from these 4)
 
 STYLE RULES:
-  - Match character contrast and shading from Ramon's sprites
+  - Match character contrast and shading from Balchar's sprites
   - Top-left light source
   - Moderate texture — carved stone blocks, not rough
   - Warm amber tones, architectural precision

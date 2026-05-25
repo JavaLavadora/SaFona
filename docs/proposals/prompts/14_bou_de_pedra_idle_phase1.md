@@ -1,6 +1,6 @@
 # 14 — Bou de Pedra: Master Idle (Phase 1)
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) so tile contrast and shading matches the player character.
 
 ---
 
@@ -21,10 +21,10 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Layout:        Single horizontal row, poses numbered, clear spacing
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon (talayotic Balearic, Bronze Age)
-  - Same shading logic and pixel density as Ramon
+  - Must belong to the same world as Balchar (talayotic Balearic, Bronze Age)
+  - Same shading logic and pixel density as Balchar
   - Same outline treatment
-  - Different identity: Ramon is human, Bou is a stone construct
+  - Different identity: Balchar is human, Bou is a stone construct
 
 CHARACTER IDENTITY:
   - Name:        Es Bou de Pedra (The Stone Bull)
@@ -41,7 +41,7 @@ VISUAL DETAILS:
   - Phase 1:     Grey stone, neutral amber rune glow, calm but imposing
   - Expression:  Eyeless — menace conveyed through posture and glowing cracks
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 12 colors — RGB values):
   144,144,144  Stone base / Phase 1 accent

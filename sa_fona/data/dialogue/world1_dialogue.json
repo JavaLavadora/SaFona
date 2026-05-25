@@ -6,20 +6,20 @@
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "Ramon! Move! The sheep are acting strange!",
+        "text": "Balchar! Move! The sheep are acting strange!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "...They're sheep. They're always strange.",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_angry",
+        "speaker": "balchar",
+        "portrait": "balchar_angry",
         "text": "And since when is this my problem?",
         "sfx": null,
         "auto_advance_ms": null
@@ -32,8 +32,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "Give me a second, I'm tired of walking.",
         "sfx": null,
         "auto_advance_ms": null
@@ -41,13 +41,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Come on Ramon! Use the arrow keys or A/D to move. Press Space to jump!",
+        "text": "Come on Balchar! Use the arrow keys or A/D to move. Press Space to jump!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_smirk",
+        "speaker": "balchar",
+        "portrait": "balchar_smirk",
         "text": "I liked you better when you could not talk.",
         "sfx": null,
         "auto_advance_ms": null
@@ -61,13 +61,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Jump, Ramon! They say the devil will eat you if you fall in those pits!",
+        "text": "Jump, Balchar! They say the devil will eat you if you fall in those pits!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "I'm not scared of a few holes in the ground. But I don't want to stain my new robe either.",
         "sfx": null,
         "auto_advance_ms": null
@@ -81,13 +81,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "Ramon, look out! That sheep has glowing red eyes!",
+        "text": "Balchar, look out! That sheep has glowing red eyes!",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Possessed livestock. Just my luck.",
         "sfx": null,
         "auto_advance_ms": null
@@ -133,8 +133,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "Sa Cova des Bous... this is a place of magic. The best warriors of the island train here. I hope we don't come accross any of them.",
         "sfx": null,
         "auto_advance_ms": null
@@ -195,13 +195,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_neutral",
-        "text": "Looks a bit tight for you Ramon...",
+        "text": "Looks a bit tight for you Balchar...",
         "sfx": null,
         "auto_advance_ms": null
       },
      {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "What do you mean tight for me?",
         "sfx": null,
         "auto_advance_ms": null
@@ -234,8 +234,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Es Talayot Sagrat des Migdia... my people were forced to build these. Never thought I'd climb one from the inside.",
         "sfx": null,
         "auto_advance_ms": null
@@ -274,15 +274,15 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_surprised",
+        "speaker": "balchar",
+        "portrait": "balchar_surprised",
         "text": "Wow, that's a Stone Guardian! My grandma used to tell me stories about them",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_angry",
+        "speaker": "balchar",
+        "portrait": "balchar_angry",
         "text": " It is said that they can destroy complete villages with just a swing of their arm",
         "sfx": null,
         "auto_advance_ms": null
@@ -295,8 +295,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_smirk",
+        "speaker": "balchar",
+        "portrait": "balchar_smirk",
         "text": "Well, I guess there is only one way to find out... This one seems trapped, it should not be a problem",
         "sfx": null,
         "auto_advance_ms": null
@@ -322,8 +322,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Needs more force than my feet. We'll come back.",
         "sfx": null,
         "auto_advance_ms": null
@@ -342,8 +342,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "Sa Porta des Bou must be near, stay close.",
         "sfx": null,
         "auto_advance_ms": null
@@ -362,8 +362,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Someone left these here for a reason. Probably a warning.",
         "sfx": null,
         "auto_advance_ms": null
@@ -382,8 +382,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "Es Bou de Pedra is beyond that gate. Ready your stones.",
         "sfx": null,
         "auto_advance_ms": null
@@ -397,13 +397,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Bon dia, Ramon! Welcome to the test level.",
+        "text": "Bon dia, Balchar! Welcome to the test level.",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Another cursed place. Let's get this over with.",
         "sfx": null,
         "auto_advance_ms": null

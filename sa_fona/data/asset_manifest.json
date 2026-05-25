@@ -1,55 +1,55 @@
 {
   "sprites": {
-    "ramon_idle": {
-      "path": "assets/sprites/ramon/idle.png",
+    "balchar_idle": {
+      "path": "assets/sprites/balchar/idle.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 4
     },
-    "ramon_walk": {
-      "path": "assets/sprites/ramon/walk.png",
+    "balchar_walk": {
+      "path": "assets/sprites/balchar/walk.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 6
     },
-    "ramon_jump": {
-      "path": "assets/sprites/ramon/jump.png",
+    "balchar_jump": {
+      "path": "assets/sprites/balchar/jump.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 2
     },
-    "ramon_wall_slide": {
-      "path": "assets/sprites/ramon/wall_slide.png",
+    "balchar_wall_slide": {
+      "path": "assets/sprites/balchar/wall_slide.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 2
     },
-    "ramon_wall_jump": {
-      "path": "assets/sprites/ramon/wall_jump.png",
+    "balchar_wall_jump": {
+      "path": "assets/sprites/balchar/wall_jump.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 2
     },
-    "ramon_sling": {
-      "path": "assets/sprites/ramon/sling.png",
+    "balchar_sling": {
+      "path": "assets/sprites/balchar/sling.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 3
     },
-    "ramon_hit": {
-      "path": "assets/sprites/ramon/hit.png",
+    "balchar_hit": {
+      "path": "assets/sprites/balchar/hit.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 1
     },
-    "ramon_death": {
-      "path": "assets/sprites/ramon/death.png",
+    "balchar_death": {
+      "path": "assets/sprites/balchar/death.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 1
     },
-    "ramon_crouch": {
-      "path": "assets/sprites/ramon/crouch.png",
+    "balchar_crouch": {
+      "path": "assets/sprites/balchar/crouch.png",
       "frame_width": 48,
       "frame_height": 64,
       "frame_count": 2
@@ -422,23 +422,23 @@
     }
   },
   "portraits": {
-    "ramon_neutral": {
-      "path": "assets/portraits/ramon_neutral.png",
+    "balchar_neutral": {
+      "path": "assets/portraits/balchar_neutral.png",
       "width": 44,
       "height": 44
     },
-    "ramon_angry": {
-      "path": "assets/portraits/ramon_angry.png",
+    "balchar_angry": {
+      "path": "assets/portraits/balchar_angry.png",
       "width": 44,
       "height": 44
     },
-    "ramon_surprised": {
-      "path": "assets/portraits/ramon_surprised.png",
+    "balchar_surprised": {
+      "path": "assets/portraits/balchar_surprised.png",
       "width": 44,
       "height": 44
     },
-    "ramon_smirk": {
-      "path": "assets/portraits/ramon_smirk.png",
+    "balchar_smirk": {
+      "path": "assets/portraits/balchar_smirk.png",
       "width": 44,
       "height": 44
     },

@@ -188,11 +188,11 @@ def generate_custom_sprite(
 
 SPRITE_REGISTRY: list[dict[str, str]] = [
     # Player
-    {"module": "tools.sprite_defs.ramon", "animation": "idle", "manifest_key": "ramon_idle"},
-    {"module": "tools.sprite_defs.ramon", "animation": "walk", "manifest_key": "ramon_walk"},
-    {"module": "tools.sprite_defs.ramon", "animation": "jump", "manifest_key": "ramon_jump"},
-    {"module": "tools.sprite_defs.ramon", "animation": "wall_slide", "manifest_key": "ramon_wall_slide"},
-    {"module": "tools.sprite_defs.ramon", "animation": "wall_jump", "manifest_key": "ramon_wall_jump"},
+    {"module": "tools.sprite_defs.balchar", "animation": "idle", "manifest_key": "balchar_idle"},
+    {"module": "tools.sprite_defs.balchar", "animation": "walk", "manifest_key": "balchar_walk"},
+    {"module": "tools.sprite_defs.balchar", "animation": "jump", "manifest_key": "balchar_jump"},
+    {"module": "tools.sprite_defs.balchar", "animation": "wall_slide", "manifest_key": "balchar_wall_slide"},
+    {"module": "tools.sprite_defs.balchar", "animation": "wall_jump", "manifest_key": "balchar_wall_jump"},
     # Companion
     {"module": "tools.sprite_defs.bep", "animation": "idle", "manifest_key": "bep_idle"},
     # Enemies

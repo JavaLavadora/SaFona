@@ -1,11 +1,11 @@
-# 08 — Ramon: Death
+# 06 — Balchar: Sling Attack
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
 ```
-Create a SNES-style 16-bit pixel art sprite.
+Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Style:         Authentic SNES-era 16-bit pixel art
@@ -27,7 +27,7 @@ CRITICAL IDENTITY LOCK:
   - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight
@@ -47,19 +47,26 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  32x48 (1 frame)
-  - Frame size:  32x48
+  - Sheet size:  96x48 (3 frames)
+  - Frame count: 3
+  - Frame size:  32x48 each
   - Facing:      RIGHT
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
-Horizontal pose uses width, not headroom.
+The sling cord extends above the head into the headroom area. The CHARACTER BODY stays the same size as idle — only the sling uses the extra space.
 
 ANIMATION DESCRIPTION:
-  Single frame: Collapsed — body slumped on the ground,
-  lying on back or side, limbs limp, sling dropped nearby.
-  Clear "defeated" pose, not graphic.
+  Frame 1: Wind-up — right arm pulled back with sling extended behind,
+           body rotated slightly away from target, weight on back foot
+  Frame 2: Mid-rotation — sling swinging overhead in arc,
+           body rotating toward target, dynamic motion blur implied by sling position
+  Frame 3: Release — arm fully extended forward, sling snapping forward,
+           body leaning into throw, weight shifted to front foot
+
+  The fona (sling) is the key element — show the cord and pouch clearly in each phase.
 
 RULES:
-  - Same identity lock rules as all Ramon animations
+  - Same identity lock rules as all Balchar animations
+  - Sling must be clearly visible and readable in all 3 frames
   - Background: solid green (#00FF00)
 ```

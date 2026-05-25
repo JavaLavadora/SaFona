@@ -1,11 +1,11 @@
-# 05 — Ramon: Wall Jump
+# 07 — Balchar: Hit
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
 ```
-Create a SNES-style 16-bit pixel art sprite sheet.
+Create a SNES-style 16-bit pixel art sprite.
 
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Style:         Authentic SNES-era 16-bit pixel art
@@ -27,7 +27,7 @@ CRITICAL IDENTITY LOCK:
   - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight
@@ -47,21 +47,19 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  64x48 (2 frames)
-  - Frame count: 2
-  - Frame size:  32x48 each
-  - Facing:      RIGHT (jumping away from wall to the left)
+  - Sheet size:  32x48 (1 frame)
+  - Frame size:  32x48
+  - Facing:      RIGHT
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
-Dynamic pose may use full frame including headroom.
+Recoil pose may use headroom. Body proportions stay identical to idle.
 
 ANIMATION DESCRIPTION:
-  Frame 1: Push-off — legs coiled against wall, body leaning away,
-           arms reaching in jump direction
-  Frame 2: Airborne — body fully extended away from wall, legs trailing,
-           dynamic diagonal pose
+  Single frame: Recoil — body bent backward from impact,
+  arms flung slightly outward, grimacing expression,
+  slight backward lean as if struck in the chest.
 
 RULES:
-  - Same identity lock rules as all Ramon animations
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```

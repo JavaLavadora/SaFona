@@ -11,7 +11,7 @@ from sa_fona.rendering.asset_loader import load_frame_strip
 
 
 _PLACEHOLDER_COLORS: list[tuple[str, tuple[int, int, int]]] = [
-    ("ramon", (50, 100, 200)),
+    ("balchar", (50, 100, 200)),
     ("bep", (50, 180, 80)),
     ("enemy", (200, 50, 50)),
 ]

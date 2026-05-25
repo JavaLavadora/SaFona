@@ -6,7 +6,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Ramon, your sling! Press J to swing it. Hold J to charge a ranged shot!",
+        "text": "Balchar, your sling! Press J to swing it. Hold J to charge a ranged shot!",
         "sfx": null,
         "auto_advance_ms": null
       }
@@ -45,7 +45,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "I can see the exit up ahead! Keep going, Ramon!",
+        "text": "I can see the exit up ahead! Keep going, Balchar!",
         "sfx": null,
         "auto_advance_ms": null
       }

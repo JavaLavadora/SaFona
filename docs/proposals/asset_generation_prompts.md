@@ -3,7 +3,7 @@
 All prompts follow the [Asset Style Guide](asset_style_guide.md).
 Palettes reference `.gpl` files in `assets/palettes/`.
 
-**Style chain (World 1):** Ramon (master) -> Bou de Pedra (boss) -> All enemies/NPCs
+**Style chain (World 1):** Balchar (master) -> Bou de Pedra (boss) -> All enemies/NPCs
 
 **Generation rules:**
 - Background: Solid bright green `#00FF00` for chroma-key removal
@@ -36,9 +36,9 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 
 ---
 
-# 1. RAMON (Player Character)
+# 1. BALCHAR (Player Character)
 
-**Palette** (`assets/palettes/ramon.gpl` — 15 colors):
+**Palette** (`assets/palettes/balchar.gpl` — 15 colors):
 
 ```
 248 248 240  Tunic highlight
@@ -58,7 +58,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
  64  48  32  Pants / boots darkest
 ```
 
-### 1.1 Ramon — Master Idle Sprite (GENERATE FIRST)
+### 1.1 Balchar — Master Idle Sprite (GENERATE FIRST)
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
@@ -66,7 +66,7 @@ Create a SNES-style 16-bit pixel art sprite.
 GLOBAL STYLE CONSTRAINTS APPLY.
 
 CHARACTER IDENTITY:
-  - Name:    Ramon
+  - Name:    Balchar
   - Culture: Talayotic Balearic civilization (pre-Roman Mallorca)
   - Era:     Bronze Age / Iron Age Mediterranean
   - Role:    Slinger warrior, reluctant hero
@@ -114,12 +114,12 @@ the head (sling overhead, raised arms, jump poses). Do NOT scale the body
 to fill the entire frame — leave headroom.
 
 IMPORTANT:
-This sprite is the MASTER reference for all of Ramon's animations.
+This sprite is the MASTER reference for all of Balchar's animations.
 Design must be clean, readable, and reusable. All future poses must match
 this exact design — proportions, face, clothing, colors.
 ```
 
-**Sprite Anatomy Map — Ramon:**
+**Sprite Anatomy Map — Balchar:**
 
 ```
 - Headroom:      Y 0-10 reserved for overhead content in other animations
@@ -133,7 +133,7 @@ Allowed to move: arms, sling, torso rotation, cloth sway
 Forbidden: head position, leg length, belt height, palette changes
 ```
 
-### 1.2 Ramon — Walk Cycle
+### 1.2 Balchar — Walk Cycle
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
@@ -149,7 +149,7 @@ CRITICAL IDENTITY LOCK:
 
 REFERENCE: Use the provided MASTER idle sprite as visual authority
 
-PALETTE: (same 15 colors as idle — see Ramon palette above)
+PALETTE: (same 15 colors as idle — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  192x48 (6 frames)
@@ -176,7 +176,7 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-### 1.3 Ramon — Jump (2 frames)
+### 1.3 Balchar — Jump (2 frames)
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
@@ -187,7 +187,7 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same palette (15 colors), same proportions, same design
 
-PALETTE: (same 15 colors as idle — see Ramon palette above)
+PALETTE: (same 15 colors as idle — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  64x48 (2 frames)
@@ -205,19 +205,19 @@ ANIMATION DESCRIPTION:
            sling streaming upward, body angled slightly downward
 
 RULES:
-  - Same identity lock rules as all Ramon animations
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```
 
-### 1.4 Ramon — Wall Slide (2 frames)
+### 1.4 Balchar — Wall Slide (2 frames)
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS APPLY.
-CRITICAL IDENTITY LOCK (same as all Ramon animations).
+CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
-PALETTE: (same 15 colors — see Ramon palette above)
+PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  64x48 (2 frames)
@@ -238,15 +238,15 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-### 1.5 Ramon — Wall Jump (2 frames)
+### 1.5 Balchar — Wall Jump (2 frames)
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS APPLY.
-CRITICAL IDENTITY LOCK (same as all Ramon animations).
+CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
-PALETTE: (same 15 colors — see Ramon palette above)
+PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  64x48 (2 frames)
@@ -268,15 +268,15 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-### 1.6 Ramon — Sling Attack (3 frames)
+### 1.6 Balchar — Sling Attack (3 frames)
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
 GLOBAL STYLE CONSTRAINTS APPLY.
-CRITICAL IDENTITY LOCK (same as all Ramon animations).
+CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
-PALETTE: (same 15 colors — see Ramon palette above)
+PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  96x48 (3 frames)
@@ -303,15 +303,15 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-### 1.7 Ramon — Hit (1 frame)
+### 1.7 Balchar — Hit (1 frame)
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
 GLOBAL STYLE CONSTRAINTS APPLY.
-CRITICAL IDENTITY LOCK (same as all Ramon animations).
+CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
-PALETTE: (same 15 colors — see Ramon palette above)
+PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  32x48 (1 frame)
@@ -331,15 +331,15 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-### 1.8 Ramon — Death (1 frame)
+### 1.8 Balchar — Death (1 frame)
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
 GLOBAL STYLE CONSTRAINTS APPLY.
-CRITICAL IDENTITY LOCK (same as all Ramon animations).
+CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
-PALETTE: (same 15 colors — see Ramon palette above)
+PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
   - Sheet size:  32x48 (1 frame)
@@ -411,8 +411,8 @@ PALETTE (use ONLY these 9 colors):
   80,56,32     Hooves
 
 STYLE CONSISTENCY:
-  - Must belong to the same world as Ramon (the player character)
-  - Same shading logic and pixel density as Ramon
+  - Must belong to the same world as Balchar (the player character)
+  - Same shading logic and pixel density as Balchar
   - Same outline treatment (dark outline color)
 
 SPRITE CONSTRAINTS:
@@ -523,7 +523,7 @@ Background: solid green (#00FF00)
  64  88  48  Moss accent
 ```
 
-**Reference character: Ramon** (same world, same era — Bou is the first non-player character
+**Reference character: Balchar** (same world, same era — Bou is the first non-player character
 to be generated for World 1, establishing the enemy visual tone).
 
 ### 3.1 Bou de Pedra — Master Idle Phase 1 (GENERATE FIRST)
@@ -534,10 +534,10 @@ Create a SNES-style 16-bit pixel art sprite.
 GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon (talayotic Balearic, Bronze Age)
-  - Same shading logic and pixel density as Ramon
+  - Must belong to the same world as Balchar (talayotic Balearic, Bronze Age)
+  - Same shading logic and pixel density as Balchar
   - Same outline treatment
-  - Different identity: Ramon is human, Bou is a stone construct
+  - Different identity: Balchar is human, Bou is a stone construct
 
 CHARACTER IDENTITY:
   - Name:        Es Bou de Pedra (The Stone Bull)
@@ -796,7 +796,7 @@ STYLE CONSISTENCY RULES:
 
 CHARACTER IDENTITY:
   - Role:          Common enemy — corrupted Mediterranean sheep
-  - Culture:       Talayotic Balearic (same era as Ramon)
+  - Culture:       Talayotic Balearic (same era as Balchar)
   - Differentiators: Small woolly body, glowing red possessed eyes,
                      hunched aggressive stance. NOT a stone creature —
                      this is an organic animal corrupted by dimoni energy.
@@ -922,13 +922,13 @@ STYLE CONSISTENCY RULES:
 
 CHARACTER IDENTITY:
   - Role:          Mid-tier enemy — hostile tribal warrior
-  - Culture:       Competing talayotic tribe (same Balearic Bronze Age as Ramon)
+  - Culture:       Competing talayotic tribe (same Balearic Bronze Age as Balchar)
   - Differentiators: Human fighter with stone weapons and animal hide armor.
-                     Slightly taller and leaner than Ramon.
+                     Slightly taller and leaner than Balchar.
                      Darker skin, messy dark hair with war paint stripes on face.
 
 VISUAL DETAILS:
-  - Body:      Lean warrior build, slightly taller than Ramon
+  - Body:      Lean warrior build, slightly taller than Balchar
   - Clothing:  Dark brown animal hide armor/tunic, leather arm wrappings
   - Weapon:    Stone club held in one hand
   - Hair:      Messy dark hair, no headband
@@ -1147,7 +1147,7 @@ Create a SNES-style 16-bit pixel art sprite.
 GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon
+  - Must belong to the same world as Balchar
   - Same shading logic and pixel density
   - Same outline treatment
   - Supernatural character — darker and more dramatic than human characters
@@ -1251,7 +1251,7 @@ Create a SNES-style 16-bit pixel art sprite.
 GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon
+  - Must belong to the same world as Balchar
   - Same shading logic and pixel density
   - Same outline treatment
   - Friendly NPC — warmer body language than enemies
@@ -1259,16 +1259,16 @@ STYLE CONSISTENCY RULES:
 CHARACTER IDENTITY:
   - Name:    Llorenç
   - Role:    Friendly NPC shopkeeper / scholar from Menorca
-  - Culture: Talayotic warrior-scholar (same era as Ramon)
-  - Differentiators: Slightly taller and leaner than Ramon, friendly expression,
+  - Culture: Talayotic warrior-scholar (same era as Balchar)
+  - Differentiators: Slightly taller and leaner than Balchar, friendly expression,
                      cream linen shirt, olive green vest, terracotta apron,
                      leather satchel. Enthusiastic about artifacts.
 
 VISUAL DETAILS:
-  - Body:      Lean, slightly taller than Ramon
+  - Body:      Lean, slightly taller than Balchar
   - Clothing:  Cream linen shirt, olive green vest over it, terracotta apron
   - Hair:      Dark hair and beard
-  - Expression: Friendly, enthusiastic (contrast to Ramon's grumpiness)
+  - Expression: Friendly, enthusiastic (contrast to Balchar's grumpiness)
   - Accessories: Leather satchel visible at side
   - Size:      20x36 pixels
 
@@ -1528,7 +1528,7 @@ TILE CONSTRAINTS:
   - Designed for auto-tiling (16 variants generated from these 4)
 
 STYLE RULES:
-  - Match character contrast and shading from Ramon's sprites
+  - Match character contrast and shading from Balchar's sprites
   - Top-left light source
   - Moderate texture — visible stone grain but not noisy
   - Grass on top surfaces, stone on sides and interior
@@ -1667,18 +1667,18 @@ COMPOSITION:
 
 Follow this order to maintain the style chain:
 
-1. **Ramon idle** (master reference for the entire world)
-2. **Ramon all other animations** (walk, jump, wall slide, wall jump, sling, hit, death)
-3. **Bep idle** (companion, references Ramon's world style)
+1. **Balchar idle** (master reference for the entire world)
+2. **Balchar all other animations** (walk, jump, wall slide, wall jump, sling, hit, death)
+3. **Bep idle** (companion, references Balchar's world style)
 4. **Bep all other animations**
-5. **Bou de Pedra idle Phase 1** (boss, references Ramon — establishes enemy visual tone)
+5. **Bou de Pedra idle Phase 1** (boss, references Balchar — establishes enemy visual tone)
 6. **Bou de Pedra all phases and animations**
 7. **Bou de Pedra arena props** (pillars, rock, shockwave, pulse, shadow)
 8. **Stone Guardian** (references Bou — both are stone constructs)
 9. **Rival Warrior** (references Bou's world style)
 10. **Possessed Sheep** (references Bou's world style)
-11. **Dimoni** (NPC, references Ramon's world)
-12. **Llorenç** (NPC, references Ramon's world)
+11. **Dimoni** (NPC, references Balchar's world)
+12. **Llorenç** (NPC, references Balchar's world)
 13. **Pickups** (heart, stone)
 14. **Breakables** (pot, crate)
 15. **Projectiles** (3 tiers)

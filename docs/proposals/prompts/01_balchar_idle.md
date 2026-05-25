@@ -1,6 +1,6 @@
-# 01 — Ramon: Master Idle Sprite
+# 01 — Balchar: Master Idle Sprite
 
-> **This is the FIRST asset to generate.** Ramon's idle is the master reference for the entire game world. No reference sprite needed — this IS the reference.
+> **This is the FIRST asset to generate.** Balchar's idle is the master reference for the entire game world. No reference sprite needed — this IS the reference.
 
 ---
 
@@ -21,7 +21,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Layout:        Single horizontal row, poses numbered, clear spacing
 
 CHARACTER IDENTITY:
-  - Name:    Ramon
+  - Name:    Balchar
   - Culture: Talayotic Balearic civilization (pre-Roman Mallorca)
   - Era:     Bronze Age / Iron Age Mediterranean
   - Role:    Slinger warrior, reluctant hero
@@ -69,12 +69,12 @@ the head (sling overhead, raised arms, jump poses). Do NOT scale the body
 to fill the entire frame — leave headroom.
 
 IMPORTANT:
-This sprite is the MASTER reference for all of Ramon's animations.
+This sprite is the MASTER reference for all of Balchar's animations.
 Design must be clean, readable, and reusable for all animations.
 All future poses must match this exact design — proportions, face, clothing, colors.
 ```
 
-**Sprite Anatomy Map (save this for all future Ramon prompts):**
+**Sprite Anatomy Map (save this for all future Balchar prompts):**
 
 ```
 - Headroom:      Y 0-10 reserved for overhead content in other animations

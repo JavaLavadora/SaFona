@@ -59,7 +59,7 @@ class MeleeHitbox:
 
 
 class SlingSystem:
-    """Handles Ramon's sling tap/hold/charge/release mechanics.
+    """Handles Balchar's sling tap/hold/charge/release mechanics.
 
     The system transitions through states:
 

@@ -1,6 +1,6 @@
 # 09 — Bep: Master Idle Sprite
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as world-style reference. Bep must match Ramon's world visually.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as world-style reference. Bep must match Balchar's world visually.
 
 ---
 
@@ -36,11 +36,11 @@ VISUAL DETAILS:
   - Expression:  Cheerful, eager, wide-eyed
 
 STYLE CONSISTENCY:
-  - Must belong to the same world as Ramon (the player character)
-  - Same shading logic and pixel density as Ramon
+  - Must belong to the same world as Balchar (the player character)
+  - Same shading logic and pixel density as Balchar
   - Same outline treatment (dark outline color)
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 9 colors — RGB values):
   160,128,88   Fur base

@@ -21,14 +21,14 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "...zzzzZZzzzz....",
-      "portrait": "ramon_neutral"
+      "portrait": "balchar_neutral"
     },
     {
       "type": "dialogue",
       "speaker": "Narrator",
-      "text": "Ramon, a talayotic foner, naps against the stones. Nearby, his myotragus companion Bep grazes.",
+      "text": "Balchar, a talayotic foner, naps against the stones. Nearby, his myotragus companion Bep grazes.",
       "portrait": "llull_neutral"
     },
     {
@@ -98,9 +98,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "...what.",
-      "portrait": "ramon_angry"
+      "portrait": "balchar_angry"
     },
     {
       "type": "dialogue",
@@ -116,9 +116,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Who on earth are you? Do you come from the sea?",
-      "portrait": "ramon_surprised"
+      "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
@@ -128,9 +128,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "I mean he's a myotragus. He eats things. That's what he does.",
-      "portrait": "ramon_smirk"
+      "portrait": "balchar_smirk"
     },
     {
       "type": "dialogue",
@@ -140,9 +140,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Ew! I am not sticking my hand in there! I would need to cut it afterwards! No thanks!",
-      "portrait": "ramon_smirk"
+      "portrait": "balchar_smirk"
     },
     {
       "type": "dialogue",
@@ -169,9 +169,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Bep why can't your stay still?! You are always getting me into trouble!",
-      "portrait": "ramon_angry"
+      "portrait": "balchar_angry"
     },
     {
       "type": "dialogue",
@@ -181,9 +181,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "...Bep?",
-      "portrait": "ramon_surprised"
+      "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
@@ -193,9 +193,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Why are you talking?!",
-      "portrait": "ramon_surprised"
+      "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
@@ -224,20 +224,20 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Ramon, what do we do?! He cursed me! I'm a TALKING GOAT now!",
+      "text": "Balchar, what do we do?! He cursed me! I'm a TALKING GOAT now!",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Great.",
-      "portrait": "ramon_neutral"
+      "portrait": "balchar_neutral"
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "This is your fault, Bep.",
-      "portrait": "ramon_angry"
+      "portrait": "balchar_angry"
     },
     {
       "type": "dialogue",
@@ -247,9 +247,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "I was napping.",
-      "portrait": "ramon_neutral"
+      "portrait": "balchar_neutral"
     },
     {
       "type": "wait",
@@ -263,9 +263,9 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Ramon",
+      "speaker": "Balchar",
       "text": "Now we walk. And you stop eating things.",
-      "portrait": "ramon_neutral"
+      "portrait": "balchar_neutral"
     },
     {
       "type": "transition",

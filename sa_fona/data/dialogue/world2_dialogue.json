@@ -6,13 +6,13 @@
       {
         "speaker": "bep",
         "portrait": "bep_scared",
-        "text": "Ramon... where are we? The air smells of salt and... marble dust?",
+        "text": "Balchar... where are we? The air smells of salt and... marble dust?",
         "sfx": null,
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_neutral",
+        "speaker": "balchar",
+        "portrait": "balchar_neutral",
         "text": "Sa Via Nova. The Romans built this road centuries after my people. And yet here we are.",
         "sfx": null,
         "auto_advance_ms": null
@@ -26,7 +26,7 @@
       {
         "speaker": "bep",
         "portrait": "bep_excited",
-        "text": "Ramon, the mask is glowing! The ground here looks cracked...",
+        "text": "Balchar, the mask is glowing! The ground here looks cracked...",
         "sfx": null,
         "auto_advance_ms": null
       },
@@ -38,8 +38,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "Using ancient talayotic power to smash Roman roads. My ancestors would approve.",
         "sfx": null,
         "auto_advance_ms": null
@@ -78,8 +78,8 @@
         "auto_advance_ms": null
       },
       {
-        "speaker": "ramon",
-        "portrait": "ramon_annoyed",
+        "speaker": "balchar",
+        "portrait": "balchar_annoyed",
         "text": "A merchant in the middle of a cursed road. Why not.",
         "sfx": null,
         "auto_advance_ms": null

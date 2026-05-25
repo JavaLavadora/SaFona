@@ -28,7 +28,7 @@ STYLE CONSISTENCY RULES:
 
 CHARACTER IDENTITY:
   - Role:          Common enemy — corrupted Mediterranean sheep
-  - Culture:       Talayotic Balearic (same era as Ramon)
+  - Culture:       Talayotic Balearic (same era as Balchar)
   - Differentiators: Small woolly body, glowing red possessed eyes,
                      hunched aggressive stance. NOT a stone creature —
                      this is an organic animal corrupted by dimoni energy.

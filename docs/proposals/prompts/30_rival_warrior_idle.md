@@ -28,13 +28,13 @@ STYLE CONSISTENCY RULES:
 
 CHARACTER IDENTITY:
   - Role:          Mid-tier enemy — hostile tribal warrior
-  - Culture:       Competing talayotic tribe (same Balearic Bronze Age as Ramon)
+  - Culture:       Competing talayotic tribe (same Balearic Bronze Age as Balchar)
   - Differentiators: Human fighter with stone weapons and animal hide armor.
-                     Slightly taller and leaner than Ramon.
+                     Slightly taller and leaner than Balchar.
                      Darker skin, messy dark hair with war paint stripes on face.
 
 VISUAL DETAILS:
-  - Body:      Lean warrior build, slightly taller than Ramon
+  - Body:      Lean warrior build, slightly taller than Balchar
   - Clothing:  Dark brown animal hide armor/tunic, leather arm wrappings
   - Weapon:    Stone club held in one hand
   - Hair:      Messy dark hair, no headband

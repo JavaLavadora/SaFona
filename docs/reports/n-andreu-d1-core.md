@@ -22,7 +22,7 @@
 - `sa_fona/core/scene_manager.py` -- Push/pop/replace scene stack with on_enter/on_exit/on_resume lifecycle, overlay rendering
 - `sa_fona/scenes/base_scene.py` -- Abstract base class for all game scenes
 - `sa_fona/rendering/sprite_renderer.py` -- Placeholder colored-rectangle generator with caching and Animation class
-- `sa_fona/scenes/test_scene.py` -- Proof-of-life scene: movable blue rectangle (Ramon), title text, ESC quit
+- `sa_fona/scenes/test_scene.py` -- Proof-of-life scene: movable blue rectangle (Balchar), title text, ESC quit
 
 ### Integration
 - `game.py` wires up real InputHandler, EventBus, SceneManager, SpriteRenderer
@@ -35,7 +35,7 @@
 2. **Tri-state input tracking** -- Actions like jump/attack have `_pressed`, `_held`, `_released` variants for responsive controls. Movement uses `_held` only.
 3. **JSON-driven bindings** -- InputHandler reads from `controls_default.json`; supports runtime remap and save. The key-name-to-constant map covers full alphabet, arrows, modifiers, and F-keys.
 4. **Scene stack with overlay support** -- SceneManager renders scene below if top scene's `is_overlay` is True (with dimming layer), enabling pause menu overlays.
-5. **SpriteRenderer color mapping** -- Asset IDs containing "ramon" are blue, "bep" green, "enemy" red, others white. Cached on first load.
+5. **SpriteRenderer color mapping** -- Asset IDs containing "balchar" are blue, "bep" green, "enemy" red, others white. Cached on first load.
 6. **Animation with per-frame durations** -- Supports both looping and one-shot animations with reset capability.
 
 ## Test Results
@@ -59,7 +59,7 @@ Run tests: `SDL_VIDEODRIVER=dummy python -m pytest tests/ -v --tb=short`
 python -m sa_fona.main
 ```
 
-- Blue 24x32 rectangle (Ramon) at center of 384x216 screen, scaled 3x
+- Blue 24x32 rectangle (Balchar) at center of 384x216 screen, scaled 3x
 - Move with WASD or arrow keys (150 px/sec)
 - Jump/up with Space, W, or Up arrow
 - ESC to quit

@@ -56,7 +56,7 @@ Designed and implemented 4 World 1 levels following the GDD Section 5.3 specific
 
 ### Companion Integration (`sa_fona/scenes/gameplay.py`)
 - Added Bep companion spawning from `companion_spawn` coordinates
-- Companion follows Ramon and renders in the world
+- Companion follows Balchar and renders in the world
 - Companion resets on level reload
 
 ### Level Progression (`sa_fona/scenes/gameplay.py`)

@@ -1,6 +1,6 @@
-# 02 — Ramon: Walk Cycle
+# 02 — Balchar: Walk Cycle
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -27,7 +27,7 @@ CRITICAL IDENTITY LOCK:
   - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight

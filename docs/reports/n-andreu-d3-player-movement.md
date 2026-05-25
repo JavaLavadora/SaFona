@@ -10,7 +10,7 @@
 
 ## Summary
 
-Implemented Ramon as a playable entity with the full core moveset (walk, jump, wall jump, wall slide) using placeholder graphics. Established the Entity base class that all future entities will extend. Created the GameplayScene that replaces DemoTilemapScene as the default scene.
+Implemented Balchar as a playable entity with the full core moveset (walk, jump, wall jump, wall slide) using placeholder graphics. Established the Entity base class that all future entities will extend. Created the GameplayScene that replaces DemoTilemapScene as the default scene.
 
 ## What Was Built
 

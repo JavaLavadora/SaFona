@@ -1,6 +1,6 @@
 # 41 — Dimoni de Sant Joan: Master Idle Sprite
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as world-style reference. The Dimoni is supernatural but must belong to the same visual world.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as world-style reference. The Dimoni is supernatural but must belong to the same visual world.
 
 ---
 
@@ -21,7 +21,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Layout:        Single horizontal row, poses numbered, clear spacing
 
 STYLE CONSISTENCY RULES:
-  - Must belong to the same world as Ramon
+  - Must belong to the same world as Balchar
   - Same shading logic and pixel density
   - Same outline treatment
   - Supernatural character — darker and more dramatic than human characters
@@ -43,7 +43,7 @@ VISUAL DETAILS:
   - Expression:  Menacing, theatrical
   - Size:        Tall — 24x40 pixels
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 12 colors — RGB values):
   72,24,56     Dark body base

@@ -1,6 +1,6 @@
-# 03 — Ramon: Jump
+# 04 — Balchar: Wall Slide
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
@@ -27,7 +27,7 @@ CRITICAL IDENTITY LOCK:
   - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight
@@ -50,18 +50,17 @@ SPRITE CONSTRAINTS:
   - Sheet size:  64x48 (2 frames)
   - Frame count: 2
   - Frame size:  32x48 each
-  - Facing:      RIGHT
+  - Facing:      RIGHT (body pressed against wall to the right)
 
 BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
-Extended limbs may use the full frame height including headroom.
 
 ANIMATION DESCRIPTION:
-  Frame 1: Rising — legs tucked slightly, arms up, sling trailing behind,
-           body angled slightly upward
-  Frame 2: Falling — legs extended down, arms slightly above head,
-           sling streaming upward, body angled slightly downward
+  Frame 1: Sliding down — body pressed flat against wall (right side),
+           both hands touching wall surface, legs slightly bent,
+           slow descent pose
+  Frame 2: Slight variation — legs position shifts slightly for friction effect
 
 RULES:
-  - Same identity lock rules as all Ramon animations
+  - Same identity lock rules as all Balchar animations
   - Background: solid green (#00FF00)
 ```

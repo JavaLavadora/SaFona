@@ -206,29 +206,29 @@
       ]
     },
     {
-      "input": "assets/ai_sources/portrait_ramon/image.png",
+      "input": "assets/ai_sources/portrait_balchar/image.png",
       "min_area": 3000,
       "outputs": [
         {
-          "file": "assets/portraits/ramon_neutral.png",
+          "file": "assets/portraits/balchar_neutral.png",
           "poses": [1],
           "frame_width": 88,
           "frame_height": 88
         },
         {
-          "file": "assets/portraits/ramon_angry.png",
+          "file": "assets/portraits/balchar_angry.png",
           "poses": [2],
           "frame_width": 88,
           "frame_height": 88
         },
         {
-          "file": "assets/portraits/ramon_surprised.png",
+          "file": "assets/portraits/balchar_surprised.png",
           "poses": [3],
           "frame_width": 88,
           "frame_height": 88
         },
         {
-          "file": "assets/portraits/ramon_smirk.png",
+          "file": "assets/portraits/balchar_smirk.png",
           "poses": [4],
           "frame_width": 88,
           "frame_height": 88

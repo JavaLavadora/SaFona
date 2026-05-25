@@ -1,11 +1,11 @@
-# 09 — Ramon: Crouch
+# 08 — Balchar: Death
 
-> **Reference sprite required:** Attach the Ramon MASTER idle sprite (generated in step 01) as visual reference.
+> **Reference sprite required:** Attach the Balchar MASTER idle sprite (generated in step 01) as visual reference.
 
 ---
 
 ```
-Create a SNES-style 16-bit pixel art sprite sheet.
+Create a SNES-style 16-bit pixel art sprite.
 
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 - Style:         Authentic SNES-era 16-bit pixel art
@@ -24,10 +24,10 @@ CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
   - Same palette (15 colors), no new colors
-  - Same head position relative to body, belt height, clothing details
+  - Same head position (Y 10-20), belt height (Y 30), feet baseline (Y 47)
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight
@@ -47,31 +47,19 @@ PALETTE (use ONLY these 15 colors — RGB values):
   64,48,32     Pants / boots darkest
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  64x48 (2 frames)
-  - Frame count: 2
-  - Frame size:  32x48 each
+  - Sheet size:  32x48 (1 frame)
+  - Frame size:  32x48
   - Facing:      RIGHT
 
-BODY SIZE RULE: Character body must be the SAME SIZE as the master idle
-sprite. The body occupies the lower 2/3 of the frame height. The upper 1/3
-is intentional headroom. Do NOT scale the body to fill the entire frame.
+BODY SIZE RULE: Character body must be the SAME SIZE as the master idle sprite. The frame has headroom above — do NOT resize the body to fill the frame.
+Horizontal pose uses width, not headroom.
 
-ANIMATION FRAMES:
-  Frame 1: Crouch idle — Ramon crouching low, knees bent deeply,
-           torso hunched forward, head ducked down. One hand on ground
-           for balance, sling held loosely in the other. Compact pose —
-           character height is roughly HALF of standing height.
-           Feet remain at the same baseline as idle (Y 47).
+ANIMATION DESCRIPTION:
+  Single frame: Collapsed — body slumped on the ground,
+  lying on back or side, limbs limp, sling dropped nearby.
+  Clear "defeated" pose, not graphic.
 
-  Frame 2: Crouch idle variant — slight shift in weight or arm position
-           for subtle idle animation while crouching.
-
-IMPORTANT POSE NOTES:
-  - The crouch must make Ramon significantly shorter (roughly half height)
-  - Knees bent, body compressed downward
-  - Head is lower than standing position (ducking under obstacles)
-  - Feet stay planted at the same Y baseline as all other animations
-  - The crouch pose should look like he's hiding or ducking, not sitting
-
-BACKGROUND: Solid green (#00FF00)
+RULES:
+  - Same identity lock rules as all Balchar animations
+  - Background: solid green (#00FF00)
 ```

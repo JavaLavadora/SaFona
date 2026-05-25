@@ -15,13 +15,31 @@ Or jump directly to a boss fight::
 
 from __future__ import annotations
 
+import logging
 import sys
+import traceback
 
 import pygame
 
 
+def _setup_crash_log() -> None:
+    """In frozen builds, redirect stderr to a crash log file next to the exe."""
+    if not getattr(sys, 'frozen', False):
+        return
+    import os
+    log_path = os.path.join(os.path.dirname(sys.executable), "crash.log")
+    try:
+        fh = open(log_path, "w", encoding="utf-8")
+        sys.stderr = fh
+        sys.stdout = fh
+    except OSError:
+        pass
+
+
 def main() -> None:
     """Create the Game instance and start the main loop."""
+    _setup_crash_log()
+
     from sa_fona.config.settings import DATA_DIR
     from sa_fona.core.game import Game
     from sa_fona.level.map_compiler import compile_all_maps
@@ -88,4 +106,13 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        traceback.print_exc()
+        if getattr(sys, 'frozen', False):
+            import os
+            log_path = os.path.join(os.path.dirname(sys.executable), "crash.log")
+            with open(log_path, "a", encoding="utf-8") as f:
+                traceback.print_exc(file=f)
+        raise

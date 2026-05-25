@@ -368,26 +368,26 @@
     },
     "effect_dust": {
       "path": "assets/effects/dust.png",
-      "frame_width": 12,
-      "frame_height": 12,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 4
     },
     "effect_impact": {
       "path": "assets/effects/impact.png",
-      "frame_width": 18,
-      "frame_height": 18,
-      "frame_count": 3
-    },
-    "effect_dimoni_aura": {
-      "path": "assets/effects/dimoni_aura.png",
       "frame_width": 24,
       "frame_height": 24,
       "frame_count": 3
     },
+    "effect_dimoni_aura": {
+      "path": "assets/effects/dimoni_aura.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 3
+    },
     "effect_portal": {
       "path": "assets/effects/portal.png",
-      "frame_width": 36,
-      "frame_height": 48,
+      "frame_width": 48,
+      "frame_height": 64,
       "frame_count": 4
     },
     "effect_anticipation_glow": {
@@ -489,6 +489,21 @@
     },
     "llorencc_excited": {
       "path": "assets/portraits/llorencc_excited.png",
+      "width": 44,
+      "height": 44
+    },
+    "llull_neutral": {
+      "path": "assets/portraits/llull_neutral.png",
+      "width": 44,
+      "height": 44
+    },
+    "llull_wise": {
+      "path": "assets/portraits/llull_wise.png",
+      "width": 44,
+      "height": 44
+    },
+    "llull_concerned": {
+      "path": "assets/portraits/llull_concerned.png",
       "width": 44,
       "height": 44
     }

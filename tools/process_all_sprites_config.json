@@ -68,20 +68,20 @@
         {
           "file": "assets/sprites/projectiles/stone_tier1.png",
           "poses": [1],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         },
         {
           "file": "assets/sprites/projectiles/stone_tier2.png",
           "poses": [2],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         },
         {
           "file": "assets/sprites/projectiles/stone_tier3.png",
           "poses": [3],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         }
       ]
     },
@@ -140,8 +140,8 @@
         {
           "file": "assets/sprites/pickups/heart.png",
           "poses": [1, 2],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         }
       ]
     },
@@ -152,8 +152,8 @@
         {
           "file": "assets/sprites/pickups/stone.png",
           "poses": [1, 2],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         }
       ]
     },
@@ -164,8 +164,8 @@
         {
           "file": "assets/sprites/pickups/shield.png",
           "poses": [1, 2],
-          "frame_width": 24,
-          "frame_height": 24
+          "frame_width": 12,
+          "frame_height": 12
         }
       ]
     },
@@ -307,6 +307,30 @@
         },
         {
           "file": "assets/portraits/llorencc_excited.png",
+          "poses": [3],
+          "frame_width": 88,
+          "frame_height": 88
+        }
+      ]
+    },
+    {
+      "input": "assets/ai_sources/portrait_llull/image.png",
+      "min_area": 3000,
+      "outputs": [
+        {
+          "file": "assets/portraits/llull_neutral.png",
+          "poses": [1],
+          "frame_width": 88,
+          "frame_height": 88
+        },
+        {
+          "file": "assets/portraits/llull_wise.png",
+          "poses": [2],
+          "frame_width": 88,
+          "frame_height": 88
+        },
+        {
+          "file": "assets/portraits/llull_concerned.png",
           "poses": [3],
           "frame_width": 88,
           "frame_height": 88

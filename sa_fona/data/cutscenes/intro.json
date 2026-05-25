@@ -13,7 +13,7 @@
       "type": "dialogue",
       "speaker": "Narrator",
       "text": "The talayot of Son Fornes, Mallorca. A warm afternoon under the Mediterranean sun.",
-      "portrait": ""
+      "portrait": "llull_neutral"
     },
     {
       "type": "wait",
@@ -29,7 +29,7 @@
       "type": "dialogue",
       "speaker": "Narrator",
       "text": "Ramon, a talayotic foner, naps against the stones. Nearby, his myotragus companion Bep grazes.",
-      "portrait": ""
+      "portrait": "llull_neutral"
     },
     {
       "type": "wait",
@@ -45,7 +45,7 @@
       "type": "dialogue",
       "speaker": "Narrator",
       "text": "Bep wanders toward an old altar, half-hidden among the rocks. Strange herbs grow around it.",
-      "portrait": ""
+      "portrait": "llull_neutral"
     },
     {
       "type": "wait",

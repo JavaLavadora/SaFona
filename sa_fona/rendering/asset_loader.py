@@ -12,13 +12,17 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from typing import Any
 
 import pygame
 
-_PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-)
+if getattr(sys, 'frozen', False):
+    _PROJECT_ROOT = sys._MEIPASS
+else:
+    _PROJECT_ROOT = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+    )
 
 _MANIFEST_PATH = os.path.join(
     _PROJECT_ROOT, "sa_fona", "data", "asset_manifest.json"

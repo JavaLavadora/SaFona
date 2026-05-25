@@ -5,7 +5,7 @@ metadata:
   name_en: The Sacred Talayot
   music_slot: world_1_talayot
   difficulty: 3
-  tileset: world1_talayot
+  tileset: world1
   background: world1_talayot_bg
   # jumpheight = 4 tiles
 enemies:

@@ -1,0 +1,10 @@
+{
+  "frame_width": 48,
+  "frame_height": 54,
+  "source_dir": "assets/ai_sources/stone_guardian",
+  "output_dir": "assets/sprites/enemies/effects",
+  "split_mode": "equal",
+  "animations": [
+    {"source": "stone_guardian_arm_sweep.png", "frames": 3, "scale_pct": 85, "vertical_snap": "center"}
+  ]
+}

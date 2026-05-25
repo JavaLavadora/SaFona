@@ -1,0 +1,9 @@
+{
+  "frame_width": 24,
+  "frame_height": 36,
+  "source_dir": "assets/ai_sources/legionary",
+  "output_dir": "assets/sprites/enemies/effects",
+  "animations": [
+    {"source": "legionary_gladius_stab.png", "frames": 3, "scale_pct": 85, "vertical_snap": "center"}
+  ]
+}

@@ -709,15 +709,6 @@ class BossEntity(Entity):
             flash_surf.fill((255, 255, 255, max(0, min(255, alpha))))
             surface.blit(flash_surf, (vis_x, vis_y))
 
-        # Core glow in Phase 3.
-        if self._core_exposed:
-            core_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
-            pulse = abs(int(self._idle_timer * 4) % 2)
-            glow_alpha = 180 if pulse else 120
-            core_surf.fill((255, 80, 80, glow_alpha))
-            core_x = vis_x + self._sprite_frame_w // 2 - 6
-            core_y = vis_y + self._sprite_frame_h // 2 - 6
-            surface.blit(core_surf, (core_x, core_y))
 
     # ── Static loader ──────────────────────────────────────────────
 

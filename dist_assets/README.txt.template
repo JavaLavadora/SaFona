@@ -1,0 +1,43 @@
+SA FONA v{{VERSION}}
+====================
+
+A 2D retro side-scrolling platformer set across the Balearic Islands.
+
+You play as Balchar, a grumpy talayotic slinger cursed into time-traveling
+alongside Bep, his myotragus companion.
+
+
+SYSTEM REQUIREMENTS
+-------------------
+- OS: Windows 10+ / Linux (x86_64)
+- RAM: 512 MB
+- Disk: 100 MB
+
+
+HOW TO PLAY
+-----------
+- Windows: Double-click SaFona.exe
+- Linux:   Run ./SaFona from a terminal
+
+
+CONTROLS
+--------
+  Move        Arrow keys / A, D
+  Jump        Space
+  Attack      X
+  Interact    Enter
+  Mask Power  Z
+  Pause       Escape
+
+
+UPDATES & SUPPORT
+-----------------
+Visit the itch.io page for the latest version:
+  https://TODO-SET-ITCHIO-URL.itch.io/sa-fona
+
+
+LICENSE
+-------
+This game is released under the GPL-3.0 License.
+See the project repository for full license text:
+  https://github.com/JavaLavadora/SaFona

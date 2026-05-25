@@ -1,6 +1,9 @@
 """Tests for sa_fona.config.settings."""
 
+import importlib
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 from sa_fona.config.settings import (
     ASSETS_DIR,
@@ -66,3 +69,37 @@ class TestPaths:
 
     def test_data_dir_is_child_of_package(self) -> None:
         assert DATA_DIR.parent == PACKAGE_DIR
+
+
+class TestFrozenModePaths:
+    """Verify path resolution adapts to PyInstaller frozen mode."""
+
+    def test_normal_mode_package_dir_is_pathlib(self) -> None:
+        from sa_fona.config import settings
+        assert isinstance(settings.PACKAGE_DIR, Path)
+
+    def test_normal_mode_data_dir_under_package(self) -> None:
+        from sa_fona.config import settings
+        assert settings.DATA_DIR == settings.PACKAGE_DIR / "data"
+
+    def test_normal_mode_assets_dir_exists(self) -> None:
+        from sa_fona.config import settings
+        assert settings.ASSETS_DIR.is_dir()
+
+    def test_frozen_mode_uses_meipass(self, tmp_path) -> None:
+        fake_meipass = tmp_path / "meipass_fake"
+        fake_meipass.mkdir()
+        (fake_meipass / "sa_fona").mkdir()
+        (fake_meipass / "assets").mkdir()
+
+        with patch.dict(sys.__dict__, {"frozen": True, "_MEIPASS": str(fake_meipass)}):
+            # Force re-evaluation of the module-level paths.
+            from sa_fona.config import settings
+            importlib.reload(settings)
+
+            assert settings.PACKAGE_DIR == fake_meipass / "sa_fona"
+            assert settings.ASSETS_DIR == fake_meipass / "assets"
+            assert ".safona" in str(settings.SAVES_DIR)
+
+        # Restore normal paths.
+        importlib.reload(settings)

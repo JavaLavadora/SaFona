@@ -5,6 +5,7 @@ used throughout the engine. All magic numbers live here so they
 can be tuned in one place.
 """
 
+import sys
 from pathlib import Path
 
 # ── Window & Display ────────────────────────────────────────────
@@ -67,8 +68,14 @@ PLAYER_BLINK_INTERVAL: float = 0.08          # seconds per blink toggle
 GAMEPLAY_BG_COLOR: tuple[int, int, int] = (30, 30, 50)
 
 # ── Filesystem Paths ────────────────────────────────────────────
-# Package root is the sa_fona/ directory.
-PACKAGE_DIR: Path = Path(__file__).resolve().parent.parent
+if getattr(sys, 'frozen', False):
+    _BUNDLE_DIR: Path = Path(sys._MEIPASS)
+    PACKAGE_DIR: Path = _BUNDLE_DIR / "sa_fona"
+    ASSETS_DIR: Path = _BUNDLE_DIR / "assets"
+    SAVES_DIR: Path = Path.home() / ".safona" / "saves"
+else:
+    PACKAGE_DIR: Path = Path(__file__).resolve().parent.parent
+    ASSETS_DIR: Path = PACKAGE_DIR.parent / "assets"
+    SAVES_DIR: Path = PACKAGE_DIR.parent / "saves"
+
 DATA_DIR: Path = PACKAGE_DIR / "data"
-ASSETS_DIR: Path = PACKAGE_DIR.parent / "assets"
-SAVES_DIR: Path = PACKAGE_DIR.parent / "saves"

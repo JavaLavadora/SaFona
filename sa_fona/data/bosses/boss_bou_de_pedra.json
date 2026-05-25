@@ -171,6 +171,6 @@
   "post_defeat": {
     "mask_granted": "stone_slam",
     "dialogue_id": "dimoni_sant_joan_grant",
-    "cutscene": "w1_post_boss"
+    "cutscene": "post_boss_w1"
   }
 }

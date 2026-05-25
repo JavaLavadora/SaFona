@@ -19,7 +19,7 @@ Sa Fona is a pixel-art platformer with combat, set across different historical e
 
 ## Download
 
-**[Play Sa Fona on itch.io](https://TODO-SET-ITCHIO-URL.itch.io/sa-fona)** — standalone builds for Windows and Linux, no Python required.
+**[Play Sa Fona on itch.io](https://thash97.itch.io/sa-fona)** — standalone builds for Windows and Linux, no Python required.
 
 <p align="center">
   <img src="assets/screenshots/gameplay.png" alt="Gameplay" width="720">

@@ -17,6 +17,10 @@
 
 Sa Fona is a pixel-art platformer with combat, set across different historical eras of the Balearic Islands. You play as **Balchar**, a grumpy talayotic slinger cursed into time-traveling alongside **Bep**, his myotragus companion who accidentally ate a dimoni's sacred herbs.
 
+## Download
+
+**[Play Sa Fona on itch.io](https://TODO-SET-ITCHIO-URL.itch.io/sa-fona)** — standalone builds for Windows and Linux, no Python required.
+
 <p align="center">
   <img src="assets/screenshots/gameplay.png" alt="Gameplay" width="720">
 </p>
@@ -110,6 +114,16 @@ python -m pytest tests/ -x -q
 # Run with a specific display (headless/remote)
 Xvfb :99 -screen 0 1152x648x24 &
 DISPLAY=:99 python -m sa_fona.main
+```
+
+## Building for Distribution
+
+Sa Fona can be packaged as a standalone executable using PyInstaller. See [docs/distribution.md](docs/distribution.md) for the full build and upload guide.
+
+```bash
+conda activate safona
+pip install pyinstaller
+./build.sh linux    # produces dist/SaFona-linux.zip
 ```
 
 ## License

@@ -53,7 +53,7 @@ class CutsceneScene(BaseScene):
         self._on_load_level = on_load_level
         self._fast_forward = fast_forward
 
-        self._input_cooldown: float = 0.5
+        self._input_cooldown: float = 2.0
 
         self._steps: list[dict[str, Any]] = cutscene_data.get("steps", [])
         self._step_index: int = 0

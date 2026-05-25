@@ -42,7 +42,7 @@ VISUAL DETAILS:
   - Accessories: Leather satchel visible at side
   - Size:      20x36 pixels
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 12 colors — RGB values):
   192,136,80   Skin base

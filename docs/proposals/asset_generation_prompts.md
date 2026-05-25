@@ -36,7 +36,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 
 ---
 
-# 1. RAMON (Player Character)
+# 1. BALCHAR (Player Character)
 
 **Palette** (`assets/palettes/balchar.gpl` — 15 colors):
 

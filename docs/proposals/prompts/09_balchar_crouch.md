@@ -27,7 +27,7 @@ CRITICAL IDENTITY LOCK:
   - Same head position relative to body, belt height, clothing details
   - No redesign, no reinterpretation
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   248,248,240  Tunic highlight

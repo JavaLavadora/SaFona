@@ -24,7 +24,7 @@ ENVIRONMENT: Outdoor talayotic Mediterranean landscape.
   Limestone terrain with grass, ancient stone towers (talayots),
   rocky outcrops, Mediterranean vegetation. Warm sunlit colors.
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for contrast/shading match]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for contrast/shading match]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   32,24,16     Dark outline

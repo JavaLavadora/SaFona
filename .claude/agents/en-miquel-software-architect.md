@@ -65,7 +65,7 @@ sa_fona/
 │   └── game_over.py
 ├── entities/
 │   ├── entity.py            # Base entity class
-│   ├── player.py            # Ramon
+│   ├── player.py            # Balchar
 │   ├── companion.py         # Bep
 │   ├── enemy.py             # Base enemy + factory
 │   ├── boss.py              # Base boss

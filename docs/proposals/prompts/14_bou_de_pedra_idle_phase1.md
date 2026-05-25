@@ -41,7 +41,7 @@ VISUAL DETAILS:
   - Phase 1:     Grey stone, neutral amber rune glow, calm but imposing
   - Expression:  Eyeless — menace conveyed through posture and glowing cracks
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 12 colors — RGB values):
   144,144,144  Stone base / Phase 1 accent

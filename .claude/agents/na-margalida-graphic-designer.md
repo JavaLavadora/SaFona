@@ -59,8 +59,8 @@ Use **Pillow (PIL)** for programmatic pixel art generation:
 from PIL import Image, ImageDraw
 
 
-def create_ramon_idle_spritesheet():
-    """Creates Ramon's idle animation sprite sheet.
+def create_balchar_idle_spritesheet():
+    """Creates Balchar's idle animation sprite sheet.
 
     Sprite size: 24x32 pixels per frame.
     Frames: 4 (breathing cycle).
@@ -94,12 +94,12 @@ def create_ramon_idle_spritesheet():
         # Sling in hand
         draw.rectangle([x_offset + 18, 12 + breath_offset, x_offset + 22, 14 + breath_offset], fill=leather)
 
-    sheet.save("assets/sprites/characters/ramon_idle.png")
-    print("Created: assets/sprites/characters/ramon_idle.png")
+    sheet.save("assets/sprites/characters/balchar_idle.png")
+    print("Created: assets/sprites/characters/balchar_idle.png")
 
 
 if __name__ == "__main__":
-    create_ramon_idle_spritesheet()
+    create_balchar_idle_spritesheet()
 ```
 
 **Style rules:**
@@ -147,11 +147,11 @@ Follow the directory structure:
 assets/
 ├── sprites/
 │   ├── characters/
-│   │   ├── ramon_idle.png
-│   │   ├── ramon_walk.png
-│   │   ├── ramon_jump.png
-│   │   ├── ramon_attack_tap.png
-│   │   ├── ramon_attack_charge.png
+│   │   ├── balchar_idle.png
+│   │   ├── balchar_walk.png
+│   │   ├── balchar_jump.png
+│   │   ├── balchar_attack_tap.png
+│   │   ├── balchar_attack_charge.png
 │   │   ├── bep_idle.png
 │   │   └── ...
 │   ├── enemies/
@@ -193,7 +193,7 @@ python tools/generate_assets.py  # or whatever script you wrote
 # Check they exist and have correct dimensions
 python -c "
 from PIL import Image
-img = Image.open('assets/sprites/characters/ramon_idle.png')
+img = Image.open('assets/sprites/characters/balchar_idle.png')
 print(f'Size: {img.size}, Mode: {img.mode}')
 "
 
@@ -217,7 +217,7 @@ The PM coordinates with developers to integrate the assets.
 
 | Character | Size | Animations Needed |
 |-----------|------|-------------------|
-| Ramon | 24x32 | idle, walk, jump, wall_slide, attack_tap, attack_charge, damage, death, mask_powers (5) |
+| Balchar | 24x32 | idle, walk, jump, wall_slide, attack_tap, attack_charge, damage, death, mask_powers (5) |
 | Bep | 16x16 | idle, chew, sleep, startled, talk, glow |
 | Standard enemy | 16x24 to 24x32 | idle, walk, attack, damage, death |
 | Boss | 48x48 to 96x96+ | idle, attack variants, damage, phase transitions, death |

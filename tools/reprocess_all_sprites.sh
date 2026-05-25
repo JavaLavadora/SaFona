@@ -20,9 +20,9 @@ python tools/process_ai_sprites.py tools/process_all_sprites_config.json
 
 echo ""
 echo "=== Phase 3: Clean character sprites (with outline) ==="
-for sprite in assets/sprites/ramon/*.png assets/sprites/enemies/*.png assets/sprites/boss/*.png assets/sprites/npcs/*.png; do
+for sprite in assets/sprites/balchar/*.png assets/sprites/enemies/*.png assets/sprites/boss/*.png assets/sprites/npcs/*.png; do
     if [ -f "$sprite" ]; then
-        palette="ramon"
+        palette="balchar"
         if [[ "$sprite" == *"boss/"* ]]; then
             palette="boss"
         elif [[ "$sprite" == *"enemies/"* ]]; then
@@ -31,7 +31,7 @@ for sprite in assets/sprites/ramon/*.png assets/sprites/enemies/*.png assets/spr
             palette="npcs"
         fi
         if [ ! -f "assets/palettes/${palette}.gpl" ]; then
-            palette="ramon"
+            palette="balchar"
         fi
         if [ -f "assets/palettes/${palette}.gpl" ]; then
             echo "  Cleaning (outline ON): $sprite [palette: $palette]"
@@ -48,7 +48,7 @@ for sprite in assets/sprites/breakables/*.png assets/sprites/pickups/*.png asset
     if [ -f "$sprite" ]; then
         palette="world1"
         if [ ! -f "assets/palettes/${palette}.gpl" ]; then
-            palette="ramon"
+            palette="balchar"
         fi
         if [ -f "assets/palettes/${palette}.gpl" ]; then
             echo "  Cleaning (outline OFF): $sprite [palette: $palette]"

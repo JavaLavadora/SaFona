@@ -40,7 +40,7 @@ STYLE CONSISTENCY:
   - Same shading logic and pixel density as Balchar
   - Same outline treatment (dark outline color)
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for world-style consistency]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for world-style consistency]
 
 PALETTE (use ONLY these 9 colors — RGB values):
   160,128,88   Fur base

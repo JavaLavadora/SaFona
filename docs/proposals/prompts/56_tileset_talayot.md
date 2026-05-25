@@ -24,7 +24,7 @@ ENVIRONMENT: Interior of ancient stone tower. Precisely cut limestone blocks,
   faint carved bull motifs, torch-lit amber glow, stone archways.
   Warmer than cave, more architectural than outdoor.
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for contrast/shading match]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for contrast/shading match]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   32,24,16     Dark outline

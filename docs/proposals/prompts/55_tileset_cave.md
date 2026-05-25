@@ -23,7 +23,7 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 ENVIRONMENT: Dark cave interior. Stalactites, mossy cave walls,
   mineral deposits, damp stone. Cool blue-grey tones.
 
-REFERENCE: [ATTACH THE RAMON MASTER IDLE SPRITE HERE — for contrast/shading match]
+REFERENCE: [ATTACH THE BALCHAR MASTER IDLE SPRITE HERE — for contrast/shading match]
 
 PALETTE (use ONLY these 15 colors — RGB values):
   24,16,16     Dark outline

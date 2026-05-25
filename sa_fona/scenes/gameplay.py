@@ -570,7 +570,6 @@ class GameplayScene(BaseScene):
         for enemy in self._enemies:
             enemy.render(target, cam_offset)
 
-
         # NPCs.
         for npc in self._npcs:
             npc.render(target, cam_offset)

@@ -404,6 +404,67 @@ class LevelSelectScene(BaseScene):
             screen_height=self._screen_height,
             event_bus=self._event_bus,
             cutscene_id=boss_info.get("cutscene_id", "post_boss_w1"),
+            on_load_level=self._make_load_level_cb(),
         )
         scene.scene_manager = self._scene_manager
         self._scene_manager.replace(scene)
+
+    def _make_load_level_cb(self) -> callable:
+        """Create a callback for the post-boss cutscene to load the next level.
+
+        When the boss is defeated and the cutscene reaches a load_level
+        step, this callback creates a new GameplayScene for the target
+        level and replaces the current scene.
+
+        Subscribes to mask_acquired on the EventBus so masks granted
+        during the cutscene are captured and propagated to the new scene.
+
+        Returns:
+            A callable accepting a level_path string (relative to
+            data/levels/, e.g. "world2/level_2_1").
+        """
+        scene_mgr = self._scene_manager
+        event_bus = self._event_bus
+        save_sys = self._save_system
+        screen_w = self._screen_width
+        screen_h = self._screen_height
+        acquired_masks: list[str] = []
+
+        def _on_mask(mask_id: str = "", **kwargs: object) -> None:
+            acquired_masks.append(mask_id)
+
+        event_bus.subscribe("mask_acquired", _on_mask)
+
+        def _load(level_path: str) -> None:
+            try:
+                event_bus.unsubscribe("mask_acquired", _on_mask)
+            except ValueError:
+                pass
+            full_path = str(DATA_DIR / "levels" / f"{level_path}.json")
+            if not Path(full_path).is_file():
+                return
+
+            from sa_fona.scenes.gameplay import GameplayScene
+
+            new_scene = GameplayScene(
+                screen_w, screen_h,
+                event_bus=event_bus,
+                level_path=full_path,
+            )
+            new_scene.scene_manager = scene_mgr
+            for mask_id in acquired_masks:
+                new_scene.mask_system.unlock_mask(mask_id)
+                new_scene.mask_system.equip_mask(mask_id)
+            if save_sys is not None:
+                new_scene.save_system = save_sys
+                mask_state = new_scene.mask_system.get_save_state()
+                save_sys.state["masks_unlocked"] = mask_state["unlocked_masks"]
+                save_sys.state["masks_equipped"] = (
+                    [mask_state["equipped_mask"]]
+                    if mask_state["equipped_mask"] else []
+                )
+                save_sys.save()
+                new_scene.take_level_entry_snapshot()
+            scene_mgr.replace(new_scene)
+
+        return _load

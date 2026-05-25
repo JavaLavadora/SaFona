@@ -87,7 +87,7 @@ def main() -> None:
             pass
         finally:
             pygame.quit()
-            sys.exit(0)
+        return
 
     # --level flag: bypass menu, go directly to that level.
     if level_path is not None:
@@ -102,7 +102,6 @@ def main() -> None:
         pass
     finally:
         pygame.quit()
-        sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -115,4 +114,4 @@ if __name__ == "__main__":
             log_path = os.path.join(os.path.dirname(sys.executable), "crash.log")
             with open(log_path, "a", encoding="utf-8") as f:
                 traceback.print_exc(file=f)
-        raise
+        sys.exit(1)

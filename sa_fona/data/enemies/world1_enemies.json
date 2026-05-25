@@ -51,8 +51,8 @@
     },
     "sprite": "enemy_rival_warrior",
     "size": {
-      "w": 32,
-      "h": 48
+      "w": 48,
+      "h": 72
     },
     "hitbox": {
       "w": 24,
@@ -72,14 +72,13 @@
     },
     "attack_effect": {
       "sprite": "rival_warrior_spear_thrust",
-      "frame_w": 30,
-      "frame_h": 54,
+      "frame_w": 24,
+      "frame_h": 48,
       "offset_x": 0,
       "offset_y": 0,
       "fps": 12.0,
       "loop": false,
       "show_during": [
-        "tell",
         "attacking"
       ]
     }
@@ -128,14 +127,13 @@
     },
     "attack_effect": {
       "sprite": "stone_guardian_arm_sweep",
-      "frame_w": 54,
+      "frame_w": 48,
       "frame_h": 54,
       "offset_x": 0,
       "offset_y": 0,
       "fps": 10.0,
       "loop": false,
       "show_during": [
-        "tell",
         "attacking"
       ]
     }

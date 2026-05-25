@@ -116,39 +116,39 @@
     },
     "enemy_rival_warrior_idle": {
       "path": "assets/sprites/enemies/rival_warrior_idle.png",
-      "frame_width": 24,
-      "frame_height": 36,
+      "frame_width": 48,
+      "frame_height": 72,
       "frame_count": 2
     },
     "enemy_rival_warrior_walk": {
       "path": "assets/sprites/enemies/rival_warrior_walk.png",
-      "frame_width": 24,
-      "frame_height": 36,
+      "frame_width": 48,
+      "frame_height": 72,
       "frame_count": 4
     },
     "enemy_rival_warrior_attack": {
       "path": "assets/sprites/enemies/rival_warrior_attack.png",
-      "frame_width": 24,
-      "frame_height": 36,
+      "frame_width": 48,
+      "frame_height": 72,
       "frame_count": 2
     },
     "enemy_rival_warrior_block": {
       "path": "assets/sprites/enemies/rival_warrior_block.png",
-      "frame_width": 24,
-      "frame_height": 36,
+      "frame_width": 48,
+      "frame_height": 72,
       "frame_count": 1
     },
     "enemy_rival_warrior_hit": {
       "path": "assets/sprites/enemies/rival_warrior_hit.png",
-      "frame_width": 24,
-      "frame_height": 36,
+      "frame_width": 48,
+      "frame_height": 72,
       "frame_count": 1
     },
     "enemy_rival_warrior_death": {
       "path": "assets/sprites/enemies/rival_warrior_death.png",
-      "frame_width": 24,
-      "frame_height": 36,
-      "frame_count": 1
+      "frame_width": 48,
+      "frame_height": 72,
+      "frame_count": 2
     },
     "enemy_stone_guardian_idle": {
       "path": "assets/sprites/enemies/stone_guardian_idle.png",
@@ -326,20 +326,20 @@
     },
     "pickup_heart": {
       "path": "assets/sprites/pickups/heart.png",
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 2
     },
     "pickup_stone": {
       "path": "assets/sprites/pickups/stone.png",
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 2
     },
     "pickup_shield": {
       "path": "assets/sprites/pickups/shield.png",
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 12,
+      "frame_height": 12,
       "frame_count": 2
     },
     "breakable_pot": {
@@ -404,15 +404,15 @@
     },
     "enemy_stone_guardian_arm_sweep": {
       "path": "assets/sprites/enemies/effects/stone_guardian_arm_sweep.png",
-      "frame_width": 54,
-      "frame_height": 36,
-      "frame_count": 6
+      "frame_width": 48,
+      "frame_height": 54,
+      "frame_count": 3
     },
     "enemy_rival_warrior_spear_thrust": {
       "path": "assets/sprites/enemies/effects/rival_warrior_spear_thrust.png",
-      "frame_width": 30,
-      "frame_height": 24,
-      "frame_count": 4
+      "frame_width": 24,
+      "frame_height": 48,
+      "frame_count": 3
     },
     "enemy_legionary_gladius_stab": {
       "path": "assets/sprites/enemies/effects/legionary_gladius_stab.png",

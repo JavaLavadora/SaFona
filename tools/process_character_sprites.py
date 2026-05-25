@@ -319,9 +319,11 @@ def process_character(config_path: Path) -> tuple[int, int]:
     source_dir = PROJECT_ROOT / config["source_dir"]
     output_dir = PROJECT_ROOT / config["output_dir"]
     anim_entries: list[dict[str, Any]] = config["animations"]
+    min_area: int = config.get("min_area", 5000)
+    split_mode: str = config.get("split_mode", "auto")
 
     log.info("Character: %s", config_path.stem)
-    log.info("  Frame: %dx%d, %d animations", frame_w, frame_h, len(anim_entries))
+    log.info("  Frame: %dx%d, %d animations, split=%s", frame_w, frame_h, len(anim_entries), split_mode)
 
     # ------------------------------------------------------------------
     # Step 1: Load, chroma-remove, detect, crop ALL animations
@@ -344,23 +346,36 @@ def process_character(config_path: Path) -> tuple[int, int]:
 
         img = np.array(Image.open(source_path))
         rgba = remove_green_background(img)
-        cleaned = remove_small_components(rgba, min_area=5000)
-        bboxes = detect_sprite_regions(cleaned, min_area=5000)
 
-        if len(bboxes) == 0:
-            log.error("    No sprite regions found in %s", source_path.name)
-            failures += 1
-            continue
+        if split_mode == "equal":
+            strip_w = rgba.shape[1] // expected_frames
+            cropped_frames: list[np.ndarray] = []
+            for i in range(expected_frames):
+                col = rgba[:, i * strip_w:(i + 1) * strip_w]
+                cropped = crop_region(col, (0, 0, col.shape[1], col.shape[0]))
+                cropped = clean_green_fringe(cropped)
+                cropped_frames.append(cropped)
+                log.debug("    Frame %d: equal-split col %d-%d -> %dx%d",
+                          i + 1, i * strip_w, (i + 1) * strip_w,
+                          cropped.shape[1], cropped.shape[0])
+        else:
+            cleaned = remove_small_components(rgba, min_area=min_area)
+            bboxes = detect_sprite_regions(cleaned, min_area=min_area)
 
-        frame_count = min(len(bboxes), expected_frames)
-        cropped_frames: list[np.ndarray] = []
-        for i in range(frame_count):
-            cropped = crop_region(cleaned, bboxes[i])
-            cropped = clean_green_fringe(cropped)
-            cropped_frames.append(cropped)
+            if len(bboxes) == 0:
+                log.error("    No sprite regions found in %s", source_path.name)
+                failures += 1
+                continue
 
-        while len(cropped_frames) < expected_frames:
-            cropped_frames.append(cropped_frames[-1].copy())
+            frame_count = min(len(bboxes), expected_frames)
+            cropped_frames = []
+            for i in range(frame_count):
+                cropped = crop_region(cleaned, bboxes[i])
+                cropped = clean_green_fringe(cropped)
+                cropped_frames.append(cropped)
+
+            while len(cropped_frames) < expected_frames:
+                cropped_frames.append(cropped_frames[-1].copy())
 
         animations.append({
             "entry": entry,

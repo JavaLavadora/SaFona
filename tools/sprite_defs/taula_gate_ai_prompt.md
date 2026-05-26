@@ -7,13 +7,11 @@ Output: `assets/environment/taula_gate.png` (32x48, single frame)
 
 ## Prompt
 
-Pixel art of a taula monument viewed from the side, 16-bit SNES style, on a solid bright green (#00FF00) background. Single sprite:
+Pixel art sprite, 16-bit SNES style, solid bright green (#00FF00) background. Single taula gate viewed from side, T-shaped megalithic monument forming a doorway.
 
-A T-shaped megalithic stone monument (taula) seen from the side, forming a doorway or gate. One thick vertical limestone pillar supports a wide horizontal capstone across the top. The proportions should form a clear doorway opening — tall enough for a warrior character to walk through (about 48 pixels tall). The pillar is roughly one-third the width of the capstone.
+One thick vertical limestone pillar supporting wide horizontal capstone, clear doorway opening tall enough for warrior character (about 48 pixels tall), pillar roughly one-third width of capstone. Weathered ancient grey limestone with subtle warm undertones (NOT blue-grey), small patches of green-brown moss on capstone and upper pillar, fine cracks and mortar-line texture, solid and enduring.
 
-The stone is weathered ancient grey limestone with subtle warm undertones — NOT blue-grey. Small patches of green-brown moss or lichen on the capstone and upper pillar. Fine cracks and mortar-line texture in the stone. The monument should look ancient and monumental but not ruined — solid, heavy, enduring.
-
-Style: Based on real taula monuments from Menorca (Torralba d'en Salort, Torre d'en Galmés). Balearic talayotic architecture. Clean pixel art, no anti-aliasing, no smoothing. Solid bright green (#00FF00) background for chroma-key removal.
+Style: Based on Menorcan taula monuments (Torralba d'en Salort, Torre d'en Galmés). Balearic talayotic architecture, ancient monumental stone but not ruined. Clean pixel art, no anti-aliasing, no smoothing.
 
 ## Processing Notes
 

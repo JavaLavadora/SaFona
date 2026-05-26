@@ -7,13 +7,12 @@ Output: `assets/environment/bonfire.png` (48x32, 2 frames of 24x32)
 
 ## Prompt
 
-Pixel art of two bonfire sprites, 16-bit SNES style, on a solid bright green (#00FF00) background. Show both sprites in a single horizontal row, evenly spaced, at the same scale:
+Pixel art sprite sheet, 16-bit SNES style, solid bright green (#00FF00) background. 2 frames in a horizontal row, evenly spaced, same scale. Small bonfire save point:
 
-1) Unlit bonfire — a small pile of stacked rough-hewn limestone rocks with dry scrubland wood and kindling arranged on top, no flame, no glow, cold and dormant. The wood is sun-bleached Mediterranean driftwood and dry brush.
+1) Unlit — small pile of rough-hewn grey limestone rocks with dry sun-bleached wood and brush on top, no flame, cold and dormant
+2) Lit — identical rock and wood base, warm orange-yellow flame rising from wood, 3-4 flame colors (dark orange base, bright orange middle, yellow tips), small ember dots above
 
-2) Lit bonfire — the exact same rock and wood arrangement as sprite 1, but now burning with a warm orange-yellow flame rising from the wood. The flame should be simple and stylized (3-4 colors: dark orange base, bright orange middle, yellow tips). Small ember dots above the flame.
-
-Style: Balearic island Mediterranean feel. Warm grey limestone rocks (NOT blue-grey), dry earth tones for wood. The bonfire should be small — roughly knee-height for a warrior character (about 16-20 pixels tall). Clean pixel art, no anti-aliasing, no smoothing. Both sprites must have identical base rocks and wood — only difference is the flame on sprite 2. Clearly separated with green space between them.
+Style: Balearic Mediterranean. Warm grey limestone rocks (NOT blue-grey), dry earth tones for wood, knee-height scale (16-20 pixels tall). Clean pixel art, no anti-aliasing, no smoothing. Both sprites must have identical base structure, only flame differs. Clearly separated with green space between them.
 
 ## Processing Notes
 

@@ -428,8 +428,8 @@
     },
     "env_taula_gate": {
       "path": "assets/environment/taula_gate.png",
-      "frame_width": 32,
-      "frame_height": 48,
+      "frame_width": 96,
+      "frame_height": 144,
       "frame_count": 1
     }
   },

@@ -19,6 +19,6 @@ def test_manifest_has_taula_gate_entry():
     manifest = json.loads(MANIFEST_PATH.read_text())
     entry = manifest["sprites"]["env_taula_gate"]
     assert entry["path"] == "assets/environment/taula_gate.png"
-    assert entry["frame_width"] == 32
-    assert entry["frame_height"] == 48
+    assert entry["frame_width"] == 96
+    assert entry["frame_height"] == 144
     assert entry["frame_count"] == 1

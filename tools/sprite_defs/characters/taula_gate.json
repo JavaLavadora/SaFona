@@ -1,0 +1,14 @@
+{
+  "frame_width": 32,
+  "frame_height": 48,
+  "source_dir": "assets/ai_sources/taula_gate",
+  "output_dir": "assets/environment",
+  "animations": [
+    {
+      "source": "taula_gate.png",
+      "frames": 1,
+      "scale_pct": 100,
+      "vertical_snap": "bottom"
+    }
+  ]
+}

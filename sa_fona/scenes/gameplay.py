@@ -180,6 +180,7 @@ class GameplayScene(BaseScene):
 
         # Mid-level checkpoint (set by save_point triggers).
         self._checkpoint_pos: tuple[float, float] | None = None
+        self._activated_save_points: set[int] = set()
 
         # Pickups and breakables (spawned from level entity definitions).
         self._pickups: list[Pickup] = []
@@ -697,9 +698,11 @@ class GameplayScene(BaseScene):
     def _render_save_point_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],
     ) -> None:
-        """Draw a visible beacon at save_point trigger locations."""
+        """Draw bonfire sprite at save_point trigger locations."""
         from sa_fona.level.trigger import TriggerType as _TT
+        from sa_fona.rendering.asset_loader import load_frame_strip
 
+        frames = load_frame_strip("assets/environment/bonfire.png", 24, 32)
         for trigger in self._trigger_system.triggers:
             if trigger.trigger_type != _TT.SAVE_POINT:
                 continue
@@ -708,30 +711,25 @@ class GameplayScene(BaseScene):
             w = trigger.rect.width
             h = trigger.rect.height
 
-            beacon_surf = pygame.Surface((w, h), pygame.SRCALPHA)
-            beacon_surf.fill((80, 200, 255, 40))
-            surface.blit(beacon_surf, (sx, sy))
-
-            pygame.draw.rect(surface, (80, 200, 255), (sx, sy, w, h), 1)
-
-            pillar_w = 4
-            cx = sx + w // 2 - pillar_w // 2
-            pygame.draw.rect(surface, (60, 160, 220), (cx, sy, pillar_w, h))
-
-            try:
-                if not hasattr(self, "_save_font"):
-                    self._save_font = pygame.font.Font(None, 10)
-                label = self._save_font.render("SAVE", False, (80, 220, 255))
-                lx = sx + (w - label.get_width()) // 2
-                ly = sy - label.get_height() - 1
-                surface.blit(label, (lx, ly))
-            except pygame.error:
-                pass
+            if frames:
+                frame_idx = 1 if id(trigger) in self._activated_save_points else 0
+                frame = frames[frame_idx]
+                fx = sx + (w - frame.get_width()) // 2
+                fy = sy + h - frame.get_height()
+                surface.blit(frame, (fx, fy))
+            else:
+                beacon_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+                beacon_surf.fill((80, 200, 255, 40))
+                surface.blit(beacon_surf, (sx, sy))
+                pygame.draw.rect(surface, (80, 200, 255), (sx, sy, w, h), 1)
 
     def _render_level_end_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],
     ) -> None:
-        """Draw a pulsing gate at level_end trigger locations."""
+        """Draw taula gate sprite at level_end trigger locations."""
+        from sa_fona.rendering.asset_loader import load_image
+
+        taula = load_image("assets/environment/taula_gate.png")
         for trigger in self._trigger_system.triggers:
             if trigger.trigger_type != TriggerType.LEVEL_END:
                 continue
@@ -740,29 +738,15 @@ class GameplayScene(BaseScene):
             w = trigger.rect.width
             h = trigger.rect.height
 
-            gate_surf = pygame.Surface((w, h), pygame.SRCALPHA)
-            gate_surf.fill((255, 220, 80, 50))
-            surface.blit(gate_surf, (sx, sy))
-
-            pygame.draw.rect(surface, (255, 200, 50), (sx, sy, w, h), 2)
-
-            col_w = 4
-            pygame.draw.rect(
-                surface, (180, 140, 40), (sx, sy, col_w, h),
-            )
-            pygame.draw.rect(
-                surface, (180, 140, 40), (sx + w - col_w, sy, col_w, h),
-            )
-
-            try:
-                if not hasattr(self, "_gate_font"):
-                    self._gate_font = pygame.font.Font(None, 12)
-                arrow = self._gate_font.render(">>>", False, (255, 220, 80))
-                ax = sx + (w - arrow.get_width()) // 2
-                ay = sy + (h - arrow.get_height()) // 2
-                surface.blit(arrow, (ax, ay))
-            except pygame.error:
-                pass
+            if taula:
+                fx = sx + (w - taula.get_width()) // 2
+                fy = sy + h - taula.get_height()
+                surface.blit(taula, (fx, fy))
+            else:
+                gate_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+                gate_surf.fill((255, 220, 80, 50))
+                surface.blit(gate_surf, (sx, sy))
+                pygame.draw.rect(surface, (255, 200, 50), (sx, sy, w, h), 2)
 
     # ── Entity spawning ─────────────────────────────────────────────
 
@@ -1327,6 +1311,7 @@ class GameplayScene(BaseScene):
         """
         shop_available = False
         if trigger is not None:
+            self._activated_save_points.add(id(trigger))
             self._checkpoint_pos = (
                 float(trigger.rect.x),
                 float(trigger.rect.bottom - self._player.rect.height),

@@ -419,6 +419,18 @@
       "frame_width": 24,
       "frame_height": 24,
       "frame_count": 3
+    },
+    "env_bonfire": {
+      "path": "assets/environment/bonfire.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 2
+    },
+    "env_taula_gate": {
+      "path": "assets/environment/taula_gate.png",
+      "frame_width": 96,
+      "frame_height": 144,
+      "frame_count": 1
     }
   },
   "portraits": {

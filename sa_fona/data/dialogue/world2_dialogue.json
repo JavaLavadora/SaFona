@@ -13,7 +13,14 @@
       {
         "speaker": "balchar",
         "portrait": "balchar_neutral",
-        "text": "Sa Via Nova. The Romans built this road centuries after my people. And yet here we are.",
+        "text": "I know this place. Those roman invaders have settled a camp nearby called Sa Via Nova.",
+        "sfx": null,
+        "auto_advance_ms": null
+      },
+      {
+        "speaker": "balchar",
+        "portrait": "balchar_surprised",
+        "text": "However it is impossible for them to have built this in such a short period of time!",
         "sfx": null,
         "auto_advance_ms": null
       }

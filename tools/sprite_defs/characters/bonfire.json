@@ -1,0 +1,14 @@
+{
+  "frame_width": 24,
+  "frame_height": 32,
+  "source_dir": "assets/ai_sources/bonfire",
+  "output_dir": "assets/environment",
+  "animations": [
+    {
+      "source": "bonfire.png",
+      "frames": 2,
+      "scale_pct": 150,
+      "vertical_snap": "bottom"
+    }
+  ]
+}

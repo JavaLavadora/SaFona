@@ -42,3 +42,13 @@ class TestSavePointRendering:
         scene = GameplayScene()
         surface = pygame.Surface((384, 216))
         scene._render_save_point_cues(surface, (0, 0))
+
+
+class TestLevelEndRendering:
+    """Tests for taula gate sprite rendering at level end markers."""
+
+    def test_render_level_end_cues_does_not_crash(self):
+        from sa_fona.scenes.gameplay import GameplayScene
+        scene = GameplayScene()
+        surface = pygame.Surface((384, 216))
+        scene._render_level_end_cues(surface, (0, 0))

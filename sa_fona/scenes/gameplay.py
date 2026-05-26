@@ -726,7 +726,10 @@ class GameplayScene(BaseScene):
     def _render_level_end_cues(
         self, surface: pygame.Surface, cam_offset: tuple[int, int],
     ) -> None:
-        """Draw a pulsing gate at level_end trigger locations."""
+        """Draw taula gate sprite at level_end trigger locations."""
+        from sa_fona.rendering.asset_loader import load_image
+
+        taula = load_image("assets/environment/taula_gate.png")
         for trigger in self._trigger_system.triggers:
             if trigger.trigger_type != TriggerType.LEVEL_END:
                 continue
@@ -735,29 +738,15 @@ class GameplayScene(BaseScene):
             w = trigger.rect.width
             h = trigger.rect.height
 
-            gate_surf = pygame.Surface((w, h), pygame.SRCALPHA)
-            gate_surf.fill((255, 220, 80, 50))
-            surface.blit(gate_surf, (sx, sy))
-
-            pygame.draw.rect(surface, (255, 200, 50), (sx, sy, w, h), 2)
-
-            col_w = 4
-            pygame.draw.rect(
-                surface, (180, 140, 40), (sx, sy, col_w, h),
-            )
-            pygame.draw.rect(
-                surface, (180, 140, 40), (sx + w - col_w, sy, col_w, h),
-            )
-
-            try:
-                if not hasattr(self, "_gate_font"):
-                    self._gate_font = pygame.font.Font(None, 12)
-                arrow = self._gate_font.render(">>>", False, (255, 220, 80))
-                ax = sx + (w - arrow.get_width()) // 2
-                ay = sy + (h - arrow.get_height()) // 2
-                surface.blit(arrow, (ax, ay))
-            except pygame.error:
-                pass
+            if taula:
+                fx = sx + (w - taula.get_width()) // 2
+                fy = sy + h - taula.get_height()
+                surface.blit(taula, (fx, fy))
+            else:
+                gate_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+                gate_surf.fill((255, 220, 80, 50))
+                surface.blit(gate_surf, (sx, sy))
+                pygame.draw.rect(surface, (255, 200, 50), (sx, sy, w, h), 2)
 
     # ── Entity spawning ─────────────────────────────────────────────
 

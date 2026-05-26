@@ -61,11 +61,6 @@ pickups:
   x: 9
   y: 32
   value: 1
-# Mid platform y=26 (x=6-13): ammo
-- type: stone
-  x: 7
-  y: 24
-  value: 1
 - type: stone
   x: 11
   y: 4

@@ -23,6 +23,7 @@ datas = [
     (os.path.join(_ROOT, "assets", "effects"), os.path.join("assets", "effects")),
     (os.path.join(_ROOT, "assets", "portraits"), os.path.join("assets", "portraits")),
     (os.path.join(_ROOT, "assets", "palettes"), os.path.join("assets", "palettes")),
+    (os.path.join(_ROOT, "assets", "environment"), os.path.join("assets", "environment")),
 ]
 
 # Filter out data dirs that don't exist yet (e.g. palettes may be empty).

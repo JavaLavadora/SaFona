@@ -13,14 +13,74 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
-      "text": "You defeated my guardian. Perhaps you are not entirely useless, foner.",
+      "speaker": "Dimoni",
+      "text": "You two again?! I told you to never bother me or my vassals.",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
-      "text": "Take this. The Talayotic mask shall bend stone to your will. You have earned it.",
+      "speaker": "Dimoni",
+      "text": "Look at what you did to my bou! It took me years to create him.",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "I had to kidnap a whole family of margers to put it together. The whole three generations!",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Balchar",
+      "text": "Your bou attacked us! What were you expecting us to do!",
+      "portrait": "balchar_angry"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "YOU BROKE INTO HIS HOME! What were YOU expecting HIM to do!",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Balchar",
+      "text": "Well I guess you have a point there... Sorry for killing your stone beast",
+      "portrait": "balchar_neutral"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Balchar",
+      "text": "Please would you accept my beast as a compensation gift?",
+      "portrait": "balchar_smirk"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "What the fuck man?!",
+      "portrait": "bep_sleepy"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "HA HA HA. Well you have a sense of humor I have to admit",
+      "portrait": "dimoni_laughing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "Dimoni banyut...",
+      "portrait": "bep_happy"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "SILENCE! You defeated my guardian afterall. Perhaps you are not entirely useless, foner.",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "You know what, take this. The Talayotic mask shall bend stone to your will. You have earned it.",
       "portrait": "dimoni_granting"
     },
     {
@@ -63,13 +123,19 @@
       "type": "dialogue",
       "speaker": "Bep",
       "text": "Balchar... I feel strange... something is happening!",
-      "portrait": "bep_scared"
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
       "text": "Bep, what are you--",
       "portrait": "balchar_surprised"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "*Farts*",
+      "portrait": "bep_sleepy"
     },
     {
       "type": "wait",
@@ -93,18 +159,18 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "AAAH! I sneezed and the world RIPPED OPEN! What is happening to me?!",
-      "portrait": "bep_scared"
+      "text": "AAAH! the world RIPPED OPEN! What is happening to me?!",
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "Ha! You thought we were done? That sheep ate my herbs. Every dimoni on this island wants a piece of him now.",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "My fire burns inside him. Wherever he goes, portals will tear open. Good luck, foner.",
       "portrait": "dimoni_menacing"
     },
@@ -119,13 +185,13 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Balchar! We have to go through the portal before it closes! I can feel it pulling us!",
+      "text": "Balchar! I can feel the portal pulling us!",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "This is your fault, Bep.",
+      "text": "This is your fault, Bep. I just wanted a nap...",
       "portrait": "balchar_angry"
     },
     {

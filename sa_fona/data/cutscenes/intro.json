@@ -38,8 +38,8 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "*munch munch*",
-      "portrait": "bep_sleepy"
+      "text": "**Sniff, sniff, sniff**",
+      "portrait": "bep_excited"
     },
     {
       "type": "dialogue",
@@ -54,20 +54,14 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "*Ooh, these herbs smell nice...*",
+      "text": "*Smells herbs*",
       "portrait": "bep_excited"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "*mmm, Mixed herbs! My favorite!*",
-      "portrait": "bep_excited"
-    },
-    {
-      "type": "dialogue",
-      "speaker": "Bep",
-      "text": "*chomp*",
-      "portrait": "bep_happy"
+      "text": "*munch, munch, munch*",
+      "portrait": "bep_neutral"
     },
     {
       "type": "wait",
@@ -86,7 +80,7 @@
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "WHO DARES DEFILE MY ALTAR?!",
       "portrait": "dimoni_menacing"
     },
@@ -99,12 +93,12 @@
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "...what.",
+      "text": "...mmm...what...let me sleep...",
       "portrait": "balchar_angry"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "Your wretched beast has devoured my sacred herbs! These take longer than those herbs of Poseidon to grow back!",
       "portrait": "dimoni_menacing"
     },
@@ -117,42 +111,48 @@
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "Who on earth are you? Do you come from the sea?",
+      "text": "Who on earth are you?! Are you one of those sea people?",
       "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "SILENCE! I have inhabited this land way before your species even existed show some respect and apologize for your beast's actions!",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "I mean he's a myotragus. He eats things. That's what he does.",
+      "text": "I mean he's a Myotragus. He eats things. That's what he does.",
       "portrait": "balchar_smirk"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
       "text": "SILENCE! Your beast has now stolen a piece of my power. Give it back and accept your punishment!",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "Ew! I am not sticking my hand in there! I would need to cut it afterwards! No thanks!",
+      "text": "Hear me out mate! I am not sticking my hand in there! Have you ever smelled a goat?!",
       "portrait": "balchar_smirk"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
-      "text": "SILENCE! Show some respect my power is beyond your comprehension. Actually...",
+      "speaker": "Dimoni",
+      "text": "SILENCE! Show some respect. My power is beyond your comprehension. Actually...",
       "portrait": "dimoni_menacing"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
+      "speaker": "Dimoni",
+      "text": "HA HA HA HA HA",
+      "portrait": "dimoni_laughing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
       "text": "... the power this beast stole will be your punishment. Every demon on this island will sense him now!",
       "portrait": "dimoni_laughing"
     },
@@ -176,37 +176,49 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Well I was hungry man what could I do?!",
-      "portrait": "bep_sleepy"
+      "text": "Well I was hungry man what could I do?",
+      "portrait": "bep_happy"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "...Bep?",
+      "text": "Wait...Bep?",
       "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
       "text": "What, I was hungry! You never let me try your food",
-      "portrait": "bep_sleepy"
+      "portrait": "bep_happy"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "Why are you talking?!",
+      "text": "Bep why are you talking?!",
       "portrait": "balchar_surprised"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "What?! Wow, Why am I talking?! My stomach hurts like crazy!",
+      "text": "What?! Wow, Why am I talking?! Oh shit!",
+      "portrait": "bep_sleepy"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Bep",
+      "text": "Uff my stomach now hurts like crazy...",
       "portrait": "bep_scared"
     },
     {
       "type": "dialogue",
-      "speaker": "Es Dimoni de Sant Joan",
-      "text": "HAHAHAHA. Consider it a gift. Or a side effect of my power. Either way, you will both suffer for this. Now get out of my sight!",
+      "speaker": "Dimoni",
+      "text": "Consider it a gift. Or a side effect of my power. Either way, you will both suffer for this. Now get out of my sight!",
+      "portrait": "dimoni_menacing"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Dimoni",
+      "text": "See you when you are dead, don't bother me or my vassals never!",
       "portrait": "dimoni_menacing"
     },
     {
@@ -224,8 +236,8 @@
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "Balchar, what do we do?! He cursed me! I'm a TALKING GOAT now!",
-      "portrait": "bep_scared"
+      "text": "Balchar, what do we do?! He cursed us!",
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
@@ -236,19 +248,19 @@
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "This is your fault, Bep.",
+      "text": "I don't know man this is all your fault, Bep.",
       "portrait": "balchar_angry"
     },
     {
       "type": "dialogue",
       "speaker": "Bep",
-      "text": "MY fault?! You were supposed to be watching me!",
-      "portrait": "bep_scared"
+      "text": "MY fault?! You were supposed to be watching me! Also he cursed both of us!",
+      "portrait": "bep_sleepy"
     },
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "I was napping.",
+      "text": "I was just napping.",
       "portrait": "balchar_neutral"
     },
     {
@@ -264,7 +276,13 @@
     {
       "type": "dialogue",
       "speaker": "Balchar",
-      "text": "Now we walk. And you stop eating things.",
+      "text": "Now I'm not napping anymore so we walk...",
+      "portrait": "balchar_neutral"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "Balchar",
+      "text": "... And you stop eating things.",
       "portrait": "balchar_neutral"
     },
     {

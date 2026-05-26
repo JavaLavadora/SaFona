@@ -7,7 +7,7 @@
     {
       "source": "bonfire.png",
       "frames": 2,
-      "scale_pct": 100,
+      "scale_pct": 150,
       "vertical_snap": "bottom"
     }
   ]

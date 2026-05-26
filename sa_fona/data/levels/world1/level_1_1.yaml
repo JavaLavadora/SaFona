@@ -138,7 +138,7 @@ triggers:
 - type: save_point
   rect:
     x: 88
-    y: 10
+    y: 9
     w: 2
     h: 3
 - type: level_end

@@ -7,7 +7,7 @@
     {
       "source": "taula_gate.png",
       "frames": 1,
-      "scale_pct": 300,
+      "scale_pct": 100,
       "vertical_snap": "bottom"
     }
   ]

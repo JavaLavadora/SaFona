@@ -13,5 +13,8 @@ dev = [
     "pyinstaller>=6.0",
 ]
 
+[tool.setuptools.packages.find]
+include = ["sa_fona*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

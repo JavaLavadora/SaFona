@@ -5,7 +5,7 @@
   "output_dir": "assets/sprites/balchar",
   "animations": [
     {"source": "idle.png", "frames": 4, "scale_pct": 100, "vertical_snap": "bottom"},
-    {"source": "walk.png", "frames": 6, "scale_pct": 120, "vertical_snap": "bottom"},
+    {"source": "walk_new.png", "output": "walk.png", "frames": 6, "scale_pct": 120, "vertical_snap": "bottom"},
     {"source": "jump.png", "frames": 2, "scale_pct": 100, "vertical_snap": "center"},
     {"source": "sling_attack.png", "output": "sling.png", "frames": 3, "scale_pct": 115, "vertical_snap": "bottom"},
     {"source": "crouch.png", "frames": 2, "scale_pct": 70, "vertical_snap": "bottom"},

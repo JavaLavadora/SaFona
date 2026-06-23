@@ -205,7 +205,7 @@ The Bou de Pedra boss has 6 attack patterns across 3 phases. The boss already ha
 
 ## 7. AI Prompts
 
-Canonical attack-effect prompts now live in [`docs/asset_prompts.md`](../asset_prompts.md) § 13. The earlier prompts in this proposal predate the consolidation and have been superseded — see Issue #123 and PR #124. Do NOT generate effect sprites from copies of this section elsewhere; always start from `asset_prompts.md`.
+Canonical attack-effect prompts now live in [`docs/asset_prompts/world1.md`](../asset_prompts/world1.md) § 13 (W1 enemies — Stone Guardian, Rival Warrior; the Legionary stab flash is staged there pending `world2.md`). The earlier prompts in this proposal predate the consolidation and have been superseded — see Issue #123 and PR #124. Do NOT generate effect sprites from copies of this section elsewhere; always start from the canonical file under `docs/asset_prompts/`.
 
 ---
 

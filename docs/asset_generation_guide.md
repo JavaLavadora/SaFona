@@ -4,11 +4,21 @@
 processing pipeline, and QC checklist.**
 
 For the prompts themselves (every AI prompt, copy-paste-ready, organized by
-asset), see [`asset_prompts.md`](asset_prompts.md). This file is **workflow
-only** — it tells you *how* to add an asset; the prompts file gives you
-*what* to type.
+asset and split per world), see [`asset_prompts/`](asset_prompts/):
 
-If you find prompt content **outside `docs/asset_prompts.md`**, it is a bug —
+- [`asset_prompts/shared.md`](asset_prompts/shared.md) — cross-world assets
+  (player, companion, generic pickups, projectiles, UI, ground shadow,
+  title/game-over) + the canonical **frame-size convention** and **global
+  style block**.
+- [`asset_prompts/world1.md`](asset_prompts/world1.md) — World 1 (Sa Talaia)
+  bosses, enemies, NPCs, tilesets, backgrounds, environment props, W1 NPC
+  portraits, W1 attack effects, W1 generation order.
+- Future: `world2.md`, `world3.md`, etc.
+
+This file is **workflow only** — it tells you *how* to add an asset; the
+prompts files give you *what* to type.
+
+If you find prompt content **outside `docs/asset_prompts/`**, it is a bug —
 file an Issue.
 
 ---
@@ -16,15 +26,44 @@ file an Issue.
 ## How to add a new asset
 
 > **The rule that prevents drift**: All new prompts go into
-> `docs/asset_prompts.md`. **Do NOT create new prompt files elsewhere in the
+> `docs/asset_prompts/`. **Do NOT create new prompt files elsewhere in the
 > repo.** Not in `tools/sprite_defs/`, not in `docs/proposals/`, not next to
-> the JSON config. One file. One source of truth.
+> the JSON config. One folder. One source of truth.
+
+### Where does this prompt go?
+
+Pick the file by asking: **does this asset appear across multiple worlds?**
+
+- **Yes (cross-world)** → `docs/asset_prompts/shared.md`. Examples: player
+  (Balchar) and companion (Bep) animations, generic pickups (heart, stone,
+  shield orb), breakables (pot, crate), projectiles, generic effects (dust,
+  impact, portal, anticipation, debris), UI elements, title and game-over
+  screens, player ground shadow, Balchar/Bep dialogue portraits.
+- **No (world-specific)** → `docs/asset_prompts/world<N>.md`. Examples: that
+  world's boss, enemies (including their attack effect overlays), NPCs
+  (including dialogue portraits), tilesets, backgrounds, environment props,
+  world-specific effects (e.g. the W1 Dimoni aura), per-world generation
+  order.
+
+If a UI element is currently styled for a single world (e.g. the W1 boss
+health bar's carved-stone look) but is rendered as a cross-world UI control,
+keep the prompt in `shared.md` and add a note that per-world variants live
+in the matching world file. The Bep curse-glow aura is a similar case: the
+sprite is Bep (cross-world) so the prompt lives in `shared.md`, with a note
+linking the W1 narrative tie.
+
+When adding a brand-new world, create `docs/asset_prompts/world<N>.md` and
+append a per-world "Generation order" section at the end. Do not restructure
+existing files.
+
+### Steps
 
 1. **Decide the asset spec** — talk to En Biel (Game Director) for design
    intent: name, role, visual identity, frame count, animation set, world
    palette. Confirm what placeholder it replaces and what hitbox dimensions
    the gameplay code already uses.
-2. **Add the prompt section** to `docs/asset_prompts.md` under the matching
+2. **Add the prompt section** to the right file under `docs/asset_prompts/`
+   (see the "Where does this prompt go?" rule above) under the matching
    world / category heading. Include:
    - Palette block (RGB values) — author or reference a `.gpl` file in
      `assets/palettes/`.
@@ -57,7 +96,8 @@ file an Issue.
 11. **Commit + PR** with a screenshot in the description.
 
 **Reminder**: if you wrote a prompt anywhere other than
-`docs/asset_prompts.md`, delete it and move it into the prompts file. Future
+`docs/asset_prompts/`, delete it and move it into the right file there
+(`shared.md` for cross-world, `world<N>.md` for per-world). Future
 contributors will not find duplicated prompts and the game will drift
 visually.
 
@@ -188,7 +228,7 @@ Forbidden:
   - Palette changes
 ```
 
-See `docs/asset_prompts.md` § 1 for a worked example (Balchar's anatomy map).
+See [`docs/asset_prompts/shared.md` § 1](asset_prompts/shared.md#1-balchar-player-character) for a worked example (Balchar's anatomy map).
 
 ---
 
@@ -268,10 +308,11 @@ IMPORTANT: Different identity, indistinguishable style.
 
 Tilesets follow a slightly different pipeline because of the auto-tile
 variant generation and color correction. See
-[`asset_prompts.md` § 15](asset_prompts.md#15-tilesets) for the World 1
-tileset prompts and the canonical processing pipeline (color-correction RGB
-endpoints `(130,112,82) → (215,195,155)` plus multi-step downscale: LANCZOS
-→ 48x48 → contrast 1.4x → sharpness 1.5x → NEAREST to 16x16).
+[`asset_prompts/world1.md` § 15](asset_prompts/world1.md#15-tilesets) for the
+World 1 tileset prompts and the canonical processing pipeline
+(color-correction RGB endpoints `(130,112,82) → (215,195,155)` plus
+multi-step downscale: LANCZOS → 48x48 → contrast 1.4x → sharpness 1.5x →
+NEAREST to 16x16).
 
 Template:
 
@@ -479,7 +520,7 @@ Snapping controls where the sprite sits inside the fixed-size frame.
 9. **Saves** — as RGBA PNG.
 
 For **tilesets**, see the World 1 tileset pipeline in
-[`asset_prompts.md` § 15.1](asset_prompts.md#151-world-1--outdoor-sa-talaia):
+[`asset_prompts/world1.md` § 15.1](asset_prompts/world1.md#151-world-1--outdoor-sa-talaia):
 includes the color-correction endpoints `(130,112,82) → (215,195,155)` and
 the multi-step downscale LANCZOS → 48x48 → contrast 1.4x → sharpness 1.5x →
 NEAREST to 16x16.
@@ -502,13 +543,14 @@ NEAREST to 16x16.
 | `legionary_effects.json` | varies | attack effect VFX |
 
 Effect configs are separate from body sprites because frame dimensions
-differ — see [`asset_prompts.md` § 13](asset_prompts.md#13-attack-effect-overlays).
+differ — see [`asset_prompts/world1.md` § 13](asset_prompts/world1.md#13-attack-effect-overlays).
 
 **Historical note**: `tools/sprite_defs/balchar_ai_prompt.md` is retained as
 an archival record of v1/v2/v3 Balchar sprite-processing history. It is
-**NOT** an authoritative prompt source — see [`asset_prompts.md` § 1](asset_prompts.md)
+**NOT** an authoritative prompt source — see
+[`asset_prompts/shared.md` § 1](asset_prompts/shared.md#1-balchar-player-character)
 for the current Balchar prompt. If you find any other prompt files outside
-`docs/asset_prompts.md`, that is a bug — file an Issue.
+`docs/asset_prompts/`, that is a bug — file an Issue.
 
 ---
 
@@ -562,7 +604,8 @@ isn't "downgraded" later by someone who thinks it's filler:
 
 ### Current (World 1 — populated)
 
-See [`asset_prompts.md`](asset_prompts.md) for the full list.
+See [`asset_prompts/`](asset_prompts/) for the full list
+(`shared.md` + `world1.md`).
 
 ### Future assets (placeholders, not yet authored)
 
@@ -571,9 +614,13 @@ See [`asset_prompts.md`](asset_prompts.md) for the full list.
 - **World 3 — Comte Mal** roster
 - **Worlds 4-5** roster
 
-When adding a future world, append a new top-level section to
-`docs/asset_prompts.md` (`# W2. Romana`, etc.). Do not restructure the
-existing W1 content.
+When adding a future world, create a new file
+`docs/asset_prompts/world<N>.md` (e.g. `world2.md` for Romana). Do not
+restructure existing files — each world gets its own file. The W2+ file
+should reference `shared.md` for the frame-size convention and global style
+block, then list that world's bosses, enemies, NPCs, tilesets, backgrounds,
+environment props, NPC portraits, world-specific effects, and end with a
+per-world generation order.
 
 ---
 

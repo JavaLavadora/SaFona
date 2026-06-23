@@ -1,9 +1,11 @@
 # tools/sprite_defs/
 
 Processing configs only. **All AI prompts live in
-[`docs/asset_prompts.md`](../../docs/asset_prompts.md).** Workflow,
-methodology, processing pipeline, JSON config format, and QC checklist live
-in [`docs/asset_generation_guide.md`](../../docs/asset_generation_guide.md).
+[`docs/asset_prompts/`](../../docs/asset_prompts/)** (split per world:
+`shared.md` for cross-world assets, `world1.md` and future per-world files
+for world-specific assets). Workflow, methodology, processing pipeline,
+JSON config format, and QC checklist live in
+[`docs/asset_generation_guide.md`](../../docs/asset_generation_guide.md).
 
 This folder contains:
 

@@ -111,7 +111,7 @@ docs/           # GDD, architecture, roadmap
 | [docs/software_architecture.md](docs/software_architecture.md) | Architecture — module layout, systems, data flow |
 | [docs/implementation_roadmap.md](docs/implementation_roadmap.md) | Living roadmap (current and upcoming deliverables) |
 | [docs/asset_generation_guide.md](docs/asset_generation_guide.md) | Asset workflow, processing pipeline, QC checklist, "How to add a new asset" |
-| [docs/asset_prompts.md](docs/asset_prompts.md) | Every AI prompt for every asset (copy-paste-ready) |
+| [docs/asset_prompts/](docs/asset_prompts/) | Every AI prompt for every asset, split per world: [shared.md](docs/asset_prompts/shared.md) (cross-world) + [world1.md](docs/asset_prompts/world1.md) |
 | [docs/distribution.md](docs/distribution.md) | Build and upload guide |
 | [CLAUDE.md](CLAUDE.md) | Development workflow and team structure |
 

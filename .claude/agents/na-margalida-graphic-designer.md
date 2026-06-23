@@ -21,20 +21,34 @@ sprite tuning, or even answering a question about an asset:
 1. **Read `docs/asset_generation_guide.md`** — workflow, methodology,
    processing pipeline, JSON config format, QC checklist, and the
    "How to add a new asset" section at the top.
-2. **Read `docs/asset_prompts.md`** — every AI prompt for every asset.
+2. **Read `docs/asset_prompts/`** — every AI prompt for every asset, split
+   per world:
+   - `docs/asset_prompts/shared.md` — cross-world assets (player, companion,
+     pickups, projectiles, generic effects, UI, title/game-over, ground
+     shadow) + the frame-size convention and global style block that the
+     world files reference.
+   - `docs/asset_prompts/world1.md` — World 1 (Sa Talaia) bosses, enemies,
+     NPCs, tilesets, backgrounds, environment props, W1 NPC portraits, W1
+     attack effect overlays, W1 generation order.
+   - Future worlds: `world2.md`, `world3.md`, etc.
 
-These two files are the single source of truth. Everything else is either
+These files are the single source of truth. Everything else is either
 generated, archival, or wrong.
 
 ### Where new prompts go
 
-**All new prompts go into `docs/asset_prompts.md`.** Do NOT create new prompt
-files anywhere else — not in `tools/sprite_defs/`, not in `docs/proposals/`,
-not next to a JSON config. If you write a prompt outside the master file,
-delete it and move it into `docs/asset_prompts.md` under the matching
-asset / world section.
+**All new prompts go into `docs/asset_prompts/<file>.md`** — `shared.md` if
+the asset appears across multiple worlds, otherwise the matching
+`world<N>.md` file. When you add a brand-new world, create
+`docs/asset_prompts/world<N>.md` and append a "Generation order" section at
+the end.
 
-If you find prompt content outside `docs/asset_prompts.md` while exploring
+Do NOT create new prompt files anywhere else — not in `tools/sprite_defs/`,
+not in `docs/proposals/`, not next to a JSON config. If you write a prompt
+outside the `docs/asset_prompts/` folder, delete it and move it into the
+right file there.
+
+If you find prompt content outside `docs/asset_prompts/` while exploring
 the repo, it's a bug — file an Issue.
 
 ## Context

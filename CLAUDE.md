@@ -36,23 +36,29 @@ Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame
 - `docs/software_architecture.md` — Architecture (created by En Miquel)
 - `docs/implementation_roadmap.md` — Living roadmap (maintained by Na Francina)
 - `docs/asset_generation_guide.md` — Asset workflow, processing pipeline, "How to add a new asset"
-- `docs/asset_prompts.md` — Every AI prompt for every asset (copy-paste-ready)
+- `docs/asset_prompts/` — Every AI prompt for every asset, split per world:
+  - `shared.md` — cross-world assets (player, companion, pickups, projectiles, UI, etc.)
+  - `world1.md` — World 1 (Sa Talaia) bosses, enemies, NPCs, tilesets, backgrounds
 
 ## Asset & Sprite Generation
 
-All asset generation lives in two files (single source of truth):
+All asset generation lives in two places (single source of truth):
 
 - **`docs/asset_generation_guide.md`** — workflow, methodology, processing
   pipeline, JSON config format, QC checklist. **Read this first.**
-- **`docs/asset_prompts.md`** — every AI prompt for every asset.
+- **`docs/asset_prompts/`** — every AI prompt for every asset, split per
+  world. Start with `shared.md` for the frame-size convention and global
+  style block; then look in the per-world file (`world1.md`, future
+  `world2.md`, etc.) for the asset you need.
 
 Processing configs (separate from prompts) live in
 `tools/sprite_defs/characters/*.json`. Historical Balchar processing notes
 are preserved at `tools/sprite_defs/balchar_ai_prompt.md`.
 
-**Rule**: All new prompts go to `docs/asset_prompts.md`. Do NOT create new
-prompt files anywhere else in the repo. If you find prompt content outside
-that file, it's a bug — file an Issue.
+**Rule**: All new prompts go to `docs/asset_prompts/<file>.md` — `shared.md`
+for cross-world assets, `world<N>.md` for per-world assets. Do NOT create
+new prompt files anywhere else in the repo. If you find prompt content
+outside `docs/asset_prompts/`, it's a bug — file an Issue.
 
 ## Team Roster
 
@@ -101,4 +107,4 @@ All agents share the same GitHub account. When posting comments on Issues or PRs
 - Na Margalida creates real assets when requested by user
 - AI-generated content requires explicit user permission (cost consideration)
 - Assets must be hot-swappable (change file, no code changes)
-- **Prompts + workflow**: see `docs/asset_generation_guide.md` and `docs/asset_prompts.md`
+- **Prompts + workflow**: see `docs/asset_generation_guide.md` and `docs/asset_prompts/` (split per world: `shared.md`, `world1.md`, ...)

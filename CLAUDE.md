@@ -35,6 +35,24 @@ Sa Fona is a 2D retro side-scrolling platformer with combat, built with **Pygame
 - `docs/game_design_document.md` — Polished GDD (created by En Biel)
 - `docs/software_architecture.md` — Architecture (created by En Miquel)
 - `docs/implementation_roadmap.md` — Living roadmap (maintained by Na Francina)
+- `docs/asset_generation_guide.md` — Asset workflow, processing pipeline, "How to add a new asset"
+- `docs/asset_prompts.md` — Every AI prompt for every asset (copy-paste-ready)
+
+## Asset & Sprite Generation
+
+All asset generation lives in two files (single source of truth):
+
+- **`docs/asset_generation_guide.md`** — workflow, methodology, processing
+  pipeline, JSON config format, QC checklist. **Read this first.**
+- **`docs/asset_prompts.md`** — every AI prompt for every asset.
+
+Processing configs (separate from prompts) live in
+`tools/sprite_defs/characters/*.json`. Historical Balchar processing notes
+are preserved at `tools/sprite_defs/balchar_ai_prompt.md`.
+
+**Rule**: All new prompts go to `docs/asset_prompts.md`. Do NOT create new
+prompt files anywhere else in the repo. If you find prompt content outside
+that file, it's a bug — file an Issue.
 
 ## Team Roster
 
@@ -83,3 +101,4 @@ All agents share the same GitHub account. When posting comments on Issues or PRs
 - Na Margalida creates real assets when requested by user
 - AI-generated content requires explicit user permission (cost consideration)
 - Assets must be hot-swappable (change file, no code changes)
+- **Prompts + workflow**: see `docs/asset_generation_guide.md` and `docs/asset_prompts.md`

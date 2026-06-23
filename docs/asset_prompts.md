@@ -2413,18 +2413,32 @@ The health bar sits at the bottom of the screen during boss fights.
 **Code constants**: `_INDICATOR_WIDTH = 12`, `_INDICATOR_HEIGHT = 4` (base size).
 Higher tiers widen to 16 and 20 respectively.
 
+**Tier colors**: Colors aligned with projectile glow tiers (§ 11) for visual
+coherence — the charge indicator and the projectile it spawns share the same
+tier color so charge level reads consistently. Tier 1 = white / grey baseline
+(neutral, pre-charge), Tier 2 = **blue**, Tier 3 = **gold**.
+
 ```
 Pixel art of sling charge tier indicators, 16-bit SNES style, on a solid
 bright green (#00FF00) background. Show in a horizontal row:
 
-  1) Tier 1 glow — a small faint yellow energy bar/circle above the player's
-                   head, dim and understated, 12x4 pixels
-  2) Tier 2 glow — a brighter orange energy bar, slightly wider (16x4 pixels),
-                   more intense
-  3) Tier 3 glow — a blazing white-red energy bar, widest (20x4 pixels), with
-                   small spark particles, dramatic
+  1) Tier 1 glow — a small faint white/grey energy bar/circle above the
+                   player's head, dim and understated, 12x4 pixels. Baseline
+                   pre-charge feedback — neutral light grey #C0C0C0 with a
+                   pale white core #F0F0F0.
+  2) Tier 2 glow — a brighter blue energy bar, slightly wider (16x4 pixels),
+                   more intense. Uses the same blue family as the Tier 2
+                   projectile (§ 11): light-blue → blue gradient,
+                   #78B8F8 bright core to #5090E0 outer edge.
+  3) Tier 3 glow — a blazing gold energy bar, widest (20x4 pixels), with
+                   small bright spark particles, dramatic. Uses the same
+                   gold family as the Tier 3 projectile (§ 11): yellow →
+                   gold gradient, #F8E060 bright core to #D8B838 outer edge.
+                   Sparks are 1px white #FFFFFF.
 
-These float above Balchar's head while charging the sling.
+These float above Balchar's head while charging the sling. The intent is that
+the player sees the same color in the indicator as they will see on the stone
+they're about to fire — charge level reads at a glance.
 ```
 
 **Output files**: `charge_tier1.png` (12x4), `charge_tier2.png` (16x4), `charge_tier3.png` (20x4).

@@ -504,6 +504,12 @@ NEAREST to 16x16.
 Effect configs are separate from body sprites because frame dimensions
 differ — see [`asset_prompts.md` § 13](asset_prompts.md#13-attack-effect-overlays).
 
+**Historical note**: `tools/sprite_defs/balchar_ai_prompt.md` is retained as
+an archival record of v1/v2/v3 Balchar sprite-processing history. It is
+**NOT** an authoritative prompt source — see [`asset_prompts.md` § 1](asset_prompts.md)
+for the current Balchar prompt. If you find any other prompt files outside
+`docs/asset_prompts.md`, that is a bug — file an Issue.
+
 ---
 
 ## 9. Asset directory structure

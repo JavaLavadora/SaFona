@@ -109,8 +109,77 @@ follow-up task if needed.
 - All cross-references in the new docs use relative paths
   (`docs/asset_prompts.md`, `asset_generation_guide.md`).
 
+## Round 1 review fixes
+
+En Pau and En Miquel completed round 1. Four findings addressed on the same
+branch (`docs/asset-consolidation`):
+
+### Fix 1 — [BLOCKING from En Miquel] `attack_effect_system_proposal.md` § 7
+
+`docs/proposals/attack_effect_system_proposal.md` § 7 contained 5 full AI
+prompts (Rival spear thrust, Stone Guardian arm sweep, Legionary stab,
+Anticipation glow, Stone debris) that had drifted from the canonical versions
+in `docs/asset_prompts.md` § 13. Most notably the Stone Guardian effect: § 7
+described a **6-frame** sweep including the arm itself and a shockwave, while
+the canonical § 13.1 is a **3-frame simple brown dust no-body-parts** VFX.
+
+**Resolution**: replaced § 7 (lines 206-423, ~218 lines of AI prompts) with a
+4-line pointer to `docs/asset_prompts.md` § 13. The design rationale in
+§§ 1-6 (visual fantasy, anchor positions, palette references, per-enemy
+attack design tables) is preserved — that's design history, not prompt
+content. I did the grep En Miquel requested (`GLOBAL STYLE CONSTRAINTS`,
+`^Pixel art sprite sheet`, `^Create a SNES-style`) across `docs/proposals/`
+after the fix — zero remaining hits in any proposal file.
+
+### Fix 2 — [SUGGESTION from En Pau] Charge indicator color contradiction
+
+`docs/asset_prompts.md` § 18.7 still described Tier 2 = orange and Tier 3 =
+white-red (inherited from the deleted `w1_asset_generation_guide.md`), while
+§ 11 locks projectile Tier 2 = blue and Tier 3 = gold. Per Issue #123 default
+(master prompts win on visual specs), § 18.7 has been updated:
+
+- Tier 1: white / grey baseline (neutral pre-charge)
+- Tier 2: light-blue → blue gradient, same family as § 11 Tier 2 projectile
+  (`#78B8F8` core, `#5090E0` edge)
+- Tier 3: yellow → gold gradient, same family as § 11 Tier 3 projectile
+  (`#F8E060` core, `#D8B838` edge), with 1px white spark particles
+
+Added a one-line rationale comment in the section: "Colors aligned with
+projectile glow tiers (§ 11) for visual coherence." Same charge level now
+shows the same color in the indicator as on the stone fired.
+
+### Fix 3 — [SUGGESTION from En Miquel] Acknowledge retained `balchar_ai_prompt.md`
+
+`docs/asset_generation_guide.md` § 8 now has a "Historical note" paragraph
+immediately after the "Existing JSON configs" table, calling out that
+`tools/sprite_defs/balchar_ai_prompt.md` is retained as archival v1/v2/v3
+processing history and is NOT an authoritative prompt source — pointing
+readers at `docs/asset_prompts.md` § 1 instead. Wording matches the existing
+"if you find prompts outside this file it's a bug" theme.
+
+### Fix 4 — [SUGGESTION from En Pau] PR body line counts
+
+PR body said `asset_generation_guide.md` was ~480 lines and
+`asset_prompts.md` was ~1690. Actual line counts at the head of the branch
+are 580 (now 586 after fix 3) and 2,533 respectively. Updated the PR body
+via `gh pr edit 124` to reflect reality.
+
+### Llorenç path-encoding note (En Miquel, noted but not actioned)
+
+En Miquel flagged the ASCII/UTF-8 inconsistency in deleted Llorenç filenames
+(`45_llorenc_idle.md` vs. `45_llorenç_idle.md`). File deletion succeeded
+cleanly; the new `asset_prompts.md` keeps ç in section headings (prose, not
+paths). No action this PR — captured for future filename-hygiene practice.
+
+### En Pau effect-canonical-sizes follow-up (FUTURE)
+
+En Pau requested a follow-up Issue to cross-check effect canonical sizes
+(aura 16x16, portal 24x32) against `tools/sprite_defs/characters/*_effects.json`
+configs in a separate PR. Not in scope for this consolidation. Will file
+once this PR merges.
+
 ## Handoff
 
-- En Pau and En Miquel: PR review (max 3 review rounds per CLAUDE.md).
+- En Pau and En Miquel: round 2 re-review (round 1 of 3 used).
 - Na Francina (PM): once reviewers approve, please coordinate user signoff
   before merge (mandatory per workflow rule #4).

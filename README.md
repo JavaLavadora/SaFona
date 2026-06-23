@@ -103,6 +103,18 @@ tests/          # Test suite
 docs/           # GDD, architecture, roadmap
 ```
 
+## Documentation
+
+| Doc | What it covers |
+|-----|----------------|
+| [docs/game_design_document.md](docs/game_design_document.md) | Game design document — characters, worlds, mechanics |
+| [docs/software_architecture.md](docs/software_architecture.md) | Architecture — module layout, systems, data flow |
+| [docs/implementation_roadmap.md](docs/implementation_roadmap.md) | Living roadmap (current and upcoming deliverables) |
+| [docs/asset_generation_guide.md](docs/asset_generation_guide.md) | Asset workflow, processing pipeline, QC checklist, "How to add a new asset" |
+| [docs/asset_prompts/](docs/asset_prompts/) | Every AI prompt for every asset, split per world: [shared.md](docs/asset_prompts/shared.md) (cross-world) + [world1.md](docs/asset_prompts/world1.md) |
+| [docs/distribution.md](docs/distribution.md) | Build and upload guide |
+| [CLAUDE.md](CLAUDE.md) | Development workflow and team structure |
+
 ## Development
 
 Sa Fona is developed using an AI-assisted multi-agent workflow. See [CLAUDE.md](CLAUDE.md) for details on the development process and team structure.

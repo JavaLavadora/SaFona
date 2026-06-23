@@ -27,3 +27,6 @@ saves/
 
 # PyInstaller
 *.spec.bak
+
+# img2vid scratch working folders — only final assets/sprites are committed
+assets/ai_sources/img2vid/**

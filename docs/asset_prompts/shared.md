@@ -66,10 +66,13 @@ expected. The processor scales and snaps.
 
 ## Global style block
 
-> Per-world files also use this block — they reference it here rather than
-> restating it.
+> Per-world files also reference this block.
 
-Copy this verbatim into **every** prompt. It is the backbone of style consistency.
+This block is reference for humans only. It is **not** copied into prompts —
+AI image generators do not respect abstract style directives at this level,
+and including them dilutes the directives they *do* respect (palette,
+identity lock, reference image, frame layout). Style consistency comes from
+the palette block, the identity lock, and the reference image.
 
 ```
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
@@ -174,8 +177,6 @@ Forbidden:       head position, leg length, belt height, palette changes
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 CHARACTER IDENTITY:
   - Name:    Balchar
   - Culture: Talayotic Balearic civilization (pre-Roman Mallorca)
@@ -237,8 +238,6 @@ this exact design — proportions, face, clothing, colors.
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same proportions, face, hair, headband, tunic, sash, bracers, sling
@@ -283,8 +282,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
   - Same palette (15 colors), same proportions, same design
@@ -319,7 +316,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
 PALETTE: (same 15 colors — see Balchar palette above)
@@ -350,7 +346,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
 PALETTE: (same 15 colors — see Balchar palette above)
@@ -382,7 +377,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
 PALETTE: (same 15 colors — see Balchar palette above)
@@ -420,7 +414,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
 PALETTE: (same 15 colors — see Balchar palette above)
@@ -450,7 +443,6 @@ RULES:
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK (same as all Balchar animations).
 
 PALETTE: (same 15 colors — see Balchar palette above)
@@ -479,8 +471,6 @@ RULES:
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 CRITICAL IDENTITY LOCK:
   - Must match the MASTER idle sprite EXACTLY
@@ -553,8 +543,6 @@ Columns: 0
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 CHARACTER IDENTITY:
   - Name:    Bep
   - Culture: Myotragus balearicus (extinct Balearic bovid)
@@ -610,7 +598,6 @@ This is the MASTER reference for Bep. All future Bep animations must match exact
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — must match Bep MASTER idle exactly.
 
 PALETTE: (same 9 colors — see Bep palette above)
@@ -637,7 +624,6 @@ RULES:
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — must match Bep MASTER idle exactly.
 PALETTE: (same 9 colors)
 
@@ -654,7 +640,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — must match Bep MASTER idle exactly.
 PALETTE: (same 9 colors)
 
@@ -672,7 +657,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — must match Bep MASTER idle exactly.
 PALETTE: (same 9 colors)
 
@@ -695,7 +679,6 @@ Background: solid green (#00FF00)
 > match the Dimoni palette (see [`world1.md`](world1.md#7-dimoni-de-sant-joan-npc)).
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — must match Bep MASTER idle exactly.
 PALETTE: (same 9 colors, plus a thin glow overlay in dimoni aura colors)
 
@@ -723,8 +706,6 @@ Background: solid green (#00FF00)
 
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (4 colors only):
   224,40,40    Heart red
   248,80,80    Heart light
@@ -745,8 +726,6 @@ Background: solid green (#00FF00)
 **Palette** (`assets/palettes/pickups_stone.gpl` — 5 colors):
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (5 colors only):
   160,152,144  Stone base
   184,184,168  Stone light
@@ -769,8 +748,6 @@ Background: solid green (#00FF00)
 > implements it.
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 Pixel art of a magical shield orb pickup, 16-bit SNES style, on a solid bright
 green (#00FF00) background. Show 2 frames side by side:
 
@@ -805,8 +782,6 @@ only the visual layer.
 **Palette** (`assets/palettes/breakables_pot.gpl` — 6 colors):
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (6 colors):
   184,120,56   Clay body
   200,144,72   Clay light
@@ -831,8 +806,6 @@ Background: solid green (#00FF00)
 **Palette** (`assets/palettes/breakables_crate.gpl` — 5 colors):
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (5 colors):
   160,120,72   Wood base
   184,144,88   Wood light
@@ -864,8 +837,6 @@ Tier 2 as orange and Tier 3 as white-red; that is superseded.)
 **Palette** (`assets/palettes/projectiles.gpl` — 8 colors):
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (8 colors):
   160,160,152  Tier 1 stone base
   128,128,120  Tier 1 stone shadow
@@ -907,8 +878,6 @@ resize.
 **Palette** (`assets/palettes/effects.gpl` — 12 colors):
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 PALETTE (12 colors):
   240,240,232  Dust white
   200,200,192  Dust grey

@@ -69,31 +69,47 @@ existing files.
      `assets/palettes/`.
    - Hitbox size (code constants) + AI prompt source size + JSON config
      output size. See the three-layer frame convention in the prompts file.
-   - The full prompt text including the **GLOBAL STYLE CONSTRAINTS** block.
+   - Identity lock, palette block, sprite constraints, body size rule,
+     animation description, rules tail. Do **not** copy the global style
+     block into the prompt — see Section 0 above.
    - `[ATTACH MASTER IDLE SPRITE HERE]` marker for any animation that
      follows a master idle.
 3. **Generate the master idle FIRST** if this is a new character. The master
    idle becomes the visual authority all other animations reference.
-4. **Run the AI generator** with the prompt. Save output to
-   `assets/ai_sources/<asset_name>/image.png` (or per-animation files for
-   multi-pose characters).
+4. **Run the img2vid pipeline** to produce the final sprite sheet. Each
+   numbered step below maps to a folder under
+   `assets/ai_sources/img2vid/<character>/<animation>/` (see Section 8 for
+   the pipeline diagram and Section 9 for the directory layout):
+   1. Write the prompt into the appropriate file under
+      `docs/asset_prompts/`.
+   2. Generate the sprite sheet via your image AI. Save as
+      `assets/ai_sources/img2vid/<character>/<animation>/01_source_sheet.png`.
+   3. Run: `python tools/split_sprite_sheet.py <character> <animation>`
+      → produces `02_split_frames/`.
+   4. For each `frame_NN.png` in `02_split_frames/`, upload to Meta AI
+      img2vid (or future API) with the same prompt. Save resulting MP4
+      as `03_videos/frame_NN.mp4`.
+   5. Run: `python tools/dump_video_frames.py <character> <animation> [--k 10]`
+      → produces `04_dumps/frame_NN/dump_*.png`.
+   6. Browse `04_dumps/frame_NN/` folders; delete frames you don't want.
+   7. Run: `python tools/assemble_sprite_sheet.py <character> <animation>`
+      → produces `05_assembled_raw.png` (debug checkpoint) and
+      `06_assembled_final.png` + final asset under `assets/sprites/`.
 5. **Add the processing config** at
    `tools/sprite_defs/characters/<asset_name>.json` — see [Processing
    pipeline & JSON config format](#processing-pipeline--json-config-format)
-   below.
-6. **Run the processor**:
-   ```bash
-   python tools/process_character_sprites.py tools/sprite_defs/characters/<asset_name>.json
-   ```
-7. **Tune `scale_pct` per animation** by visual inspection until the body
+   below. Sub-step 7 above (`assemble_sprite_sheet.py`) chains into the
+   existing `process_<character>_ai_sprites.py` script, which reads this
+   config.
+6. **Tune `scale_pct` per animation** by visual inspection until the body
    size matches the master idle across all animations.
-8. **Run the palette cleanup**:
+7. **Run the palette cleanup**:
    ```bash
    bash tools/reprocess_all_sprites.sh
    ```
-9. **Run the QC checklist** (Section 7 below).
-10. **Update `sa_fona/data/asset_manifest.json`** if dimensions changed.
-11. **Commit + PR** with a screenshot in the description.
+8. **Run the QC checklist** (Section 7 below).
+9. **Update `sa_fona/data/asset_manifest.json`** if dimensions changed.
+10. **Commit + PR** with a screenshot in the description.
 
 **Reminder**: if you wrote a prompt anywhere other than
 `docs/asset_prompts/`, delete it and move it into the right file there
@@ -105,8 +121,11 @@ visually.
 
 ## 0. Global Style Lock
 
-**Mandatory for ALL assets.** Copy this block verbatim into every prompt. It
-is the backbone of style consistency.
+This block is reference for humans only. It is **not** copied into prompts —
+AI image generators do not respect abstract style directives at this level,
+and including them dilutes the directives they *do* respect (palette,
+identity lock, reference image, frame layout). Style consistency comes from
+the palette block, the identity lock, and the reference image.
 
 ```
 GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
@@ -170,8 +189,6 @@ to it.
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 CHARACTER IDENTITY:
   - Name:        {{CHARACTER_NAME}}
@@ -239,8 +256,6 @@ Used for walk, run, attack, hit, jump, etc.
 ```
 Create a SNES-style 16-bit pixel art sprite sheet.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 CRITICAL IDENTITY LOCK:
   - Must match the MASTER sprite EXACTLY
   - Same proportions, face, hair, clothing, accessories
@@ -272,6 +287,14 @@ instruction. When you see it, attach the existing master idle PNG as a visual
 reference image alongside the text prompt. This is how style identity is
 enforced across animations.
 
+### Img2Vid stage
+
+After generating the AI sprite sheet, each keyframe is fed through an
+image-to-video AI to produce continuous motion. Frames are sampled from
+the resulting videos and assembled into a higher-quality sprite sheet.
+See Section 8 for the CLI commands. The img2vid stage is a *better source*
+for the same downstream pipeline — the final processing step is unchanged.
+
 ---
 
 ## 5. New Character, Same Style
@@ -280,8 +303,6 @@ For NPCs and enemies: identity changes, style does not.
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as {{REFERENCE_CHARACTER}}
@@ -318,8 +339,6 @@ Template:
 
 ```
 Create a SNES-style 16-bit pixel art TILESET.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 ENVIRONMENT TYPE: {{ENVIRONMENT_DESCRIPTION}}
 
@@ -362,29 +381,50 @@ If any check fails: regenerate or hand-fix.
 
 ## 8. Processing pipeline & JSON config format
 
-From AI-generated source art to final game sprites in two steps.
+The full pipeline has six stages. Three are existing tools we reuse, three
+are new img2vid stages added on top.
 
 ```
-AI source PNGs ──► process_character_sprites.py ──► raw sprite sheets ──► clean_sprites.py ──► final sprites
-(green background)     (scaling, placement)          (RGBA PNGs)          (palette, outline)    (game-ready)
+Stage 1   Prompt (asset_prompts/shared.md or world1.md)           [docs]
+            ↓
+Stage 2   AI sprite sheet generation                              [manual]
+            ↓                                                     → 01_source_sheet.png
+Stage 3   tools/split_sprite_sheet.py                             [NEW, automated]
+            ↓                                                     → 02_split_frames/
+Stage 4   Image→Video (Meta AI today, API later)                  [manual, hybrid-ready]
+            ↓                                                     → 03_videos/
+Stage 5   tools/dump_video_frames.py + manual prune               [NEW + user]
+            ↓                                                     → 04_dumps/
+Stage 6   tools/assemble_sprite_sheet.py                          [NEW, automated]
+            ↓                                                     → 05_assembled_raw.png
+          Existing process_<character>_ai_sprites.py + clean_sprites.py
+                                                                  → 06_assembled_final.png
+                                                                  → assets/sprites/...
 ```
 
-**Step 1** (`tools/process_character_sprites.py`): Takes AI source images
-with green backgrounds, extracts each frame, scales them to your specified
-size, places them in a fixed-size frame, and assembles horizontal sprite
-sheets.
+**Key invariant:** Stage 6's output is shaped to match what the existing
+`process_*_ai_sprites.py` already expects (chroma-green background, target
+frame dimensions, palette-quantized). Downstream is unchanged.
 
-**Step 2** (`tools/clean_sprites.py`): Applies color palette enforcement and
-optional pixel outline to the raw sprite sheets.
-
-Both steps are run by `tools/reprocess_all_sprites.sh` for the full batch.
+**Re-runnability:** Each stage is an independent CLI reading from / writing
+to known folders. Any stage can be re-run in isolation without re-running
+earlier ones.
 
 ### Quick start
 
 ```bash
 conda activate safona
 
-# Process one character
+# Stage 3 — slice the AI sheet into per-frame PNGs
+python tools/split_sprite_sheet.py <character> <animation>
+
+# Stage 5 — dump frames from each video (every Kth frame)
+python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
+
+# Stage 6 — assemble cleaned sprite sheet
+python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}]
+
+# Final character-processing pass (unchanged — chained from Stage 6)
 python tools/process_character_sprites.py tools/sprite_defs/characters/balchar.json
 
 # Process all characters
@@ -396,6 +436,32 @@ python tools/process_character_sprites.py -v tools/sprite_defs/characters/balcha
 # Full pipeline (all characters + palette cleanup + outline)
 bash tools/reprocess_all_sprites.sh
 ```
+
+### Debug artifacts
+
+When the final asset looks wrong, inspect
+`assets/ai_sources/img2vid/<character>/<animation>/05_assembled_raw.png`
+first. This is the Stage 6 output **before** `process_<character>_ai_sprites.py`
+runs. Comparing it against `06_assembled_final.png` localizes the bug:
+
+- If `05_assembled_raw.png` is already wrong → the bug is in the img2vid
+  assembly (background removal, downsample, palette quantize, anchor).
+- If `05` looks fine but `06` is worse → the bug is in the existing
+  `process_*_ai_sprites.py` or `clean_sprites.py` chain.
+
+Each stage's intermediate folders (`02_split_frames/`, `03_videos/`,
+`04_dumps/`) are also preserved so any stage can be re-run in isolation.
+
+### Legacy two-step pipeline (still used for non-img2vid sources)
+
+`tools/process_character_sprites.py` takes AI source images with green
+backgrounds, extracts each frame, scales them to your specified size,
+places them in a fixed-size frame, and assembles horizontal sprite sheets.
+`tools/clean_sprites.py` applies color palette enforcement and an optional
+pixel outline to the raw sprite sheets. Both steps are run by
+`tools/reprocess_all_sprites.sh` for the full batch — and Stage 6 of the
+img2vid pipeline chains into them, so this script remains the canonical
+"rebuild everything" entry point.
 
 ### JSON config format
 
@@ -579,6 +645,22 @@ assets/
 The game's sprite loading system automatically picks up files from these
 paths. `sa_fona/data/asset_manifest.json` declares dimensions/frame counts
 for each animation; update it if anything changes.
+
+### Img2Vid working layout
+
+```
+assets/ai_sources/img2vid/<character>/<animation>/
+├── 01_source_sheet.png       # Stage 2 (raw AI output)
+├── 02_split_frames/          # Stage 3 output
+├── 03_videos/                # Stage 4 drop zone (user places MP4s here)
+├── 04_dumps/                 # Stage 5 output (user prunes in place)
+├── 05_assembled_raw.png      # Stage 6 output (debug checkpoint)
+└── 06_assembled_final.png    # After existing process_*_ai_sprites.py
+```
+
+This whole subtree is **gitignored** — only the final game sprite in
+`assets/sprites/...` is committed. Each stage's folder is the input of the
+next, and any stage can be re-run in isolation.
 
 ---
 

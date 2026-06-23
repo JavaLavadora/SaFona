@@ -30,7 +30,7 @@ Stage 5   tools/dump_video_frames.py + manual prune               [NEW + user]
             ↓                                                     → 04_dumps/
 Stage 6   tools/assemble_sprite_sheet.py                          [NEW, automated]
             ↓                                                     → 05_assembled_raw.png
-          Existing process_<character>_ai_sprites.py + clean_sprites.py
+          tools/process_character_sprites.py <character>.json     [canonical]
                                                                   → 06_assembled_final.png
                                                                   → assets/sprites/...
 ```
@@ -50,8 +50,8 @@ python tools/split_sprite_sheet.py <character> <animation>
 # Stage 5 — dump frames from each video (every Kth frame)
 python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
 
-# Stage 6 — assemble cleaned sprite sheet (chains into the existing
-# process_<character>_ai_sprites.py)
+# Stage 6 — assemble cleaned sprite sheet (chains into the canonical
+# tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json)
 python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}]
 
 # Legacy entry point (full batch, all characters)

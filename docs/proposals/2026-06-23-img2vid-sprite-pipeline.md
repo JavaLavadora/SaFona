@@ -40,12 +40,12 @@ Stage 5   tools/dump_video_frames.py + manual prune               [NEW + user]
             ↓                                                     → 04_dumps/
 Stage 6   tools/assemble_sprite_sheet.py                          [NEW, automated]
             ↓                                                     → 05_assembled_raw.png
-          Existing process_<character>_ai_sprites.py + clean_sprites.py
+          tools/process_character_sprites.py <character>.json     [canonical]
                                                                   → 06_assembled_final.png
                                                                   → assets/sprites/...
 ```
 
-**Key invariant:** Stage 6's output is shaped to match what the existing `process_*_ai_sprites.py` already expects (chroma-green background, target frame dimensions, palette-quantized). Downstream is unchanged.
+**Key invariant:** Stage 6's output is shaped to match what the canonical `tools/process_character_sprites.py` already expects: chroma-green background where **every pixel is *exactly* `(0, 255, 0)` or a palette color — no semi-transparent edges, no intermediate green values**; target frame dimensions; palette-quantized against `assets/palettes/<character>.gpl`. Downstream is unchanged.
 
 **Re-runnability:** Each stage is an independent CLI reading from / writing to known folders. Any stage can be re-run in isolation without re-running earlier ones.
 
@@ -73,9 +73,9 @@ assets/ai_sources/img2vid/<character>/<animation>/
 │   ├── frame_02/...
 │   └── frame_NN/...
 │       ← USER PRUNES IN PLACE: delete frames you don't want
-├── 05_assembled_raw.png         ← Stage 6 output BEFORE process_*_ai_sprites.py
+├── 05_assembled_raw.png         ← Stage 6 output BEFORE process_character_sprites.py
 │                                  (bg removed, palette-quantized, packed sheet)
-└── 06_assembled_final.png       ← After process_*_ai_sprites.py + clean_sprites.py
+└── 06_assembled_final.png       ← After process_character_sprites.py (canonical chain)
 ```
 
 **Conventions:**
@@ -116,8 +116,10 @@ User uploads each `02_split_frames/frame_NN.png` to Meta AI img2vid (free, web-o
 Thin wrapper over ffmpeg. For each MP4 in `03_videos/`:
 
 ```
-ffmpeg -i 03_videos/frame_NN.mp4 -vf "select=not(mod(n\,K))" -vsync vfr 04_dumps/frame_NN/dump_%04d.png
+ffmpeg -i 03_videos/frame_NN.mp4 -vf "select=not(mod(n\,K))" -fps_mode vfr 04_dumps/frame_NN/dump_%04d.png
 ```
+
+(Note: `-fps_mode vfr` replaces the deprecated `-vsync vfr`; requires ffmpeg >= 5.1.)
 
 **CLI:**
 - `python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]`
@@ -128,32 +130,54 @@ Validates that each MP4 in `03_videos/` corresponds to an existing split frame; 
 
 ### Stage 6 — `tools/assemble_sprite_sheet.py` (NEW, the substantive one)
 
-Walks `04_dumps/frame_*/` in numeric order. For each video, computes a per-video scale/anchor reference from the matching `02_split_frames/frame_NN.png`:
+Walks `04_dumps/frame_*/` in numeric order. Reads the character JSON
+(`tools/sprite_defs/characters/<character>.json`) for `frame_width`,
+`frame_height`, `source_dir`, and `output_dir`. For each video, computes a
+per-video scale/anchor reference from the matching `02_split_frames/frame_NN.png`:
 
 ```
 Setup per video:
   • Open 02_split_frames/frame_NN.png
-  • rembg + tight bbox crop
+  • Combined chroma + rembg mask (same combinator as --bg-mode both — see R1)
+    + tight bbox crop
+  • Validate the bbox is sensible:
+      - bbox missing                → raise "source split frame at <path> has
+                                      no foreground after chroma-key; manually
+                                      inspect and re-generate if needed."
+      - bbox height < 50% of canvas → raise (same message). Catches
+                                      "rembg/chroma ate most of the character."
   • Record:
       source_bbox_height   (character body height in the AI's sheet)
       source_anchor_y      (where bbox bottom sat in the canvas)
 
 Per surviving dump frame in 04_dumps/frame_NN/:
-  1. rembg                              → RGBA, transparent background
+  1. Background-remove                  → RGBA, transparent background
                                           (--bg-mode {rembg,chroma,both}, default both)
   2. Tight crop to alpha bbox (+ small margin)
   3. Downsample so cropped height == source_bbox_height
                                           (two-pass: bilinear → NEAREST)
-  4. Palette quantize → snap to 15-color palette
-                                          (palette read from sprite_defs or prompt)
+  4. Palette quantize → snap to character's .gpl palette
+                                          (parse_gpl(assets/palettes/<character>.gpl)
+                                          — same parser as tools/clean_sprites.py,
+                                          single source of truth)
   5. Composite onto chroma-green canvas of character frame dims
      with cropped bottom at source_anchor_y
                                           (placement, not sizing — anchor lives only here)
+  6. POSTCONDITION enforcement: hard alpha threshold so the canvas contains
+     ONLY exact (0, 255, 0) chroma OR exact palette colors. For every output
+     pixel: alpha >= 128 → keep the palette-quantized RGB; alpha < 128 →
+     replace with (0, 255, 0, 255). No semi-transparent edges, no blended
+     pixels survive into 05_assembled_raw.png.
 
 After all frames processed:
-  6. Pack horizontal → 05_assembled_raw.png
-  7. Hand off to existing process_<character>_ai_sprites.py
-     (and clean_sprites.py if that's how the project already chains)
+  7. Pack horizontal → 05_assembled_raw.png   (debug checkpoint)
+  8. Write the same sheet to <source_dir>/<animation>.png so the canonical
+     processing script finds it as a fresh AI source.
+  9. Invoke `python tools/process_character_sprites.py
+     tools/sprite_defs/characters/<character>.json` as a subprocess.
+  10. Verify <output_dir>/<animation>.png exists after the subprocess returns;
+      RAISE (not warn) if missing. The canonical script always exists; if
+      it's not on disk the repo is broken.
      → 06_assembled_final.png + game asset
 ```
 
@@ -163,8 +187,10 @@ The AI's own sprite sheet defines the correct character size and ground-line for
 **CLI:** `python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}] [--warn-scale-pct 15]`
 
 ### Dependencies added
-- `rembg` (background removal, MIT, runs locally) — ~150MB U2Net model on first run.
-- `ffmpeg` (system binary) — documented in install steps.
+- `rembg>=2.0.50,<3.0` (background removal, MIT, runs locally) — ~150MB U2Net
+  model is downloaded on first run; pinned to keep the default model stable.
+- `onnxruntime>=1.16,<2.0` — rembg requires this to run the U2Net model.
+- `ffmpeg` system binary, **>= 5.1** (for the `-fps_mode` flag used in Stage 5).
 - Everything else (Pillow, numpy) already in the project.
 
 ---
@@ -242,8 +268,8 @@ Four files. No new docs created.
 ## Risks & Open Issues
 
 ### R1 — Background removal eats thin features (sling cord, headband ribbon)
-**Fail mode:** rembg/U2Net was trained on photos; thin pixel-art features can be silently classified as background.
-**Mitigation:** `--bg-mode {rembg,chroma,both}` flag. `both` runs rembg AND a chroma-distance pass, keeping a pixel if EITHER mask says foreground. Default `both`.
+**Fail mode:** rembg/U2Net was trained on photos; thin pixel-art features can be silently classified as background. A naive logical-OR with chroma would amplify R4 (it lets every anti-aliased green edge survive as foreground).
+**Mitigation:** `--bg-mode {rembg,chroma,both}` flag. `both` uses **rembg as the primary mask**, then performs a **connected-component rescue**: chroma-mask components that are 4-connected to (i.e. touch) the rembg foreground (after 1px dilation) are added back. Components that are *not* touching rembg foreground — e.g. anti-aliased green-edge halos — are discarded. Default `both`.
 **Fallback:** if `05_assembled_raw.png` shows missing cord, set `--bg-mode chroma` and re-run assemble. If still wrong, the source frame is bad — regenerate that video.
 
 ### R2 — Identity drift across the video
@@ -271,14 +297,29 @@ Four files. No new docs created.
 **Mitigation:** add `assets/ai_sources/img2vid/` to `.gitignore` (targeted — existing `assets/ai_sources/*` PNGs remain tracked). Work folder is scratch; only the final game sprite in `assets/sprites/...` is committed.
 **Fallback:** future `tools/clean_sprite_work.py --older-than 7d` housekeeping (not in v1).
 
-### Open issue — clean_sprites.py orchestration
-`tools/sprite_defs/README.md` shows the existing flow as `process_character_sprites.py` then `clean_sprites.py`, with `tools/reprocess_all_sprites.sh` chaining them. The implementing developer should follow whichever chaining convention is already in place when wiring Stage 6 into `process_<character>_ai_sprites.py` — do not reinvent the final-cleanup chain.
+### R7 — rembg model drift
+**Fail mode:** rembg auto-downloads its U2Net model on first run. A future model version (or a future rembg release switching defaults) could subtly alter foreground masks across runs.
+**Mitigation:** pin `rembg>=2.0.50,<3.0` and `onnxruntime>=1.16,<2.0`. Stage 6 explicitly requests the `u2net` session rather than the floating default.
+**Fallback:** check `~/.u2net/` model file hash if results drift between machines.
+
+### R8 — Double-quantization between Stage 6 and clean_sprites.py
+**Fail mode:** Stage 6 palette-quantizes; `clean_sprites.py` palette-quantizes again. If the two read different palette sources, drift compounds silently.
+**Mitigation:** both use `parse_gpl(assets/palettes/<character>.gpl)` as the **single source of truth**. Re-quantization against the same palette is idempotent.
+**Fallback:** if drift surfaces, drop Stage 6's quantization step and rely entirely on `clean_sprites.py` for palette enforcement.
+
+### R9 — ffmpeg flag deprecation
+**Fail mode:** earlier ffmpeg versions used `-vsync vfr`; this was deprecated in 5.1 in favor of `-fps_mode vfr`. Older spec/plan text used the deprecated flag.
+**Mitigation:** Stage 5 uses the new flag; the spec documents ffmpeg >= 5.1 in the install steps.
+**Fallback:** if a deployment environment has older ffmpeg, override via env var (not in v1).
+
+### Chain script orchestration (resolved)
+Stage 6 invokes `tools/process_character_sprites.py <character.json>`. That script and `tools/clean_sprites.py` are chained by the existing `tools/reprocess_all_sprites.sh` for batch runs (Phase 1 = `process_character_sprites.py` for every config; Phase 3/4 = `clean_sprites.py` per output PNG); for single-animation runs, Stage 6 invokes only `process_character_sprites.py` and leaves `clean_sprites.py` for the user to run if needed. This is documented in the asset generation guide.
 
 ---
 
 ## Out of Scope (Explicitly)
 
-- Replacing existing `process_*_ai_sprites.py` or `clean_sprites.py` — they remain the final-cleanup step.
+- Replacing existing `tools/process_character_sprites.py` or `tools/clean_sprites.py` — they remain the final-cleanup chain.
 - An automated frame-quality scorer — pruning stays manual (Section 3 decision).
 - A new per-character JSON schema — existing `tools/sprite_defs/characters/*.json` is reused.
 - Moving prompts out of `docs/asset_prompts/*.md` — they stay there per the CLAUDE.md rule.
@@ -295,7 +336,7 @@ The work decomposes naturally into small PRs that can ship sequentially:
 1. **Docs + prompt cleanup** — slim prompts, flip the "copied verbatim" note, update workflow docs. Zero code, immediate value (slimmer prompts can be used today with the *old* pipeline too).
 2. **`split_sprite_sheet.py`** — smallest new tool, no new dependencies.
 3. **`dump_video_frames.py`** — second-smallest, adds ffmpeg system dep.
-4. **`assemble_sprite_sheet.py`** — the substantive new tool, adds rembg dep, wires into existing `process_*_ai_sprites.py`.
+4. **`assemble_sprite_sheet.py`** — the substantive new tool, adds rembg dep, wires into the canonical `tools/process_character_sprites.py`.
 5. **End-to-end test** — pick one animation (suggested: Balchar idle or sling attack), run the full pipeline manually, verify `06_assembled_final.png` looks correct, screenshot the result for user approval.
 
 A detailed implementation plan (task breakdown, test approach, file-by-file changes) will be produced by the writing-plans skill in a separate doc once this design is approved.

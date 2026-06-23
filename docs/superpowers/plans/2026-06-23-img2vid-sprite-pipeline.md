@@ -4,7 +4,7 @@
 
 **Goal:** Replace the current "AI image → postprocess" sprite pipeline with one that inserts an image-to-video stage, samples frames from the video, then assembles a palette-locked sprite sheet. Drop unused style noise from prompts. Persist every intermediate artifact for debuggability.
 
-**Architecture:** Three new single-purpose CLIs under `tools/` chained via well-known folder paths under `assets/ai_sources/img2vid/<character>/<animation>/`. Each stage reads from `0N_*` and writes to `0(N+1)_*`. Existing `process_*_ai_sprites.py` and `clean_sprites.py` stay as the final cleanup chain — Stage 6 hands off to them unchanged.
+**Architecture:** Three new single-purpose CLIs under `tools/` chained via well-known folder paths under `assets/ai_sources/img2vid/<character>/<animation>/`. Each stage reads from `0N_*` and writes to `0(N+1)_*`. The canonical `tools/process_character_sprites.py` (JSON-driven) and `tools/clean_sprites.py` stay as the final cleanup chain — Stage 6 hands off to them unchanged.
 
 **Tech Stack:** Python 3, Pillow, numpy, rembg (new dep), ffmpeg (system), pytest. Project uses the `safona` conda env.
 
@@ -85,20 +85,23 @@ the palette block, the identity lock, and the reference image.
 Insert numbered steps for the img2vid workflow between "AI sheet generated" and "run processing scripts". New step list:
 
 ```
-1. Write the prompt into the appropriate file under docs/asset_prompts/.
-2. Generate the sprite sheet via your image AI. Save as
+1. Generate the sprite sheet via your image AI. Save as
    assets/ai_sources/img2vid/<character>/<animation>/01_source_sheet.png.
-3. Run: python tools/split_sprite_sheet.py <character> <animation>
+   (The prompt itself was already written into docs/asset_prompts/ in the
+   outer "Add the prompt section" step above — don't duplicate that here.)
+2. Run: python tools/split_sprite_sheet.py <character> <animation>
    → produces 02_split_frames/
-4. For each frame_NN.png in 02_split_frames/, upload to Meta AI img2vid (or
+3. For each frame_NN.png in 02_split_frames/, upload to Meta AI img2vid (or
    future API) with the same prompt. Save resulting MP4 as
    03_videos/frame_NN.mp4.
-5. Run: python tools/dump_video_frames.py <character> <animation> [--k 10]
+4. Run: python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
    → produces 04_dumps/frame_NN/dump_*.png
-6. Browse 04_dumps/frame_NN/ folders; delete frames you don't want.
-7. Run: python tools/assemble_sprite_sheet.py <character> <animation>
-   → produces 05_assembled_raw.png (debug checkpoint) and
-   06_assembled_final.png + final asset under assets/sprites/.
+5. Browse 04_dumps/frame_NN/ folders; delete frames you don't want.
+6. Run: python tools/assemble_sprite_sheet.py <character> <animation>
+   → produces 05_assembled_raw.png (debug checkpoint) AND chains into
+   tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json,
+   which produces 06_assembled_final.png and the final game asset under
+   assets/sprites/<character>/.
 ```
 
 - [ ] **Step 4: Update `docs/asset_generation_guide.md` Section 4 ("Same Character, New Animation")**
@@ -115,7 +118,7 @@ for the same downstream pipeline — the final processing step is unchanged.
 
 - [ ] **Step 5: Update `docs/asset_generation_guide.md` Section 8 (Processing pipeline)**
 
-Replace the existing pipeline diagram with the new one (copy from the spec's "Pipeline Overview" section, lines starting `Stage 1` through the `process_<character>_ai_sprites.py` chain).
+Replace the existing pipeline diagram with the new one (copy from the spec's "Pipeline Overview" section, lines starting `Stage 1` through the `tools/process_character_sprites.py <character>.json` chain).
 
 Add Quick Start commands directly under the diagram:
 
@@ -143,7 +146,7 @@ assets/ai_sources/img2vid/<character>/<animation>/
 ├── 03_videos/                # Stage 4 drop zone (user places MP4s here)
 ├── 04_dumps/                 # Stage 5 output (user prunes in place)
 ├── 05_assembled_raw.png      # Stage 6 output (debug checkpoint)
-└── 06_assembled_final.png    # After existing process_*_ai_sprites.py
+└── 06_assembled_final.png    # After tools/process_character_sprites.py <char>.json
 ```
 
 Note that this whole subtree is gitignored.
@@ -154,7 +157,7 @@ Apply the same note flip as `docs/asset_generation_guide.md` Section 0 (Step 2):
 
 - [ ] **Step 8: Drop GLOBAL STYLE CONSTRAINTS from every prompt in `shared.md`**
 
-For each section 1.1 through 18.x in `shared.md`, locate the prompt body (the fenced code block following the `## X.Y Title` header). Find the lines starting with `GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):` and delete that block (typically the first ~13 lines of the prompt body up to but not including the next labelled section — `CRITICAL IDENTITY LOCK:`, `REFERENCE:`, or `PALETTE`).
+For each section 1.1 through 18.x in `shared.md`, locate the prompt body (the fenced code block following the `## X.Y Title` header). The per-world consolidation has already collapsed the full GSC block to a single-line reference `GLOBAL STYLE CONSTRAINTS APPLY.` per prompt — this task deletes that one-line reference from every prompt (~40+ prompts).
 
 Keep ALL other prompt content: identity lock, reference attachment, palette block, sprite constraints, body size rule, animation description, rules tail.
 
@@ -187,7 +190,7 @@ assets/ai_sources/img2vid/**
 git diff --stat
 ```
 
-Expected: 5 files modified, line additions/deletions roughly proportional to the prompt count (~60 prompts × ~13 lines deleted = ~800 deletions on prompt files, plus modest additions on guide.md and README.md).
+Expected: 5 files modified, line deletions roughly proportional to the prompt count (~40+ prompts × 1 reference line = ~40-70 deletions on prompt files, plus modest additions on `docs/asset_generation_guide.md` and `tools/sprite_defs/README.md`). The actual round-1 diff hit ~66 deletions on the prompt files, which matches the single-line-reference model.
 
 - [ ] **Step 14: Commit and open PR**
 
@@ -541,6 +544,11 @@ def test_build_ffmpeg_command_uses_select_modulo(tmp_path: Path):
     assert str(video) in cmd
     select_arg = next(arg for arg in cmd if "select=" in arg)
     assert "not(mod(n\\,10))" in select_arg
+    # Stage 5 must use -fps_mode vfr (the post-ffmpeg-5.1 replacement for
+    # -vsync vfr). The deprecated flag would warn on modern ffmpeg.
+    assert "-fps_mode" in cmd
+    assert "vfr" in cmd
+    assert "-vsync" not in cmd
     assert str(out_dir / "dump_%04d.png") in cmd
 
 
@@ -635,7 +643,7 @@ def build_ffmpeg_command(video: Path, out_dir: Path, k: int) -> list[str]:
         "-loglevel", "error",
         "-i", str(video),
         "-vf", f"select=not(mod(n\\,{k}))",
-        "-vsync", "vfr",
+        "-fps_mode", "vfr",  # -vsync vfr was deprecated in ffmpeg 5.1
         str(out_dir / "dump_%04d.png"),
     ]
 
@@ -758,7 +766,7 @@ git worktree remove ../safona-img2vid-t3
 - Consumes: Task 2's `02_split_frames/frame_NN.png` (scale/anchor reference) and Task 3's `04_dumps/frame_NN/dump_*.png` (frames to process).
 - Produces:
   - CLI `python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}] [--warn-scale-pct 15]`
-  - Writes: `05_assembled_raw.png` (debug checkpoint), then invokes existing `tools/process_<character>_ai_sprites.py` to produce `06_assembled_final.png` and the final asset under `assets/sprites/`.
+  - Writes: `05_assembled_raw.png` (debug checkpoint) AND `<source_dir>/<animation>.png` (where the canonical script expects its input), then invokes `tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json` as a subprocess to produce `06_assembled_final.png` and the final asset under `<output_dir>/<animation>.png`.
 
 - [ ] **Step 1: Create worktree, branch, install rembg**
 
@@ -767,12 +775,21 @@ cd /home/jovyan/projects/SaFona
 git worktree add ../safona-img2vid-t4 -b feat/img2vid-t4-assemble master
 cd ../safona-img2vid-t4
 conda activate safona
-pip install rembg
+pip install "rembg>=2.0.50,<3.0" "onnxruntime>=1.16,<2.0"
 ```
 
-- [ ] **Step 2: Add rembg to `pyproject.toml`**
+- [ ] **Step 2: Add rembg + onnxruntime to `pyproject.toml`**
 
-Open `pyproject.toml`, find the `dependencies` (or equivalent) list, add `"rembg"`. Run `pip install -e .` to confirm install works from the file.
+Open `pyproject.toml`, find the `dependencies` (or equivalent) list, add:
+
+```
+"rembg>=2.0.50,<3.0",     # U2Net by default — model is downloaded on first run
+"onnxruntime>=1.16,<2.0", # rembg requires this for the model
+```
+
+Pin them: a future rembg major could swap the default model and silently
+change Stage 6 output (R7). Run `pip install -e .` to confirm install works
+from the file.
 
 - [ ] **Step 3: Write the failing tests**
 
@@ -827,7 +844,8 @@ def test_downsample_to_height_preserves_aspect():
 
 
 def test_palette_quantize_snaps_to_nearest_color():
-    palette = [(0, 0, 0), (255, 255, 255), (255, 0, 0)]
+    # palette is (N, 3) np.ndarray to match parse_gpl's return type
+    palette = np.array([(0, 0, 0), (255, 255, 255), (255, 0, 0)])
     img = Image.new("RGBA", (2, 1))
     img.putpixel((0, 0), (10, 10, 10, 255))     # nearest to black
     img.putpixel((1, 0), (250, 5, 5, 255))      # nearest to red
@@ -871,6 +889,28 @@ def test_pack_horizontal_concatenates_in_order(tmp_path: Path):
     assert out.getpixel((5, 10))[:3] == (255, 0, 0)
     assert out.getpixel((15, 10))[:3] == (0, 255, 0)
     assert out.getpixel((25, 10))[:3] == (0, 0, 255)
+
+
+def test_composite_emits_only_chroma_or_palette_colors():
+    """Postcondition: 05_assembled_raw.png must contain ONLY exact (0,255,0)
+    chroma or exact palette colors — no semi-transparent edges, no blended
+    pixels. Downstream chroma-key in process_character_sprites.py relies on
+    this invariant (it only removes pixels where G-R > 40 and G-B > 40, so
+    anti-aliased green edges would bake green-tinted pixels into the asset).
+    """
+    palette = [(200, 100, 50), (100, 50, 25)]
+    char = Image.new("RGBA", (4, 6), (200, 100, 50, 255))
+    # Introduce a semi-transparent edge to force the threshold path:
+    for y in range(6):
+        char.putpixel((0, y), (200, 100, 50, 64))  # alpha 64 < 128 → chroma
+
+    out = composite_onto_canvas(char, 8, 8, anchor_y=7)
+    arr = np.array(out)
+    allowed = {(0, 255, 0, 255)} | {(*c, 255) for c in palette}
+    seen = {tuple(p) for p in arr.reshape(-1, 4)}
+    assert seen.issubset(allowed), (
+        f"composite leaked non-allowed colors: {seen - allowed}"
+    )
 ```
 
 - [ ] **Step 4: Run tests to confirm they fail**
@@ -888,10 +928,12 @@ Expected: `ModuleNotFoundError`.
 
 Stage 6 of the img2vid sprite pipeline. For each surviving dump frame in
 04_dumps/frame_NN/, removes the background, downsamples to match the source
-split frame's character height, palette-quantizes, and composites onto a
-chroma-green canvas anchored at the source frame's baseline. Packs the
-processed frames into 05_assembled_raw.png, then hands off to the existing
-process_<character>_ai_sprites.py for final cleanup.
+split frame's character height, palette-quantizes against the character's
+.gpl palette, and composites onto a chroma-green canvas anchored at the
+source frame's baseline. Packs the processed frames into 05_assembled_raw.png,
+copies the same sheet into <source_dir>/<animation>.png, then invokes the
+canonical tools/process_character_sprites.py <character>.json as a subprocess
+for final cleanup.
 
 Scale and anchor are self-calibrating: they are derived from the matching
 source split frame, NOT from per-animation config. This means each animation
@@ -909,13 +951,16 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage  # connected-component rescue for --bg-mode both
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WORK_ROOT = PROJECT_ROOT / "assets" / "ai_sources" / "img2vid"
 CHAR_DEF_ROOT = PROJECT_ROOT / "tools" / "sprite_defs" / "characters"
+PALETTE_ROOT = PROJECT_ROOT / "assets" / "palettes"
 
 CHROMA_GREEN = (0, 255, 0)
 CHROMA_GREEN_RGBA = (0, 255, 0, 255)
+ALPHA_THRESHOLD = 128  # postcondition: alpha < 128 → snap to chroma
 
 
 def chroma_key_mask(img: Image.Image, threshold: int = 40) -> np.ndarray:
@@ -949,13 +994,32 @@ def apply_mask(img: Image.Image, mask: np.ndarray) -> Image.Image:
 
 
 def remove_background(img: Image.Image, mode: str) -> Image.Image:
-    """Remove the background using the requested strategy."""
+    """Remove the background using the requested strategy.
+
+    For "both", uses rembg as the primary mask and rescues thin chroma-mask
+    components (e.g. sling cord, headband ribbon) that are 4-connected to the
+    rembg foreground. Chroma components NOT touching the rembg foreground —
+    e.g. anti-aliased green-edge halos — are discarded. This defends R1 (thin
+    features) without amplifying R4 (AA edges).
+    """
     if mode == "chroma":
         mask = chroma_key_mask(img)
     elif mode == "rembg":
         mask = rembg_mask(img)
     elif mode == "both":
-        mask = np.logical_or(chroma_key_mask(img), rembg_mask(img)).astype(np.uint8)
+        rembg = rembg_mask(img)
+        chroma = chroma_key_mask(img)
+        # Components present in chroma but absent from rembg:
+        missing = chroma & ~rembg
+        labels, n = ndimage.label(missing, structure=np.ones((3, 3)))
+        # Dilate rembg by 1px so "touching" includes diagonal neighbours.
+        rembg_neighborhood = ndimage.binary_dilation(rembg.astype(bool))
+        keep = np.zeros_like(rembg, dtype=bool)
+        for label_id in range(1, n + 1):
+            region = labels == label_id
+            if (region & rembg_neighborhood).any():
+                keep |= region
+        mask = (rembg.astype(bool) | keep).astype(np.uint8)
     else:
         raise ValueError(f"unknown bg-mode: {mode}")
     return apply_mask(img, mask)
@@ -974,19 +1038,41 @@ def tight_crop(img: Image.Image, padding: int = 0) -> Image.Image:
     return img.crop((left, top, right, bottom))
 
 
-def compute_source_anchor(source_frame: Image.Image) -> tuple[int, int]:
+def compute_source_anchor(
+    source_frame: Image.Image, source_path: Path | str = "<unknown>"
+) -> tuple[int, int]:
     """From the matching split frame, derive (bbox_height, anchor_y).
 
     bbox_height: height of the character body in the source sheet.
     anchor_y:   y-coordinate of the bbox bottom in the source canvas.
                 Used to place subsequent frames at the same baseline.
+
+    Uses the SAME chroma+rembg combinator as --bg-mode both for the source
+    anchor, so a chroma artifact on the source split frame doesn't silently
+    corrupt the entire animation's scale (defends R1+R3 at the anchor stage).
+
+    Raises:
+        ValueError: if the source frame has no foreground after masking, or
+                    if the bbox height is below 50% of canvas height (signals
+                    rembg/chroma ate most of the character).
     """
-    masked = apply_mask(source_frame, chroma_key_mask(source_frame))
+    masked = remove_background(source_frame, "both")
     bbox = masked.getbbox()
     if bbox is None:
-        raise ValueError("source split frame has no foreground after chroma-key")
+        raise ValueError(
+            f"source split frame at {source_path} has no foreground after "
+            f"chroma-key; manually inspect and re-generate if needed."
+        )
     left, top, right, bottom = bbox
-    return (bottom - top, bottom - 1)
+    bbox_h = bottom - top
+    if bbox_h < source_frame.height * 0.5:
+        raise ValueError(
+            f"source split frame at {source_path} has no foreground after "
+            f"chroma-key; manually inspect and re-generate if needed. "
+            f"(bbox height {bbox_h}px is < 50% of canvas height "
+            f"{source_frame.height}px — likely a masking failure.)"
+        )
+    return (bbox_h, bottom - 1)
 
 
 def downsample_to_height(img: Image.Image, target_height: int) -> Image.Image:
@@ -999,13 +1085,17 @@ def downsample_to_height(img: Image.Image, target_height: int) -> Image.Image:
     return pre.resize((target_width, target_height), Image.NEAREST)
 
 
-def palette_quantize(img: Image.Image, palette: list[tuple[int, int, int]]) -> Image.Image:
-    """Snap each opaque pixel to its nearest palette color."""
+def palette_quantize(img: Image.Image, palette: np.ndarray) -> Image.Image:
+    """Snap each opaque pixel to its nearest palette color.
+
+    `palette` is an (N, 3) array of RGB triplets, matching the shape returned
+    by tools.clean_sprites.parse_gpl.
+    """
     rgba = np.array(img.convert("RGBA"))
     rgb = rgba[..., :3].astype(int)
     alpha = rgba[..., 3]
 
-    pal = np.array(palette, dtype=int)
+    pal = np.asarray(palette, dtype=int)
     # Distance from every pixel to every palette color
     diffs = rgb[..., None, :] - pal[None, None, :, :]
     dists = (diffs * diffs).sum(axis=-1)
@@ -1021,15 +1111,34 @@ def palette_quantize(img: Image.Image, palette: list[tuple[int, int, int]]) -> I
 def composite_onto_canvas(
     char: Image.Image, canvas_w: int, canvas_h: int, anchor_y: int
 ) -> Image.Image:
-    """Paste the character onto a chroma-green canvas with its bottom at anchor_y."""
+    """Paste the character onto a chroma-green canvas with its bottom at anchor_y.
+
+    POSTCONDITION: every output pixel is either exactly (0, 255, 0, 255)
+    chroma OR a fully-opaque palette color. Hard alpha threshold:
+      alpha >= 128 → keep the palette-quantized RGB at full opacity.
+      alpha <  128 → replace with (0, 255, 0, 255).
+    No semi-transparent edges, no blended green-tinted boundary pixels. The
+    downstream chroma-key in process_character_sprites.py only removes pixels
+    where (G-R > 40) and (G-B > 40), so anti-aliased green edges would bake
+    green-tinted pixels into the final asset if this postcondition were
+    relaxed.
+    """
     canvas = Image.new("RGBA", (canvas_w, canvas_h), CHROMA_GREEN_RGBA)
     paste_x = (canvas_w - char.width) // 2
     paste_y = anchor_y - char.height + 1
     canvas.paste(char, (paste_x, paste_y), char)
-    # Re-flatten alpha to chroma green so downstream chroma-key still works
-    flat = Image.new("RGBA", canvas.size, CHROMA_GREEN_RGBA)
-    flat.paste(canvas, (0, 0), canvas)
-    return flat
+
+    # Enforce the postcondition: hard alpha threshold.
+    arr = np.array(canvas)
+    rgb = arr[..., :3]
+    alpha = arr[..., 3]
+    opaque = alpha >= ALPHA_THRESHOLD
+    out = np.empty_like(arr)
+    out[..., 0] = np.where(opaque, rgb[..., 0], CHROMA_GREEN[0])
+    out[..., 1] = np.where(opaque, rgb[..., 1], CHROMA_GREEN[1])
+    out[..., 2] = np.where(opaque, rgb[..., 2], CHROMA_GREEN[2])
+    out[..., 3] = 255
+    return Image.fromarray(out, mode="RGBA")
 
 
 def pack_horizontal(frames: list[Image.Image]) -> Image.Image:
@@ -1046,24 +1155,17 @@ def pack_horizontal(frames: list[Image.Image]) -> Image.Image:
     return sheet
 
 
-def load_palette_for(character: str) -> list[tuple[int, int, int]]:
-    """Load the 15-color palette for a character.
+def load_palette_for(character: str) -> np.ndarray:
+    """Load the character's palette from assets/palettes/<character>.gpl.
 
-    Tries tools/sprite_defs/palettes.py first; falls back to parsing the
-    character's prompt MD if no entry exists there. The implementing dev
-    should pick the path that already exists — do not invent a new format.
+    Uses the same parser as tools/clean_sprites.py so Stage 6 and the final
+    cleanup quantize against identical color sets (idempotent). Returns an
+    (N, 3) np.ndarray of RGB triplets.
     """
     sys.path.insert(0, str(PROJECT_ROOT))
-    try:
-        from tools.sprite_defs import palettes  # type: ignore
-        if hasattr(palettes, character.upper()):
-            return list(getattr(palettes, character.upper()))
-    except ImportError:
-        pass
-    raise NotImplementedError(
-        f"palette for {character} not found in tools/sprite_defs/palettes.py. "
-        f"Add it there (single source of truth), then re-run."
-    )
+    from tools.clean_sprites import parse_gpl  # single source of truth
+    palette_path = PALETTE_ROOT / f"{character}.gpl"
+    return parse_gpl(palette_path)
 
 
 def load_character_config(char_json_path: Path) -> dict:
@@ -1075,8 +1177,15 @@ def assemble(
     animation: str,
     bg_mode: str,
     warn_scale_pct: float,
-) -> Path:
-    """Run the full Stage 6 pipeline. Returns path to 05_assembled_raw.png."""
+) -> tuple[Path, Path]:
+    """Run the full Stage 6 pipeline.
+
+    Returns:
+        (raw_checkpoint, source_dir_copy) — the debug checkpoint
+        05_assembled_raw.png AND the same sheet copied into
+        <source_dir>/<animation>.png (where the canonical processing script
+        looks for its input).
+    """
     work_dir = WORK_ROOT / character / animation
     split_dir = work_dir / "02_split_frames"
     dump_root = work_dir / "04_dumps"
@@ -1086,6 +1195,7 @@ def assemble(
     config = load_character_config(char_json)
     canvas_w = int(config["frame_width"])
     canvas_h = int(config["frame_height"])
+    source_dir = (PROJECT_ROOT / config["source_dir"]).resolve()
     palette = load_palette_for(character)
 
     all_processed: list[Image.Image] = []
@@ -1096,7 +1206,9 @@ def assemble(
             continue
 
         source_img = Image.open(source_path).convert("RGBA")
-        source_bbox_h, source_anchor_y = compute_source_anchor(source_img)
+        source_bbox_h, source_anchor_y = compute_source_anchor(
+            source_img, source_path
+        )
 
         for dump_path in sorted(dump_dir.glob("dump_*.png")):
             raw = Image.open(dump_path).convert("RGBA")
@@ -1121,21 +1233,49 @@ def assemble(
     sheet = pack_horizontal(all_processed)
     sheet.save(raw_out)
     print(f"Wrote {raw_out} ({len(all_processed)} frames)")
-    return raw_out
+
+    # Copy into the character's source_dir where the canonical processing
+    # script looks for its input (it expects <animation>.png there).
+    source_dir.mkdir(parents=True, exist_ok=True)
+    source_copy = source_dir / f"{animation}.png"
+    sheet.save(source_copy)
+    print(f"Copied → {source_copy} (canonical script input)")
+    return raw_out, source_copy
 
 
-def chain_process_script(character: str, raw_sheet: Path) -> None:
-    """Invoke the existing process_<character>_ai_sprites.py with the raw sheet."""
-    candidates = [
-        PROJECT_ROOT / "tools" / f"process_{character}_ai_sprites.py",
-        PROJECT_ROOT / "tools" / "process_ai_sprites.py",
-    ]
-    script = next((c for c in candidates if c.exists()), None)
-    if script is None:
-        print(f"note: no process_<character>_ai_sprites.py found; "
-              f"hand-off skipped. Run cleanup manually on {raw_sheet}.")
-        return
-    subprocess.run([sys.executable, str(script), str(raw_sheet)], check=True)
+def chain_process_script(character: str, animation: str) -> Path:
+    """Invoke the canonical tools/process_character_sprites.py and verify output.
+
+    The canonical script is always required. If it's missing, the repo is
+    broken — raise loudly rather than silently skipping (which would cause
+    every non-Balchar character to ship with no final asset).
+
+    After the subprocess returns 0, verifies that <output_dir>/<animation>.png
+    exists; raises if missing.
+    """
+    script = PROJECT_ROOT / "tools" / "process_character_sprites.py"
+    if not script.exists():
+        raise FileNotFoundError(
+            f"canonical processing script not found at {script}; the repo is "
+            f"broken. (Stage 6 expects this script to always exist; do not "
+            f"add silent-skip fallbacks here.)"
+        )
+    char_json = CHAR_DEF_ROOT / f"{character}.json"
+    subprocess.run(
+        [sys.executable, str(script), str(char_json)], check=True
+    )
+
+    # Verify the output file actually landed where we expect.
+    config = load_character_config(char_json)
+    output_dir = (PROJECT_ROOT / config["output_dir"]).resolve()
+    expected_output = output_dir / f"{animation}.png"
+    if not expected_output.exists():
+        raise FileNotFoundError(
+            f"canonical script returned 0 but expected output "
+            f"{expected_output} is missing. Inspect the script's logs and the "
+            f"character JSON's animation entry for `{animation}.png`."
+        )
+    return expected_output
 
 
 def main() -> None:
@@ -1145,12 +1285,15 @@ def main() -> None:
     parser.add_argument("--bg-mode", choices=["rembg", "chroma", "both"], default="both")
     parser.add_argument("--warn-scale-pct", type=float, default=15.0)
     parser.add_argument("--no-chain", action="store_true",
-                        help="Skip handing off to process_<character>_ai_sprites.py")
+                        help="Skip the canonical process_character_sprites.py chain")
     args = parser.parse_args()
 
-    raw = assemble(args.character, args.animation, args.bg_mode, args.warn_scale_pct)
+    raw, _source_copy = assemble(
+        args.character, args.animation, args.bg_mode, args.warn_scale_pct
+    )
     if not args.no_chain:
-        chain_process_script(args.character, raw)
+        final = chain_process_script(args.character, args.animation)
+        print(f"Final asset → {final}")
 
 
 if __name__ == "__main__":
@@ -1181,15 +1324,19 @@ git commit -m "$(cat <<'EOF'
 feat(img2vid): add tools/assemble_sprite_sheet.py (Stage 6)
 
 Assembles a clean sprite sheet from img2vid dump frames. Per surviving
-frame: rembg + chroma background removal (both by default), tight crop,
-downsample to match source split frame's character height, palette
-quantize, composite onto chroma-green canvas anchored at source baseline,
-pack horizontal. Hands off to existing process_<character>_ai_sprites.py.
+frame: rembg-primary + connected-component chroma rescue for bg removal
+(both by default), tight crop, downsample to match source split frame's
+character height, palette quantize against assets/palettes/<character>.gpl
+(same parser as clean_sprites.py — idempotent), composite onto chroma-green
+canvas anchored at source baseline with hard alpha threshold postcondition.
+Pack horizontal, write 05_assembled_raw.png plus a copy into the character's
+source_dir, then invoke tools/process_character_sprites.py <character>.json
+as a subprocess and verify the final output landed in output_dir.
 
 Scale and anchor are self-calibrating from the matching source split frame
 — no per-animation config needed.
 
-Adds rembg dependency.
+Adds pinned rembg>=2.0.50,<3.0 and onnxruntime>=1.16,<2.0 dependencies.
 
 See spec: docs/proposals/2026-06-23-img2vid-sprite-pipeline.md
 
@@ -1274,7 +1421,7 @@ If any check fails, refer to spec Section "Risks & Open Issues" for the matching
 
 - [ ] **Step 9: Compare against `06_assembled_final.png`**
 
-Open both side-by-side. Differences should be limited to what the existing process script normally does (outline tightening, palette enforcement). If `06` looks worse than `05`, the bug is in process_*_ai_sprites.py, not the new pipeline.
+Open both side-by-side. Differences should be limited to what the canonical `process_character_sprites.py` normally does (outline tightening, palette enforcement). If `06` looks worse than `05`, the bug is in `tools/process_character_sprites.py` or `tools/clean_sprites.py`, not the new pipeline.
 
 - [ ] **Step 10: Launch the game and verify in-engine**
 
@@ -1294,11 +1441,11 @@ Write a short report at `docs/reports/2026-06-23-img2vid-pipeline-verification.m
 - Per-stage tooling → Tasks 2, 3, 4. ✓
 - Prompt restructuring → Task 1 Steps 7-10. ✓
 - Documentation updates → Task 1 Steps 2-11. ✓
-- All six risks (R1-R6) → Mitigations baked into Task 4 (`--bg-mode`, `--warn-scale-pct`), Task 5 Step 8 inspection checklist, and Task 1 Step 12 (.gitignore for R6). ✓
-- Open issue (`clean_sprites.py` orchestration) → Task 4's `chain_process_script` defers to the existing process script convention. ✓
+- All nine risks (R1-R9) → Mitigations baked into Task 4 (`--bg-mode` connected-component rescue, `--warn-scale-pct`, hard postcondition, `parse_gpl` single source of truth, pinned rembg+onnxruntime), Task 3 (`-fps_mode vfr` for R9), Task 5 Step 8 inspection checklist, and Task 1 Step 12 (.gitignore for R6). ✓
+- Chain orchestration (resolved) → Task 4's `chain_process_script` calls the canonical `tools/process_character_sprites.py <character>.json` and hard-errors if either the script or the expected output is missing. ✓
 - Out-of-scope items → respected (no schema changes to character JSONs, no new prompt locations, no replacement of existing process scripts). ✓
 
-**Placeholder scan:** No "TODO", "TBD", "implement later". One acknowledged deferral: `load_palette_for` raises `NotImplementedError` if the palette isn't in `tools/sprite_defs/palettes.py` — the message points the implementer at the single source of truth instead of forking a new format. This is intentional, not a placeholder.
+**Placeholder scan:** No "TODO", "TBD", "implement later". `load_palette_for` reads directly from `assets/palettes/<character>.gpl` via `tools.clean_sprites.parse_gpl` — the single source of truth shared with the final cleanup chain.
 
 **Type consistency:** Function names referenced across tests and impl match (`slice_sheet`, `resolve_frame_count`, `build_ffmpeg_command`, `discover_videos`, `dump_one_video`, `chroma_key_mask`, `downsample_to_height`, `palette_quantize`, `compute_source_anchor`, `composite_onto_canvas`, `pack_horizontal`). Folder names match across all tasks (`02_split_frames`, `03_videos`, `04_dumps`, `05_assembled_raw.png`, `06_assembled_final.png`). Character JSON field names (`frame_width`, `frame_height`, `animations[].source`, `animations[].frames`) match the actual `tools/sprite_defs/characters/balchar.json` schema verified during design.
 

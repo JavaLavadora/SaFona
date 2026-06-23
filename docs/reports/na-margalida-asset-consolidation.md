@@ -183,3 +183,131 @@ once this PR merges.
 - En Pau and En Miquel: round 2 re-review (round 1 of 3 used).
 - Na Francina (PM): once reviewers approve, please coordinate user signoff
   before merge (mandatory per workflow rule #4).
+
+## Round 2 — per-world split
+
+**Trigger**: user feedback — the consolidated `docs/asset_prompts.md` was
+2,547 lines and would multiply ×5 once Worlds 2-5 are populated. Splitting
+before merge prevents the file from becoming unmanageable.
+
+### What changed
+
+Replaced the single `docs/asset_prompts.md` with a per-world folder:
+
+```
+docs/asset_prompts/
+├── shared.md   (1,253 lines) — cross-world assets
+└── world1.md   (1,440 lines) — World 1 (Sa Talaia) assets
+```
+
+Total 2,693 lines vs. the original 2,547 — the extra 146 lines come from
+two file headers, two TOCs, two scope statements, and cross-references
+between the files. No prompt content was lost.
+
+### Split rule
+
+- **`shared.md`** gets anything that appears across worlds:
+  - Balchar (player) — all 9 animations including crouch, sling, hit, death
+  - Bep (companion) — all 6 animations including curse glow
+  - Player ground shadow (3 sizes)
+  - Player projectiles (slingstones — Tier 1/2/3)
+  - Pickups (heart, stone, shield orb)
+  - Breakables (pot, crate)
+  - Generic effects (dust, impact, portal, anticipation, debris) — palette
+    `effects.gpl` is shared even though the Dimoni aura row uses it
+  - UI elements (HUD hearts, stone icon, mask icon, dialogue frame, shop
+    frame, boss health bar, charge indicator)
+  - Title screen + Game Over screen
+  - Dialogue portraits for Balchar (4) and Bep (4)
+  - Frame-size convention + global style block + cross-world generation rules
+  - Post-generation pipeline (§ 22)
+
+- **`world1.md`** gets W1-specific content:
+  - Bou de Pedra (boss) — all 3 phases + 7 attack animations + arena props
+  - W1 enemies (Stone Guardian, Rival Warrior, Possessed Sheep) — bodies
+    AND their attack effect overlays (§ 13.1 dust sweep, § 13.2 slash trail)
+  - W1 NPCs (Dimoni de Sant Joan, Llorenç) + portraits (3 each)
+  - W1 Dimoni aura effect (uses shared `effects.gpl` palette)
+  - W1 tilesets (outdoor / cave / talayot) including the canonical
+    color-correction pipeline (luminance remap onto warm stone
+    `(130,112,82) → (215,195,155)`, multi-step downscale,
+    16 auto-tile variants, edge darkening)
+  - W1 backgrounds (outdoor / cave / talayot)
+  - W1 environment props (bonfire, taula gate) + processing notes
+  - W1 style chain and W1 generation order
+
+### Edge cases (judgment calls)
+
+| Edge case | Decision | Reason |
+|-----------|----------|--------|
+| Bep curse-glow aura | Stay in `shared.md` § 2.6 with a "W1 narrative tie" note pointing at the Dimoni section in `world1.md` | The sprite IS Bep (cross-world). The narrative tie is W1; the visual element is cross-world. |
+| Dimoni aura effect (16x16 portal-purple glow) | Live in `world1.md` (new "Dimoni aura effect (W1)" section between § 8 and § 13), with a callout that it uses the shared `effects.gpl` palette block in `shared.md` § 12 | The effect is W1-specific (tied to the Dimoni); but the palette is generic. Cross-referencing both files keeps the generation flow clear. |
+| Boss arena props (pillars, rock projectile, shockwave, pulse, shadow) | `world1.md` § 3.11 | Scoped to the Bou de Pedra arena. Future bosses bring their own arena props in their own world file. |
+| Boss health bar UI | Stay in `shared.md` § 18.6 with a "cross-world caveat: currently styled for W1" note | The UI control is cross-world; only its current visual styling is W1-specific. Per-world variants can be added later. |
+| Roman Legionary stab flash (§ 13.3) | Stage in `world1.md` § 13.3 with a "Future-world note: move to `world2.md` when that file exists" callout | Legionary is W2. There is no `world2.md` yet. Staging in `world1.md` keeps it alongside the other two attack effect overlays so the pipeline section reads cleanly; it'll move when W2 is created. |
+| § 21 Generation order | `world1.md` § 21 | The order is W1-specific. Each future world gets its own generation order in its own file. The W1 order references shared sections (Balchar, Bep, projectiles, pickups, UI) by file path. |
+
+### Section numbering
+
+Preserved 1-22 across the split so existing PR / Issue / docstring
+references keep working:
+
+- `shared.md`: §§ 1, 2, 9, 10, 11, 12 (generic), 17 (Balchar/Bep portraits),
+  18, 19, 20, 22.
+- `world1.md`: §§ 3, 4, 5, 6, 7, 8, 13, 14, 15, 16, 17.3-17.4 (W1 NPC
+  portraits), 21, plus the "Dimoni aura effect (W1)" subsection.
+
+### Content preservation check
+
+- All 45 `[ATTACH ... MASTER IDLE SPRITE HERE]` operational markers preserved
+  (8 Balchar + 5 Bep + 10 Bou + 4 Stone Guardian + 5 Rival + 4 Sheep +
+  3 Dimoni + 2 Llorenç + 1 Balchar portrait + 1 Bep portrait + 1 Dimoni
+  portrait + 1 Llorenç portrait = 45).
+- All palette blocks preserved (Balchar 15, Bep 9, Bou 12, Stone Guardian 9,
+  Rival 12, Sheep 8, Dimoni 12, Llorenç 12, heart 4, stone 5, pot 6, crate
+  5, projectiles 8, effects 12).
+- Tileset color-correction RGB endpoints and multi-step downscale recipe
+  preserved verbatim in `world1.md` § 15.1.
+- Bonfire + taula gate processing notes preserved.
+- Design rationale (30% block, 1.0s tell, drop tables, charge tier color
+  alignment) preserved in `world1.md` and `shared.md` respectively.
+
+### Discoverability updates (round 2)
+
+- `CLAUDE.md` — Key Documents and Asset & Sprite Generation sections now
+  describe the folder + the shared/per-world rule.
+- `README.md` — Documentation index row points at the folder with inline
+  links to both files.
+- `.claude/agents/na-margalida-graphic-designer.md` — MANDATORY section
+  describes both files and where new prompts go.
+- `tools/sprite_defs/README.md` — short pointer updated.
+- `docs/asset_generation_guide.md` — added a "Where does this prompt go?"
+  subsection under "How to add a new asset" giving the shared-vs-per-world
+  decision rule. Updated every internal link (§ 1 Balchar →
+  `asset_prompts/shared.md`, §§ 13 / 15 → `asset_prompts/world1.md`).
+  Rewrote the future-worlds guidance to say "create `world<N>.md`",
+  matching the new convention.
+- `docs/proposals/attack_effect_system_proposal.md` § 7 pointer updated to
+  `asset_prompts/world1.md` § 13 with a note on the W2-staged Legionary.
+
+### Open questions (round 2)
+
+None blocking. Edge cases were resolvable with judgment per the spec.
+
+One soft note for future-me / future worlds: when `world2.md` is created,
+move `world1.md` § 13.3 (Roman Legionary stab flash) into it. The
+`world1.md` callout already documents this.
+
+### Verification
+
+- Repo grep `asset_prompts\.md` (with the `.md`) returns hits only inside
+  this report file (intentional — Round 2 history). All live surfaces
+  point at `docs/asset_prompts/`.
+- Line-count math: 1,253 + 1,440 = 2,693 vs. original 2,547. +146 lines
+  from per-file headers, TOCs, scope statements, and cross-references —
+  expected and within spec ("≈ 2547 minus duplicate headers" allowing for
+  added cross-file references).
+- Game not launched (docs-only — no code touched).
+- This is round 3 of max 3 review rounds (round 1 = consolidation review,
+  round 2 = En Pau / En Miquel fixes, round 3 = per-world split). It must
+  count.

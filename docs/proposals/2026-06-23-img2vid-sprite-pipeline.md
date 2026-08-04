@@ -175,10 +175,19 @@ After all frames processed:
      processing script finds it as a fresh AI source.
   9. Invoke `python tools/process_character_sprites.py
      tools/sprite_defs/characters/<character>.json` as a subprocess.
-  10. Verify <output_dir>/<animation>.png exists after the subprocess returns;
+  10. Verify the resolved output file exists after the subprocess returns;
       RAISE (not warn) if missing. The canonical script always exists; if
       it's not on disk the repo is broken.
-     → 06_assembled_final.png + game asset
+
+      Resolve the expected filename the same way process_character_sprites.py
+      does — look up the animation's JSON entry by `source == <animation>.png`
+      and use `entry.get("output", entry["source"])`. Do NOT assume the output
+      is `f"{animation}.png"`: balchar.json's sling_attack entry sets
+      `"output": "sling.png"`, so <output_dir>/sling_attack.png never exists
+      even on a fully successful run — the real file lands at
+      <output_dir>/sling.png.
+     → 06_assembled_final.png + game asset (actual filename per the entry's
+       `output` field, e.g. sling.png for sling_attack)
 ```
 
 **Why scale/anchor come from the source split frame, not character JSON:**
@@ -190,6 +199,10 @@ The AI's own sprite sheet defines the correct character size and ground-line for
 - `rembg>=2.0.50,<3.0` (background removal, MIT, runs locally) — ~150MB U2Net
   model is downloaded on first run; pinned to keep the default model stable.
 - `onnxruntime>=1.16,<2.0` — rembg requires this to run the U2Net model.
+- `scipy>=1.11,<2.0` — `remove_background`'s connected-component rescue
+  (the `--bg-mode both` combinator, R1 mitigation) uses `scipy.ndimage` to
+  label and dilate mask regions. Not present in `pyproject.toml` today;
+  Task 4 must add it there when it implements `remove_background`.
 - `ffmpeg` system binary, **>= 5.1** (for the `-fps_mode` flag used in Stage 5).
 - Everything else (Pillow, numpy) already in the project.
 

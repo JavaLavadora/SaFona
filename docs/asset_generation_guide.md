@@ -96,8 +96,12 @@ existing files.
       → produces `05_assembled_raw.png` (debug checkpoint) AND chains
       into `tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json`,
       which produces the final game asset at
-      `assets/sprites/<character>/<animation>.png` (a.k.a.
-      `06_assembled_final.png` in debug terms).
+      `assets/sprites/<character>/<output>.png` (a.k.a.
+      `06_assembled_final.png` in debug terms), where `<output>` is the
+      animation entry's `output` field if set, or `<animation>` otherwise —
+      e.g. `balchar.json`'s `sling_attack` entry sets `"output": "sling.png"`,
+      so the file lands at `assets/sprites/balchar/sling.png`, not
+      `sling_attack.png`.
 5. **Add the processing config** at
    `tools/sprite_defs/characters/<asset_name>.json` — see [Processing
    pipeline & JSON config format](#processing-pipeline--json-config-format)

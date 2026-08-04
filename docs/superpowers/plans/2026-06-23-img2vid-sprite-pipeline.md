@@ -760,36 +760,41 @@ git worktree remove ../safona-img2vid-t3
 **Files:**
 - Create: `tools/assemble_sprite_sheet.py`
 - Create: `tests/test_assemble_sprite_sheet.py`
-- Modify: `pyproject.toml` (add `rembg` dependency)
+- Modify: `pyproject.toml` (add `rembg`, `onnxruntime`, and `scipy` dependencies)
 
 **Interfaces:**
 - Consumes: Task 2's `02_split_frames/frame_NN.png` (scale/anchor reference) and Task 3's `04_dumps/frame_NN/dump_*.png` (frames to process).
 - Produces:
   - CLI `python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}] [--warn-scale-pct 15]`
-  - Writes: `05_assembled_raw.png` (debug checkpoint) AND `<source_dir>/<animation>.png` (where the canonical script expects its input), then invokes `tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json` as a subprocess to produce `06_assembled_final.png` and the final asset under `<output_dir>/<animation>.png`.
+  - Writes: `05_assembled_raw.png` (debug checkpoint) AND `<source_dir>/<animation>.png` (where the canonical script expects its input), then invokes `tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json` as a subprocess to produce `06_assembled_final.png` and the final asset under the animation's *resolved output filename* — `entry.get("output", entry["source"])` from the character JSON, the same lookup `process_character_sprites.py` performs internally. This is **not** always `<output_dir>/<animation>.png`: balchar.json's `sling_attack` entry sets `"output": "sling.png"`, so the real file lands at `<output_dir>/sling.png`.
 
-- [ ] **Step 1: Create worktree, branch, install rembg**
+- [ ] **Step 1: Create worktree, branch, install rembg + scipy**
 
 ```bash
 cd /home/jovyan/projects/SaFona
 git worktree add ../safona-img2vid-t4 -b feat/img2vid-t4-assemble master
 cd ../safona-img2vid-t4
 conda activate safona
-pip install "rembg>=2.0.50,<3.0" "onnxruntime>=1.16,<2.0"
+pip install "rembg>=2.0.50,<3.0" "onnxruntime>=1.16,<2.0" "scipy>=1.11,<2.0"
 ```
 
-- [ ] **Step 2: Add rembg + onnxruntime to `pyproject.toml`**
+- [ ] **Step 2: Add rembg + onnxruntime + scipy to `pyproject.toml`**
 
 Open `pyproject.toml`, find the `dependencies` (or equivalent) list, add:
 
 ```
 "rembg>=2.0.50,<3.0",     # U2Net by default — model is downloaded on first run
 "onnxruntime>=1.16,<2.0", # rembg requires this for the model
+"scipy>=1.11,<2.0",       # remove_background's connected-component rescue
+                          # (--bg-mode both combinator) imports scipy.ndimage
 ```
 
 Pin them: a future rembg major could swap the default model and silently
-change Stage 6 output (R7). Run `pip install -e .` to confirm install works
-from the file.
+change Stage 6 output (R7). `scipy` is required because `remove_background`
+does `from scipy import ndimage` for the rembg-primary + chroma-rescue
+combinator (finding #4) — without this entry, Task 4 hits
+`ModuleNotFoundError: scipy` on a clean checkout. Run `pip install -e .` to
+confirm install works from the file.
 
 - [ ] **Step 3: Write the failing tests**
 
@@ -817,6 +822,7 @@ from tools.assemble_sprite_sheet import (
     downsample_to_height,
     pack_horizontal,
     palette_quantize,
+    resolve_output_filename,
 )
 
 
@@ -911,6 +917,32 @@ def test_composite_emits_only_chroma_or_palette_colors():
     assert seen.issubset(allowed), (
         f"composite leaked non-allowed colors: {seen - allowed}"
     )
+
+
+def test_resolve_output_filename_uses_output_field_when_present():
+    """balchar.json's sling_attack entry sets "output": "sling.png" — the
+    expected output filename must come from that field, not from
+    f"{animation}.png", or chain_process_script raises FileNotFoundError on
+    every successful run (En Miquel round-2 finding #1).
+    """
+    config = {
+        "animations": [
+            {"source": "idle.png", "frames": 4},
+            {"source": "sling_attack.png", "output": "sling.png", "frames": 3},
+        ]
+    }
+    assert resolve_output_filename(config, "sling_attack") == "sling.png"
+
+
+def test_resolve_output_filename_falls_back_to_source():
+    config = {"animations": [{"source": "idle.png", "frames": 4}]}
+    assert resolve_output_filename(config, "idle") == "idle.png"
+
+
+def test_resolve_output_filename_errors_on_unknown_animation():
+    config = {"animations": [{"source": "idle.png", "frames": 4}]}
+    with pytest.raises(KeyError, match="unknown"):
+        resolve_output_filename(config, "unknown")
 ```
 
 - [ ] **Step 4: Run tests to confirm they fail**
@@ -1243,6 +1275,34 @@ def assemble(
     return raw_out, source_copy
 
 
+def resolve_output_filename(config: dict, animation: str) -> str:
+    """Resolve the output filename the same way process_character_sprites.py does.
+
+    process_character_sprites.py:336 resolves each animation's output as
+    ``entry.get("output", entry["source"])`` — most entries omit `output` and
+    fall back to `source`, but some (e.g. balchar.json's `sling_attack` entry,
+    which sets `"output": "sling.png"`) rename the shipped asset. Assuming
+    the output is always `f"{animation}.png"` is wrong whenever an entry sets
+    an explicit `output`, so this helper must mirror the same lookup instead
+    of re-deriving the filename from `animation` alone.
+
+    Args:
+        config: Parsed character JSON (as returned by load_character_config).
+        animation: Animation name (matches `source` field minus `.png`).
+
+    Returns:
+        The output filename (e.g. "sling.png"), including the `.png` suffix.
+
+    Raises:
+        KeyError: If no animation entry matches.
+    """
+    target = f"{animation}.png"
+    for entry in config.get("animations", []):
+        if entry.get("source") == target:
+            return entry.get("output", entry["source"])
+    raise KeyError(f"unknown animation '{animation}' in character config")
+
+
 def chain_process_script(character: str, animation: str) -> Path:
     """Invoke the canonical tools/process_character_sprites.py and verify output.
 
@@ -1250,8 +1310,8 @@ def chain_process_script(character: str, animation: str) -> Path:
     broken — raise loudly rather than silently skipping (which would cause
     every non-Balchar character to ship with no final asset).
 
-    After the subprocess returns 0, verifies that <output_dir>/<animation>.png
-    exists; raises if missing.
+    After the subprocess returns 0, verifies that the animation's resolved
+    output file exists under <output_dir>; raises if missing.
     """
     script = PROJECT_ROOT / "tools" / "process_character_sprites.py"
     if not script.exists():
@@ -1265,15 +1325,20 @@ def chain_process_script(character: str, animation: str) -> Path:
         [sys.executable, str(script), str(char_json)], check=True
     )
 
-    # Verify the output file actually landed where we expect.
+    # Verify the output file actually landed where we expect. Resolve the
+    # filename via the JSON entry's `output` field (falling back to
+    # `source`) — NOT `f"{animation}.png"` — since entries such as
+    # balchar.json's sling_attack (`"output": "sling.png"`) rename the
+    # shipped asset relative to the source/animation name.
     config = load_character_config(char_json)
     output_dir = (PROJECT_ROOT / config["output_dir"]).resolve()
-    expected_output = output_dir / f"{animation}.png"
+    expected_output = output_dir / resolve_output_filename(config, animation)
     if not expected_output.exists():
         raise FileNotFoundError(
             f"canonical script returned 0 but expected output "
             f"{expected_output} is missing. Inspect the script's logs and the "
-            f"character JSON's animation entry for `{animation}.png`."
+            f"character JSON's animation entry for `{animation}.png` "
+            f"(check its `output` field)."
         )
     return expected_output
 
@@ -1306,7 +1371,7 @@ if __name__ == "__main__":
 pytest tests/test_assemble_sprite_sheet.py -v
 ```
 
-Expected: 6 tests pass. (The `rembg` import is lazy — unit tests cover chroma path, downsample, quantize, anchor, composite, and pack without exercising the rembg model.)
+Expected: 10 tests pass. (The `rembg` import is lazy — unit tests cover chroma path, downsample, quantize, anchor, composite, pack, and output-filename resolution, without exercising the rembg model.)
 
 - [ ] **Step 7: Run the full project test suite to check for regressions**
 
@@ -1331,12 +1396,15 @@ character height, palette quantize against assets/palettes/<character>.gpl
 canvas anchored at source baseline with hard alpha threshold postcondition.
 Pack horizontal, write 05_assembled_raw.png plus a copy into the character's
 source_dir, then invoke tools/process_character_sprites.py <character>.json
-as a subprocess and verify the final output landed in output_dir.
+as a subprocess and verify the final output landed at the animation's
+resolved output filename in output_dir (entry.get("output", entry["source"]),
+not f"{animation}.png").
 
 Scale and anchor are self-calibrating from the matching source split frame
 — no per-animation config needed.
 
-Adds pinned rembg>=2.0.50,<3.0 and onnxruntime>=1.16,<2.0 dependencies.
+Adds pinned rembg>=2.0.50,<3.0, onnxruntime>=1.16,<2.0, and scipy>=1.11,<2.0
+dependencies.
 
 See spec: docs/proposals/2026-06-23-img2vid-sprite-pipeline.md
 
@@ -1419,9 +1487,9 @@ Open `05_assembled_raw.png`. Check:
 
 If any check fails, refer to spec Section "Risks & Open Issues" for the matching fallback, fix, and re-run Stage 6 only (re-runnability invariant from Section 2).
 
-- [ ] **Step 9: Compare against `06_assembled_final.png`**
+- [ ] **Step 9: Compare against the final asset (`06_assembled_final.png` in debug terms)**
 
-Open both side-by-side. Differences should be limited to what the canonical `process_character_sprites.py` normally does (outline tightening, palette enforcement). If `06` looks worse than `05`, the bug is in `tools/process_character_sprites.py` or `tools/clean_sprites.py`, not the new pipeline.
+`balchar.json`'s `sling_attack` entry sets `"output": "sling.png"`, so the actual file to open is `assets/sprites/balchar/sling.png` — **not** `sling_attack.png`. Open it side-by-side with `05_assembled_raw.png`. Differences should be limited to what the canonical `process_character_sprites.py` normally does (outline tightening, palette enforcement). If the final asset looks worse than `05`, the bug is in `tools/process_character_sprites.py` or `tools/clean_sprites.py`, not the new pipeline.
 
 - [ ] **Step 10: Launch the game and verify in-engine**
 
@@ -1441,13 +1509,13 @@ Write a short report at `docs/reports/2026-06-23-img2vid-pipeline-verification.m
 - Per-stage tooling → Tasks 2, 3, 4. ✓
 - Prompt restructuring → Task 1 Steps 7-10. ✓
 - Documentation updates → Task 1 Steps 2-11. ✓
-- All nine risks (R1-R9) → Mitigations baked into Task 4 (`--bg-mode` connected-component rescue, `--warn-scale-pct`, hard postcondition, `parse_gpl` single source of truth, pinned rembg+onnxruntime), Task 3 (`-fps_mode vfr` for R9), Task 5 Step 8 inspection checklist, and Task 1 Step 12 (.gitignore for R6). ✓
-- Chain orchestration (resolved) → Task 4's `chain_process_script` calls the canonical `tools/process_character_sprites.py <character>.json` and hard-errors if either the script or the expected output is missing. ✓
+- All nine risks (R1-R9) → Mitigations baked into Task 4 (`--bg-mode` connected-component rescue, `--warn-scale-pct`, hard postcondition, `parse_gpl` single source of truth, pinned rembg+onnxruntime+scipy), Task 3 (`-fps_mode vfr` for R9), Task 5 Step 8 inspection checklist, and Task 1 Step 12 (.gitignore for R6). ✓
+- Chain orchestration (resolved) → Task 4's `chain_process_script` calls the canonical `tools/process_character_sprites.py <character>.json` and hard-errors if either the script or the expected output is missing, resolving the expected output filename via `resolve_output_filename` (`entry.get("output", entry["source"])`) — the same lookup `process_character_sprites.py` performs — rather than assuming `f"{animation}.png"`. ✓
 - Out-of-scope items → respected (no schema changes to character JSONs, no new prompt locations, no replacement of existing process scripts). ✓
 
 **Placeholder scan:** No "TODO", "TBD", "implement later". `load_palette_for` reads directly from `assets/palettes/<character>.gpl` via `tools.clean_sprites.parse_gpl` — the single source of truth shared with the final cleanup chain.
 
-**Type consistency:** Function names referenced across tests and impl match (`slice_sheet`, `resolve_frame_count`, `build_ffmpeg_command`, `discover_videos`, `dump_one_video`, `chroma_key_mask`, `downsample_to_height`, `palette_quantize`, `compute_source_anchor`, `composite_onto_canvas`, `pack_horizontal`). Folder names match across all tasks (`02_split_frames`, `03_videos`, `04_dumps`, `05_assembled_raw.png`, `06_assembled_final.png`). Character JSON field names (`frame_width`, `frame_height`, `animations[].source`, `animations[].frames`) match the actual `tools/sprite_defs/characters/balchar.json` schema verified during design.
+**Type consistency:** Function names referenced across tests and impl match (`slice_sheet`, `resolve_frame_count`, `build_ffmpeg_command`, `discover_videos`, `dump_one_video`, `chroma_key_mask`, `downsample_to_height`, `palette_quantize`, `compute_source_anchor`, `composite_onto_canvas`, `pack_horizontal`, `resolve_output_filename`). Folder names match across all tasks (`02_split_frames`, `03_videos`, `04_dumps`, `05_assembled_raw.png`, `06_assembled_final.png`). Character JSON field names (`frame_width`, `frame_height`, `animations[].source`, `animations[].frames`, `animations[].output`) match the actual `tools/sprite_defs/characters/balchar.json` schema verified during design.
 
 ---
 

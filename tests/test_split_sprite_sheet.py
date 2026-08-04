@@ -78,3 +78,37 @@ def test_resolve_frame_count_errors_on_unknown_animation(tmp_path: Path):
 
     with pytest.raises(KeyError, match="unknown"):
         resolve_frame_count(char_json, "unknown")
+
+
+def test_resolve_frame_count_errors_on_missing_json_file(tmp_path: Path):
+    missing_json = tmp_path / "no_such_character.json"
+
+    with pytest.raises(FileNotFoundError, match="not found"):
+        resolve_frame_count(missing_json, "idle")
+
+
+def test_slice_sheet_errors_on_missing_source_sheet(tmp_path: Path):
+    missing_sheet = tmp_path / "01_source_sheet.png"
+    out_dir = tmp_path / "out"
+
+    with pytest.raises(FileNotFoundError, match="not found"):
+        slice_sheet(missing_sheet, out_dir, n_frames=4)
+
+
+def test_slice_sheet_exact_division_succeeds(tmp_path: Path):
+    # 160 / 5 = 32, divides evenly — should slice without error.
+    sheet = _make_sheet(tmp_path, width=160, height=48, n_frames=5)
+    out_dir = tmp_path / "out"
+
+    frames = slice_sheet(sheet, out_dir, n_frames=5)
+
+    assert len(frames) == 5
+
+
+def test_slice_sheet_errors_on_uneven_division(tmp_path: Path):
+    # 161 / 5 = 32 remainder 1 — would silently drop a trailing column.
+    sheet = _make_sheet(tmp_path, width=161, height=48, n_frames=5)
+    out_dir = tmp_path / "out"
+
+    with pytest.raises(ValueError, match="not evenly divisible"):
+        slice_sheet(sheet, out_dir, n_frames=5)

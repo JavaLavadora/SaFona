@@ -9,12 +9,19 @@ then manually deletes dumps they don't want.
 from __future__ import annotations
 
 import argparse
+import logging
 import shutil
 import subprocess
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WORK_ROOT = PROJECT_ROOT / "assets" / "ai_sources" / "img2vid"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+)
+log = logging.getLogger(__name__)
 
 
 def resolve_ffmpeg_exe() -> str:
@@ -62,14 +69,18 @@ def build_ffmpeg_command(
     ]
 
 
-def dump_video(video: Path, out_dir: Path, k: int, reset: bool) -> int:
+def dump_video(video: Path, out_dir: Path, k: int) -> int:
     """Extract every Kth frame from the single animation video.
+
+    The 02_dumps/ folder is always wiped first, so a re-run on a shorter
+    video can never leave higher-numbered stale frames from a prior longer
+    run (which would pollute the pruning folder and inflate the returned
+    count).
 
     Args:
         video: Source MP4 path (01_video.mp4).
         out_dir: 02_dumps/ folder.
         k: Extract every Kth frame.
-        reset: If True, wipe out_dir contents first.
 
     Returns:
         Number of dump_*.png files in out_dir after extraction.
@@ -86,7 +97,7 @@ def dump_video(video: Path, out_dir: Path, k: int, reset: bool) -> int:
             f"expected the img2vid output at {video} (01_video.mp4); drop the "
             f"downloaded MP4 there before running Stage 3."
         )
-    if reset and out_dir.exists():
+    if out_dir.exists():
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -105,22 +116,31 @@ def dump_video(video: Path, out_dir: Path, k: int, reset: bool) -> int:
     return len(list(out_dir.glob("dump_*.png")))
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
+    """Return the argument parser for the Stage 3 frame dumper."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("character")
-    parser.add_argument("animation")
+    parser.add_argument(
+        "character",
+        help="Character slug (e.g. balchar); names the img2vid work subfolder",
+    )
+    parser.add_argument(
+        "animation",
+        help="Animation name (e.g. walk); names the img2vid work subfolder",
+    )
     parser.add_argument("--k", type=int, default=10,
                         help="Extract every Kth frame (default: 10)")
-    parser.add_argument("--reset", action="store_true",
-                        help="Wipe the 02_dumps/ folder before extracting")
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> None:
+    args = build_parser().parse_args()
 
     work_dir = WORK_ROOT / args.character / args.animation
     video = work_dir / "01_video.mp4"
     dump_dir = work_dir / "02_dumps"
 
-    n = dump_video(video, dump_dir, args.k, args.reset)
-    print(f"{video.name}: {n} frames -> {dump_dir}")
+    n = dump_video(video, dump_dir, args.k)
+    log.info("%s: %d frames -> %s", video.name, n, dump_dir)
 
 
 if __name__ == "__main__":

@@ -100,8 +100,9 @@ existing files.
       img2vid (or future API) together with this animation's prompt. img2vid
       creates the motion from that single seed. Save the resulting MP4 as
       `assets/ai_sources/img2vid/<character>/<animation>/01_video.mp4`.
-   2. Run: `python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]`
-      → produces `02_dumps/dump_*.png`.
+   2. Run: `python tools/dump_video_frames.py <character> <animation> [--k 10]`
+      → produces `02_dumps/dump_*.png`. The folder is always wiped first, so
+      a re-run never leaves stale frames from a previous, longer run.
    3. Browse `02_dumps/`; delete frames you don't want (keep the ones that
       best trace the animation cycle, in filename order).
    4. Run: `python tools/assemble_sprite_sheet.py <character> <animation>`
@@ -446,7 +447,8 @@ earlier ones.
 conda activate safona
 
 # Stage 3 — dump frames from the single animation video (every Kth frame)
-python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
+# (02_dumps/ is always wiped first, so a re-run leaves no stale frames)
+python tools/dump_video_frames.py <character> <animation> [--k 10]
 
 # Stage 4 — assemble cleaned sprite sheet (chains into
 # tools/process_character_sprites.py <character>.json automatically)

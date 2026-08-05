@@ -46,7 +46,8 @@ without re-running earlier ones.
 conda activate safona
 
 # Stage 3 — dump frames from the single animation video (every Kth frame)
-python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
+# (02_dumps/ is always wiped first, so a re-run leaves no stale frames)
+python tools/dump_video_frames.py <character> <animation> [--k 10]
 
 # Stage 4 — assemble cleaned sprite sheet (chains into the canonical
 # tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json)

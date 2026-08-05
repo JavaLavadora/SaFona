@@ -17,19 +17,43 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WORK_ROOT = PROJECT_ROOT / "assets" / "ai_sources" / "img2vid"
 
 
-def build_ffmpeg_command(video: Path, out_dir: Path, k: int) -> list[str]:
+def resolve_ffmpeg_exe() -> str:
+    """Return the path to an ffmpeg executable to run Stage 3.
+
+    Prefers the static ffmpeg binary shipped by ``imageio-ffmpeg`` (installed
+    via the project's ``dev`` extra), which is a modern build supporting
+    ``-fps_mode vfr``. Falls back to a system ``ffmpeg`` on PATH when the
+    package isn't installed.
+
+    Returns:
+        Absolute path to the imageio-ffmpeg binary, or the string ``"ffmpeg"``
+        to be resolved against PATH.
+    """
+    try:
+        import imageio_ffmpeg
+    except ImportError:
+        # imageio-ffmpeg not installed: defer to a system ffmpeg on PATH.
+        # dump_video() raises an actionable error if that's missing too.
+        return "ffmpeg"
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def build_ffmpeg_command(
+    video: Path, out_dir: Path, k: int, ffmpeg_exe: str = "ffmpeg"
+) -> list[str]:
     """Return the ffmpeg argv that extracts every Kth frame.
 
     Args:
         video: Path to the source MP4 (01_video.mp4).
         out_dir: Destination directory (must exist; caller creates).
         k: Extract every Kth frame.
+        ffmpeg_exe: Path to the ffmpeg executable (see resolve_ffmpeg_exe).
 
     Returns:
         argv list ready for subprocess.run.
     """
     return [
-        "ffmpeg",
+        ffmpeg_exe,
         "-loglevel", "error",
         "-i", str(video),
         "-vf", f"select=not(mod(n\\,{k}))",
@@ -62,13 +86,14 @@ def dump_video(video: Path, out_dir: Path, k: int, reset: bool) -> int:
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd = build_ffmpeg_command(video, out_dir, k)
+    cmd = build_ffmpeg_command(video, out_dir, k, resolve_ffmpeg_exe())
     try:
         result = subprocess.run(cmd, check=False)
     except FileNotFoundError as exc:
         raise RuntimeError(
-            "ffmpeg not found on PATH; install ffmpeg >= 5.1 "
-            "(-fps_mode vfr requires it) before running Stage 3."
+            "no ffmpeg available; install the dev extra with "
+            "`pip install -e \".[dev]\"` (provides ffmpeg via imageio-ffmpeg), "
+            "or install a system ffmpeg >= 5.1 (-fps_mode vfr requires it)."
         ) from exc
     if result.returncode != 0:
         raise RuntimeError(f"ffmpeg failed for {video}")

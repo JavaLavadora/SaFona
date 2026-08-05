@@ -472,8 +472,11 @@ bash tools/reprocess_all_sprites.sh
   resolution difference between the clip and `idle.png` doesn't trip it —
   differs from the master idle's by more than N% (default 15). Useful when
   chasing R3 scale drift; leave at default for normal runs.
-- Stage 3 requires ffmpeg >= 5.1 (uses `-fps_mode vfr`, which replaced the
-  deprecated `-vsync vfr`).
+- Stage 3 needs ffmpeg >= 5.1 (uses `-fps_mode vfr`, which replaced the
+  deprecated `-vsync vfr`). It is provided by the project's `dev` extra —
+  run `pip install -e ".[dev]"` to get a bundled static ffmpeg via
+  `imageio-ffmpeg`; no system install required. A system ffmpeg on PATH is
+  used as an optional fallback when the package isn't installed.
 
 ### Debug artifacts
 

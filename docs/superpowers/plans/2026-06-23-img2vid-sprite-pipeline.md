@@ -6,7 +6,7 @@
 
 **Architecture:** Two new single-purpose CLIs under `tools/` chained via well-known folder paths under `assets/ai_sources/img2vid/<character>/<animation>/`. Each stage reads from `0N_*` and writes to `0(N+1)_*`. The img2vid **seed** is the character's immutable master idle still (`<source_dir>/idle.png`), fed to img2vid with each animation's prompt to produce one video per animation; the same still is the scale/anchor reference during assembly. The canonical `tools/process_character_sprites.py` (JSON-driven) and `tools/clean_sprites.py` stay as the final cleanup chain — Stage 4 hands off to them unchanged.
 
-**Tech Stack:** Python 3, Pillow, numpy, rembg (new dep), ffmpeg (system), pytest. Project uses the `safona` conda env.
+**Tech Stack:** Python 3, Pillow, numpy, rembg (new dep), ffmpeg (provided by the `dev` extra via `imageio-ffmpeg`; `pip install -e ".[dev]"` — system ffmpeg is an optional fallback), pytest. Project uses the `safona` conda env.
 
 **Spec:** `docs/proposals/2026-06-23-img2vid-sprite-pipeline.md`
 

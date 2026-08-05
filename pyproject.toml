@@ -11,6 +11,7 @@ dependencies = [
 dev = [
     "pytest>=9.0",
     "pyinstaller>=6.0",
+    "imageio-ffmpeg>=0.5",  # ships a static ffmpeg binary for Stage 3
 ]
 
 [tool.setuptools.packages.find]

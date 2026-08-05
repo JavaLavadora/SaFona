@@ -14,6 +14,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from tools.dump_video_frames import (
     build_ffmpeg_command,
     dump_video,
+    resolve_ffmpeg_exe,
 )
 
 
@@ -42,7 +43,9 @@ def test_dump_video_invokes_ffmpeg_and_resets(tmp_path: Path):
     out_dir.mkdir(parents=True)
     (out_dir / "stale.png").write_bytes(b"")  # leftover from previous run
 
-    with patch("tools.dump_video_frames.subprocess.run") as mock_run:
+    with patch("tools.dump_video_frames.subprocess.run") as mock_run, patch(
+        "tools.dump_video_frames.resolve_ffmpeg_exe", return_value="ffmpeg"
+    ):
         mock_run.return_value.returncode = 0
         dump_video(video, out_dir, k=10, reset=True)
 
@@ -58,3 +61,25 @@ def test_dump_video_errors_when_video_missing(tmp_path: Path):
 
     with pytest.raises(FileNotFoundError, match="01_video.mp4"):
         dump_video(video, out_dir, k=10, reset=False)
+
+
+def test_resolve_ffmpeg_prefers_imageio_binary():
+    """The static imageio-ffmpeg binary wins over a bare PATH lookup."""
+    fake = type(sys)("imageio_ffmpeg")
+    fake.get_ffmpeg_exe = lambda: "/opt/imageio/ffmpeg"  # type: ignore[attr-defined]
+
+    with patch.dict(sys.modules, {"imageio_ffmpeg": fake}):
+        assert resolve_ffmpeg_exe() == "/opt/imageio/ffmpeg"
+
+
+def test_resolve_ffmpeg_falls_back_to_path_ffmpeg():
+    """Without imageio-ffmpeg installed, fall back to a system ffmpeg."""
+    real_import = __import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "imageio_ffmpeg":
+            raise ImportError("no imageio-ffmpeg")
+        return real_import(name, *args, **kwargs)
+
+    with patch("builtins.__import__", side_effect=fake_import):
+        assert resolve_ffmpeg_exe() == "ffmpeg"

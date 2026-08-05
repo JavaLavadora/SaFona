@@ -36,6 +36,8 @@ from PIL import Image
 from scipy import ndimage  # connected-component rescue for --bg-mode both
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 WORK_ROOT = PROJECT_ROOT / "assets" / "ai_sources" / "img2vid"
 CHAR_DEF_ROOT = PROJECT_ROOT / "tools" / "sprite_defs" / "characters"
 PALETTE_ROOT = PROJECT_ROOT / "assets" / "palettes"
@@ -135,8 +137,11 @@ def remove_background(img: Image.Image, mode: str) -> Image.Image:
     elif mode == "both":
         rembg = rembg_mask(img)
         chroma = chroma_key_mask(img)
-        # Components present in chroma but absent from rembg:
-        missing = chroma & ~rembg
+        # Components present in chroma but absent from rembg. Cast to bool
+        # explicitly: `~` on a 0/1 uint8 array is bitwise-NOT (255/254), not
+        # logical negation, so this must not rely on `chroma`'s 0/1 range to
+        # mask it back down.
+        missing = chroma.astype(bool) & ~rembg.astype(bool)
         labels, n = ndimage.label(missing, structure=np.ones((3, 3)))
         # Dilate rembg by 1px so "touching" includes diagonal neighbours.
         rembg_neighborhood = ndimage.binary_dilation(rembg.astype(bool))
@@ -151,7 +156,7 @@ def remove_background(img: Image.Image, mode: str) -> Image.Image:
     return apply_mask(img, mask)
 
 
-def tight_crop(img: Image.Image, padding: int = 0) -> Image.Image:
+def tight_crop(img: Image.Image, padding: int = 0) -> Image.Image | None:
     """Crop to the bounding box of non-transparent pixels (+ padding).
 
     Args:
@@ -159,11 +164,13 @@ def tight_crop(img: Image.Image, padding: int = 0) -> Image.Image:
         padding: Extra pixels to keep around the bounding box.
 
     Returns:
-        The cropped image, or the original if it is fully transparent.
+        The cropped image, or ``None`` if ``img`` is fully transparent (no
+        foreground to crop to). Callers MUST treat ``None`` as "skip this
+        frame" -- see the caller in ``assemble()``.
     """
     bbox = img.getbbox()
     if bbox is None:
-        return img
+        return None
     left, top, right, bottom = bbox
     left = max(0, left - padding)
     top = max(0, top - padding)
@@ -345,7 +352,6 @@ def load_palette_for(character: str) -> np.ndarray:
     Returns:
         An ``(N, 3)`` np.ndarray of RGB triplets.
     """
-    sys.path.insert(0, str(PROJECT_ROOT))
     from tools.clean_sprites import parse_gpl  # single source of truth
     palette_path = PALETTE_ROOT / f"{character}.gpl"
     return parse_gpl(palette_path)
@@ -371,12 +377,8 @@ def assemble(
 ) -> tuple[Path, Path]:
     """Run the full Stage 4 pipeline.
 
-    Emits a SOURCE-RESOLUTION sheet (each frame sized to the master idle's
-    own canvas, like the existing AI sources), NOT the final game frame size.
-    process_character_sprites.py performs the sole downscale to
-    frame_width x frame_height, exactly as it does for any other AI source --
-    so Stage 4 must not pre-shrink frames to the game frame size or the
-    character would be clipped off-canvas and then downscaled twice.
+    Emits a source-resolution sheet, not the final game frame size -- see the
+    module docstring for the full rationale.
 
     Args:
         character: Character slug (e.g. ``balchar``).
@@ -417,8 +419,8 @@ def assemble(
     # Scale/anchor reference: the character's immutable master idle still.
     # Computed once and applied to every dump frame so the whole animation
     # shares one baseline and scale. The idle's own dimensions are also the
-    # Stage-4 canvas size, so the output sheet is at source resolution and
-    # process_character_sprites.py owns the single downscale to the game frame.
+    # Stage-4 canvas size -- source-resolution rationale in the module
+    # docstring.
     master_idle_path = source_dir / "idle.png"
     master_idle = Image.open(master_idle_path).convert("RGBA")
     canvas_w, canvas_h = master_idle.width, master_idle.height
@@ -431,8 +433,11 @@ def assemble(
         raw = Image.open(dump_path).convert("RGBA")
         no_bg = remove_background(raw, bg_mode)
         cropped = tight_crop(no_bg, padding=1)
-        if cropped.height == 0:
-            log.warning("empty crop for %s, skipping", dump_path)
+        if cropped is None:
+            log.warning(
+                "%s has no foreground after background removal, skipping",
+                dump_path,
+            )
             continue
 
         # Drift check: compare the character's height as a FRACTION of its
@@ -532,18 +537,12 @@ def chain_process_script(character: str, animation: str) -> Path:
             f"add silent-skip fallbacks here.)"
         )
     char_json = CHAR_DEF_ROOT / f"{character}.json"
-    # check=False on purpose: a non-zero exit only means some OTHER animation's
-    # source is absent, which is normal mid-generation. The target-output check
-    # below decides success/failure for the animation we care about.
+    # check=False on purpose -- see docstring above.
     subprocess.run(
         [sys.executable, str(script), str(char_json)], check=False
     )
 
-    # Verify the output file actually landed where we expect. Resolve the
-    # filename via the JSON entry's `output` field (falling back to
-    # `source`) -- NOT `f"{animation}.png"` -- since entries such as
-    # balchar.json's sling_attack (`"output": "sling.png"`) rename the
-    # shipped asset relative to the source/animation name.
+    # Resolve the expected output filename -- see resolve_output_filename().
     config = load_character_config(char_json)
     output_dir = (PROJECT_ROOT / config["output_dir"]).resolve()
     expected_output = output_dir / resolve_output_filename(config, animation)

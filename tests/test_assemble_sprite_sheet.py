@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -22,7 +23,9 @@ from tools.assemble_sprite_sheet import (
     downsample_to_height,
     pack_horizontal,
     palette_quantize,
+    remove_background,
     resolve_output_filename,
+    tight_crop,
 )
 
 
@@ -39,6 +42,52 @@ def test_chroma_key_mask_marks_green_as_background():
     assert mask.shape == (4, 4)
     assert mask[1, 1] == 1  # foreground
     assert mask[0, 0] == 0  # background (green)
+
+
+def test_tight_crop_returns_none_for_fully_transparent():
+    """A fully-transparent frame has no bounding box to crop to -- tight_crop
+    must signal that with None, not silently hand back the original (full
+    size) image, or the "empty crop, skip" guard in assemble() can never
+    fire for the case it exists to catch.
+    """
+    img = Image.new("RGBA", (10, 10), (0, 0, 0, 0))
+    assert tight_crop(img, padding=1) is None
+
+
+def test_remove_background_both_rescues_touching_component_discards_isolated():
+    """bg_mode="both": a thin chroma-only component touching the rembg
+    foreground (e.g. a sling cord) must be rescued into the final mask, while
+    a chroma-only component NOT touching rembg (e.g. an anti-aliased green
+    halo) must be discarded.
+    """
+    w, h = 12, 8
+    img = Image.new("RGB", (w, h), (0, 255, 0))  # green background
+    arr = np.array(img)
+
+    body_color = (200, 100, 50)
+    body_rows, body_cols = slice(2, 6), slice(2, 6)  # 4x4 block
+    arr[body_rows, body_cols] = body_color
+
+    cord_color = (200, 100, 50)
+    arr[3:5, 6] = cord_color  # thin column touching the body's right edge
+
+    halo_color = (200, 100, 50)
+    arr[0:2, 9:11] = halo_color  # isolated, far from the body
+
+    img = Image.fromarray(arr, mode="RGB")
+
+    rembg_only_mask = np.zeros((h, w), dtype=np.uint8)
+    rembg_only_mask[body_rows, body_cols] = 1  # rembg only sees the body
+
+    with patch(
+        "tools.assemble_sprite_sheet.rembg_mask", return_value=rembg_only_mask
+    ):
+        out = remove_background(img, "both")
+
+    alpha = np.array(out)[..., 3]
+    assert (alpha[body_rows, body_cols] == 255).all(), "body must survive"
+    assert (alpha[3:5, 6] == 255).all(), "cord touching the body must be rescued"
+    assert (alpha[0:2, 9:11] == 0).all(), "isolated halo must be discarded"
 
 
 def test_downsample_to_height_preserves_aspect():
@@ -280,3 +329,59 @@ def test_source_resolution_canvas_matches_master_idle(tmp_path: Path, monkeypatc
     allowed = {(0, 255, 0, 255), (200, 100, 50, 255), (100, 50, 25, 255)}
     seen = {tuple(p) for p in np.array(sheet).reshape(-1, 4)}
     assert seen.issubset(allowed), f"leaked: {seen - allowed}"
+
+
+def test_assemble_excludes_fully_transparent_dump_frame(tmp_path: Path, monkeypatch):
+    """A dump frame with no foreground after background removal must be
+    dropped from the packed sheet entirely, not packed in as an empty frame.
+
+    Two dump frames go in -- one with a body, one solid green with nothing to
+    crop to -- and only one frame's worth of width must come out.
+    """
+    char = "toy"
+    idle_w, idle_h = 120, 200
+    source_dir = tmp_path / "src" / char
+    source_dir.mkdir(parents=True)
+    dump_dir = tmp_path / "img2vid" / char / "walk" / "02_dumps"
+    dump_dir.mkdir(parents=True)
+
+    idle = Image.new("RGBA", (idle_w, idle_h), (0, 255, 0, 255))
+    for y in range(20, idle_h):
+        for x in range(40, 80):
+            idle.putpixel((x, y), (200, 100, 50, 255))
+    idle.save(source_dir / "idle.png")
+
+    # Frame 0: a body on green, survives.
+    good = Image.new("RGBA", (64, 96), (0, 255, 0, 255))
+    for y in range(30, 96):
+        for x in range(20, 44):
+            good.putpixel((x, y), (200, 100, 50, 255))
+    good.save(dump_dir / "dump_0000.png")
+
+    # Frame 1: solid green, no foreground -- must be skipped.
+    empty = Image.new("RGBA", (64, 96), (0, 255, 0, 255))
+    empty.save(dump_dir / "dump_0001.png")
+
+    config = {
+        "source_dir": (source_dir.relative_to(tmp_path)).as_posix(),
+        "output_dir": "out/toy",
+        "animations": [{"source": "walk.png", "frames": 2}],
+    }
+    char_json = tmp_path / f"{char}.json"
+    char_json.write_text(json.dumps(config))
+
+    monkeypatch.setattr("tools.assemble_sprite_sheet.PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr("tools.assemble_sprite_sheet.CHAR_DEF_ROOT", tmp_path)
+    monkeypatch.setattr("tools.assemble_sprite_sheet.WORK_ROOT",
+                        tmp_path / "img2vid")
+    monkeypatch.setattr(
+        "tools.assemble_sprite_sheet.load_palette_for",
+        lambda _c: np.array([(200, 100, 50), (100, 50, 25)]),
+    )
+
+    raw_out, _source_copy = assemble(char, "walk", bg_mode="chroma",
+                                      warn_scale_pct=100.0)
+    sheet = Image.open(raw_out)
+    # Two dump frames went in, one was fully transparent -> only one frame's
+    # worth of width comes out (not zero, not two).
+    assert sheet.size == (idle_w, idle_h)

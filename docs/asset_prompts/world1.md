@@ -99,8 +99,6 @@ Balchar master idle.
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Balchar (talayotic Balearic, Bronze Age)
   - Same shading logic and pixel density as Balchar
@@ -157,7 +155,6 @@ accents but does NOT change the stone structure.
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — same stone bull as Phase 1 MASTER, exact same structure.
 
 PALETTE: Same 12 colors, but now INCLUDE the Phase 2 accent (224,144,40 fiery orange).
@@ -178,7 +175,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — same stone bull, exact same structure.
 
 PALETTE: Same 12 colors, now INCLUDE Phase 3 accent (224,40,40 enraged red).
@@ -199,7 +195,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — same stone bull design.
 PALETTE: Full 12 colors (show current phase glow as appropriate).
 
@@ -217,7 +212,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 80x36 (2 frames). Frame size: 40x36. Facing RIGHT.
@@ -234,7 +228,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 80x36 (2 frames). Frame size: 40x36. Facing RIGHT.
@@ -250,7 +243,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 40x36 (1 frame). Facing RIGHT.
@@ -266,7 +258,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 40x36 (1 frame). Facing RIGHT.
@@ -282,7 +273,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 40x36 (1 frame). Facing RIGHT.
@@ -299,7 +289,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
 Sheet: 40x36 (1 frame). Facing RIGHT.
@@ -321,8 +310,6 @@ Background: solid green (#00FF00)
 
 ```
 Create a SNES-style 16-bit pixel art prop sheet.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE: Must match the Bou de Pedra boss — same stone material, same shading,
 same outline treatment. These are props in the boss arena.
@@ -401,8 +388,6 @@ closest visual relative). Note: the Stone Guardian has **GREEN** glowing eyes
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Bou de Pedra (World 1 boss)
@@ -531,8 +516,6 @@ gameplay regularly and must read clearly as a defensive stance.
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Bou de Pedra (World 1 boss)
@@ -668,8 +651,6 @@ shading logic, and outline treatment must be indistinguishable.
 ```
 Create a SNES-style 16-bit pixel art sprite.
 
-GLOBAL STYLE CONSTRAINTS APPLY.
-
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Bou de Pedra (World 1 boss)
   - Same shading logic and pixel density
@@ -716,7 +697,6 @@ IMPORTANT: Different identity, indistinguishable style from other World 1 assets
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK — match Possessed Sheep MASTER idle.
 PALETTE: Same 8 colors.
 
@@ -734,7 +714,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Same 8 colors.
 
 Sheet: 32x16 (2 frames). Frame size: 16x16. Facing RIGHT.
@@ -750,7 +729,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Same 8 colors.
 
 Sheet: 16x16 (1 frame). Facing RIGHT.
@@ -764,7 +742,6 @@ Background: solid green (#00FF00)
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
-GLOBAL STYLE CONSTRAINTS APPLY.
 CRITICAL IDENTITY LOCK. PALETTE: Same 8 colors.
 
 Sheet: 16x16 (1 frame). Facing RIGHT.
@@ -801,8 +778,6 @@ Background: solid green (#00FF00)
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Balchar
@@ -920,8 +895,6 @@ leather satchel. (This supersedes any earlier "leather tunic + scrolls" descript
 
 ```
 Create a SNES-style 16-bit pixel art sprite.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 STYLE CONSISTENCY RULES:
   - Must belong to the same world as Balchar
@@ -1282,8 +1255,6 @@ canvas.
 
 ```
 Create a SNES-style 16-bit pixel art BACKGROUND.
-
-GLOBAL STYLE CONSTRAINTS APPLY.
 
 ENVIRONMENT: Outdoor Mallorcan Mediterranean landscape.
   Rolling green hills, limestone outcrops, distant sea,

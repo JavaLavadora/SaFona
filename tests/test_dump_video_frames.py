@@ -63,6 +63,20 @@ def test_dump_video_errors_when_video_missing(tmp_path: Path):
         dump_video(video, out_dir, k=10, reset=False)
 
 
+@pytest.mark.parametrize("bad_k", [0, -1, -10])
+def test_dump_video_rejects_nonpositive_k(tmp_path: Path, bad_k: int):
+    """--k < 1 must fail fast with a clear message, before touching ffmpeg."""
+    video = tmp_path / "01_video.mp4"
+    video.write_bytes(b"")
+    out_dir = tmp_path / "02_dumps"
+
+    with patch("tools.dump_video_frames.subprocess.run") as mock_run:
+        with pytest.raises(ValueError, match=rf"--k must be >= 1 \(got {bad_k}\)"):
+            dump_video(video, out_dir, k=bad_k, reset=False)
+
+    assert not mock_run.called
+
+
 def test_resolve_ffmpeg_prefers_imageio_binary():
     """The static imageio-ffmpeg binary wins over a bare PATH lookup."""
     fake = type(sys)("imageio_ffmpeg")

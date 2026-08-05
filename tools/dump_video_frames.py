@@ -75,8 +75,12 @@ def dump_video(video: Path, out_dir: Path, k: int, reset: bool) -> int:
         Number of dump_*.png files in out_dir after extraction.
 
     Raises:
+        ValueError: If k is less than 1 (would build a mod-by-zero or
+            negative-step select filter that ffmpeg rejects).
         FileNotFoundError: If the source video does not exist.
     """
+    if k < 1:
+        raise ValueError(f"--k must be >= 1 (got {k})")
     if not video.exists():
         raise FileNotFoundError(
             f"expected the img2vid output at {video} (01_video.mp4); drop the "

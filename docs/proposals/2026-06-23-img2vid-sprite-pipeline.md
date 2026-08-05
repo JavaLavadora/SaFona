@@ -27,7 +27,7 @@ The shipping format and downstream game code do not change. The pipeline replace
 
 Four stages plus a one-time prerequisite. Two of the four stages are existing/manual, two are new tools.
 
-The **seed** is the character's immutable master idle still (see "Master Character Generation" — generated once per character, never regenerated per animation). It has two roles here: it is the img2vid seed for *every* animation, and it is the scale/anchor reference during assembly. It lives once per character at `<source_dir>/idle.png` (the same still `tools/process_character_sprites.py` already uses), *outside* the per-animation working subtree.
+The **seed** is the character's immutable master idle still (see "Master Character Generation" — generated once per character, never regenerated per animation). It has two roles here: it is the img2vid seed for *every* animation, and it is the scale/anchor reference during assembly. It lives once per character at `<source_dir>/idle.png` (the same still `tools/process_character_sprites.py` already uses), *outside* the per-animation working subtree. The `idle` animation *is* this seed and is therefore never run through the img2vid pipeline — Stage 4 refuses to overwrite `idle.png`, so the seed can never collide with an assembled output; the pipeline runs for the other animations only.
 
 ```
 Prereq    Master idle still (one-time per character, immutable)     [existing]
@@ -46,7 +46,7 @@ Stage 4   tools/assemble_sprite_sheet.py                            [NEW, automa
                                                                   → assets/sprites/...
 ```
 
-**Key invariant:** Stage 4's output is shaped to match what the canonical `tools/process_character_sprites.py` already expects: chroma-green background where **every pixel is *exactly* `(0, 255, 0)` or a palette color — no semi-transparent edges, no intermediate green values**; target frame dimensions; palette-quantized against `assets/palettes/<character>.gpl`. Downstream is unchanged.
+**Key invariant:** Stage 4's output is shaped to match what the canonical `tools/process_character_sprites.py` already expects of any AI source: chroma-green background where **every pixel is *exactly* `(0, 255, 0)` or a palette color — no semi-transparent edges, no intermediate green values**; **source-resolution** frames (sized to the master idle, like the existing AI sources — *not* the final game frame size, so `process_character_sprites.py` performs the sole downscale to `frame_width`×`frame_height`); palette-quantized against `assets/palettes/<character>.gpl`. `process_character_sprites.py` then consumes the assembled sheet exactly as it consumes any other AI source.
 
 **Re-runnability:** Each stage is an independent CLI reading from / writing to known folders. Any stage can be re-run in isolation without re-running earlier ones.
 
@@ -115,22 +115,27 @@ Reads `01_video.mp4` from the animation's work folder and writes to `02_dumps/`;
 ### Stage 4 — `tools/assemble_sprite_sheet.py` (NEW, the substantive one)
 
 Reads the surviving PNGs in `02_dumps/` in filename order. Reads the character JSON
-(`tools/sprite_defs/characters/<character>.json`) for `frame_width`,
-`frame_height`, `source_dir`, and `output_dir`. Computes the scale/anchor
-reference **once** from the character's master idle still
-(`<source_dir>/idle.png`) — the same still that seeded every img2vid video:
+(`tools/sprite_defs/characters/<character>.json`) for `source_dir` and
+`output_dir` (the `idle` animation itself is never assembled — it is the
+seed). The Stage-4 canvas is the master idle's own dimensions (source
+resolution), so `frame_width`/`frame_height` are used only later, by
+`process_character_sprites.py`, for the sole downscale to the game frame.
+Computes the scale/anchor reference **once** from the character's master idle
+still (`<source_dir>/idle.png`) — the same still that seeded every img2vid
+video:
 
 ```
 Setup (once, from the master idle):
   • Open <source_dir>/idle.png
-  • Combined chroma + rembg mask (same combinator as --bg-mode both — see R1)
-    + tight bbox crop
+  • Chroma-key mask + tight bbox crop. The master idle is a clean, immutable
+    still on a solid green background — chroma is the reliable signal there,
+    and the anchor never needs to load the rembg/U2Net model.
   • Validate the bbox is sensible:
       - bbox missing                → raise "master idle at <path> has no
                                       foreground after chroma-key; manually
                                       inspect and re-generate if needed."
       - bbox height < 50% of canvas → raise (same message). Catches
-                                      "rembg/chroma ate most of the character."
+                                      "the chroma key ate most of the character."
   • Record:
       source_bbox_height   (character body height in the master idle)
       source_anchor_y      (where bbox bottom sat in the canvas)
@@ -145,14 +150,20 @@ Per surviving dump frame in 02_dumps/:
                                           (parse_gpl(assets/palettes/<character>.gpl)
                                           — same parser as tools/clean_sprites.py,
                                           single source of truth)
-  5. Composite onto chroma-green canvas of character frame dims
+  5. Composite onto a chroma-green canvas the SIZE OF THE MASTER IDLE
+     (source resolution — NOT the game frame size; the sole downscale to
+     frame_width×frame_height happens later, in process_character_sprites.py),
      with cropped bottom at source_anchor_y
                                           (placement, not sizing — anchor lives only here)
-  6. POSTCONDITION enforcement: hard alpha threshold so the canvas contains
-     ONLY exact (0, 255, 0) chroma OR exact palette colors. For every output
-     pixel: alpha >= 128 → keep the palette-quantized RGB; alpha < 128 →
-     replace with (0, 255, 0, 255). No semi-transparent edges, no blended
-     pixels survive into 03_assembled_raw.png.
+  6. POSTCONDITION enforcement: hard alpha threshold applied to the
+     character's OWN alpha BEFORE the paste, so no soft edge ever blends with
+     the green canvas. For every character pixel: alpha >= 128 → keep the
+     palette-quantized RGB and paste opaque; alpha < 128 → drop it so the
+     chroma canvas shows through. The canvas therefore contains ONLY exact
+     (0, 255, 0) chroma OR exact palette colors — no semi-transparent edges,
+     no blended green-tinted pixels survive into 03_assembled_raw.png.
+     (Thresholding AFTER the paste would be too late: the soft edge would
+     already have blended into an off-palette colour.)
 
 After all frames processed:
   7. Pack horizontal → 03_assembled_raw.png   (debug checkpoint)
@@ -277,7 +288,7 @@ Four files. No new docs created.
 
 ### R3 — Scale/position drift within the video
 **Fail mode:** img2vid subtly zooms or pans through the clip, so later dumps sit at a different scale than the master idle.
-**Mitigation:** assemble script logs each frame's bbox dimensions vs. the master idle's. `--warn-scale-pct N` (default 15) emits a warning if any frame's bbox differs from the master idle by more than N%.
+**Mitigation:** assemble script logs each frame's character height as a *fraction of its own frame* and compares it to the master idle's bbox height as a fraction of the idle canvas — normalizing out any resolution difference between the clip and `idle.png`, so the number reflects genuine drift, not pixel-space mismatch. `--warn-scale-pct N` (default 15) emits a warning if a frame's normalized character height differs from the master idle's by more than N%.
 **Fallback:** user sees warning, drops the drifty frames, re-runs assemble.
 
 ### R4 — Antialiasing/blur survives downsampling

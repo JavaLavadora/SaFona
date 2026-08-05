@@ -76,11 +76,22 @@ existing files.
      follows a master idle.
 3. **Generate the master idle FIRST** if this is a new character. The master
    idle becomes the visual authority all other animations reference.
-4. **Run the img2vid pipeline** to produce the final sprite sheet. The
+4. **Add the processing config** at
+   `tools/sprite_defs/characters/<asset_name>.json` — see [Processing
+   pipeline & JSON config format](#processing-pipeline--json-config-format)
+   below. Author this *before* running the img2vid pipeline: the pipeline's
+   assemble step (next) chains the canonical
+   `tools/process_character_sprites.py` script, which reads this config to
+   find `source_dir`, `output_dir`, and the per-animation entries — a
+   genuinely new character has no config at pipeline time otherwise.
+5. **Run the img2vid pipeline** to produce the final sprite sheet. The
    img2vid **seed** is the character's immutable master idle still at
    `<source_dir>/idle.png` (from step 3 / Section 2) — it is fed to img2vid
    for *every* animation and is reused, never regenerated per animation.
-   Each numbered sub-step below maps to a folder under
+   The `idle` animation *is* that seed: it is authored once in step 3 and is
+   **not** run through the img2vid pipeline (Stage 4 refuses to overwrite
+   `idle.png`). Run the pipeline for the other animations only. Each numbered
+   sub-step below maps to a folder under
    `assets/ai_sources/img2vid/<character>/<animation>/` (see Section 8 for
    the pipeline diagram and Section 9 for the directory layout). The
    prompt itself was already written in outer step 2 above — don't
@@ -103,12 +114,6 @@ existing files.
       e.g. `balchar.json`'s `sling_attack` entry sets `"output": "sling.png"`,
       so the file lands at `assets/sprites/balchar/sling.png`, not
       `sling_attack.png`.
-5. **Add the processing config** at
-   `tools/sprite_defs/characters/<asset_name>.json` — see [Processing
-   pipeline & JSON config format](#processing-pipeline--json-config-format)
-   below. Sub-step 4 above (`assemble_sprite_sheet.py`) chains into the
-   canonical `tools/process_character_sprites.py` script, which reads this
-   config to find `source_dir`, `output_dir`, and the per-animation entries.
 6. **Tune `scale_pct` per animation** by visual inspection until the body
    size matches the master idle across all animations.
 7. **Run the palette cleanup**:
@@ -301,10 +306,10 @@ Once the animation prompt is authored, the character's **master idle still**
 (`<source_dir>/idle.png`) is fed through an image-to-video AI *together with
 that animation's prompt* to produce one continuous-motion video. img2vid
 creates the in-between motion from the single idle seed — there is no
-per-animation sprite sheet to generate or split. Frames are then sampled
-from the video and assembled into the final sprite sheet. See Section 8 for
-the CLI commands. The img2vid stage is a *better source* for the same
-downstream pipeline — the final processing step is unchanged.
+per-animation sprite sheet to generate or split. Frames are then dumped
+from the video, pruned, and assembled into the final sprite sheet. See
+Section 8 for the CLI commands. `process_character_sprites.py` consumes the
+assembled sheet the same way it consumes any AI source.
 
 ---
 
@@ -399,7 +404,9 @@ The **seed** is the character's immutable master idle still (Section 2 —
 generated once per character, never regenerated per animation). It is the
 img2vid seed for *every* animation and the scale/anchor reference during
 assembly; it lives at `<source_dir>/idle.png`, outside the per-animation
-work folder.
+work folder. The `idle` animation *is* this seed — it is never run through
+the pipeline (Stage 4 refuses to overwrite `idle.png`); the pipeline runs
+for the other animations only.
 
 ```
 Prereq    Master idle still (one-time per character, immutable)   [existing]
@@ -419,11 +426,15 @@ Stage 4   tools/assemble_sprite_sheet.py                          [NEW, automate
 ```
 
 **Key invariant:** Stage 4's output is shaped to match what the canonical
-`tools/process_character_sprites.py` already expects: chroma-green background
-where every pixel is *exactly* `(0, 255, 0)` or a palette color (no
-semi-transparent edges); target frame dimensions; palette-quantized against
+`tools/process_character_sprites.py` already expects of any AI source:
+chroma-green background where every pixel is *exactly* `(0, 255, 0)` or a
+palette color (no semi-transparent edges); **source-resolution** frames
+(sized to the master idle, like the existing AI sources — *not* the final
+game frame size, so `process_character_sprites.py` performs the sole
+downscale to `frame_width`×`frame_height`); palette-quantized against
 `assets/palettes/<character>.gpl` (same parser as `tools/clean_sprites.py`).
-Downstream is unchanged.
+`process_character_sprites.py` then consumes the assembled sheet exactly as
+it consumes any other AI source.
 
 **Re-runnability:** Each stage is an independent CLI reading from / writing
 to known folders. Any stage can be re-run in isolation without re-running
@@ -456,10 +467,11 @@ bash tools/reprocess_all_sprites.sh
 ```
 
 - Advanced/debug flag (optional): `python tools/assemble_sprite_sheet.py
-  <character> <animation> --warn-scale-pct N` warns when any dump frame's
-  bbox height differs from the master idle's by more than N%
-  (default 15). Useful when chasing R3 scale drift; leave at default for
-  normal runs.
+  <character> <animation> --warn-scale-pct N` warns when a dump frame's
+  character height — measured as a fraction of its own frame, so a
+  resolution difference between the clip and `idle.png` doesn't trip it —
+  differs from the master idle's by more than N% (default 15). Useful when
+  chasing R3 scale drift; leave at default for normal runs.
 - Stage 3 requires ffmpeg >= 5.1 (uses `-fps_mode vfr`, which replaced the
   deprecated `-vsync vfr`).
 

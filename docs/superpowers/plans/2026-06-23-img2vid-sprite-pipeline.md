@@ -105,11 +105,14 @@ Insert numbered steps for the img2vid workflow between "prompt authored" and "ru
 Add a subsection "Img2Vid stage" between the AI-generation and processing parts of Section 4. Body:
 
 ```
-After generating the AI sprite sheet, each keyframe is fed through an
-image-to-video AI to produce continuous motion. Frames are sampled from
-the resulting videos and assembled into a higher-quality sprite sheet.
-See Section 8 for the CLI commands. The img2vid stage is a *better source*
-for the same downstream pipeline — the final processing step is unchanged.
+The character's immutable master idle still (<source_dir>/idle.png) is fed
+through an image-to-video AI *together with each animation's prompt* to
+produce ONE continuous-motion video per animation. img2vid creates the
+in-between motion from the single idle seed — there is no per-animation
+sprite sheet to generate or split. Frames are dumped from the video,
+pruned, and assembled into the final sprite sheet. See Section 8 for the
+CLI commands. process_character_sprites.py consumes the assembled sheet the
+same way it consumes any AI source.
 ```
 
 - [ ] **Step 5: Update `docs/asset_generation_guide.md` Section 8 (Processing pipeline)**
@@ -219,11 +222,10 @@ git worktree remove ../safona-img2vid-t1
 ### Dropped: `tools/split_sprite_sheet.py` (was Task 2)
 
 **DROPPED — the corrected pipeline (master idle -> one video per animation)
-has no sheet-split stage.** There is no per-animation sprite sheet to slice,
-so `tools/split_sprite_sheet.py` and `tests/test_split_sprite_sheet.py` are
-not created. **PR #129 (`feat/img2vid-t2-split`) is obsolete and should be
-closed.** The remaining code tasks below are renumbered accordingly (old
-Task 3 -> Task 2, old Task 4 -> Task 3, old Task 5 -> Task 4).
+has no sheet-split stage.** The single seed is the master idle still, and
+img2vid produces one continuous-motion video per animation; there is no
+per-animation sprite sheet to slice, so `tools/split_sprite_sheet.py` and
+`tests/test_split_sprite_sheet.py` are not created.
 
 ---
 
@@ -489,7 +491,7 @@ Open `pyproject.toml`, find the `dependencies` (or equivalent) list, add:
 Pin them: a future rembg major could swap the default model and silently
 change Stage 4 output (R7). `scipy` is required because `remove_background`
 does `from scipy import ndimage` for the rembg-primary + chroma-rescue
-combinator (finding #4) — without this entry, this task hits
+combinator — without this entry, this task hits
 `ModuleNotFoundError: scipy` on a clean checkout. Run `pip install -e .` to
 confirm install works from the file.
 
@@ -620,7 +622,7 @@ def test_resolve_output_filename_uses_output_field_when_present():
     """balchar.json's sling_attack entry sets "output": "sling.png" — the
     expected output filename must come from that field, not from
     f"{animation}.png", or chain_process_script raises FileNotFoundError on
-    every successful run (En Miquel round-2 finding #1).
+    every successful run.
     """
     config = {
         "animations": [
@@ -656,20 +658,25 @@ Expected: `ModuleNotFoundError`.
 """Assemble a clean sprite sheet from img2vid dump frames.
 
 Stage 4 of the img2vid sprite pipeline. For each surviving dump frame in
-02_dumps/, removes the background, downsamples to match the master idle's
-character height, palette-quantizes against the character's .gpl palette,
-and composites onto a chroma-green canvas anchored at the master idle's
-baseline. Packs the processed frames into 03_assembled_raw.png, copies the
-same sheet into <source_dir>/<animation>.png, then invokes the canonical
+02_dumps/, removes the background, scales the character to the master idle's
+body height, palette-quantizes against the character's .gpl palette, and
+composites onto a chroma-green canvas the SIZE OF THE MASTER IDLE (i.e. at
+source resolution, like the existing AI sources — not the final game frame
+size), anchored at the master idle's baseline. Packs the processed frames
+into 03_assembled_raw.png, copies the same sheet into
+<source_dir>/<animation>.png, then invokes the canonical
 tools/process_character_sprites.py <character>.json as a subprocess for
 final cleanup.
 
-Scale and anchor come from the character's immutable master idle still
-(<source_dir>/idle.png) — the same seed every img2vid video was generated
-from — NOT from per-animation config. Anchoring every animation to the one
-master idle keeps scale and baseline mutually consistent across the whole
-character; per-animation vertical placement and scale_pct are still applied
-downstream by process_character_sprites.py.
+Emitting a source-resolution sheet lets process_character_sprites.py own the
+single downscale to frame_width×frame_height, exactly as it does for any
+other AI source. Scale and anchor come from the character's immutable master
+idle still (<source_dir>/idle.png) — the same seed every img2vid video was
+generated from — NOT from per-animation config. Anchoring every animation to
+the one master idle keeps scale and baseline mutually consistent across the
+whole character; per-animation vertical placement, scale_pct, and the final
+game-frame downscale are all applied downstream by
+process_character_sprites.py.
 """
 
 from __future__ import annotations
@@ -779,16 +786,19 @@ def compute_source_anchor(
     anchor_y:   y-coordinate of the bbox bottom in the master idle canvas.
                 Used to place every dump frame at the same baseline.
 
-    Uses the SAME chroma+rembg combinator as --bg-mode both for the anchor,
-    so a chroma artifact on the master idle doesn't silently corrupt the
-    entire animation's scale (defends R1+R3 at the anchor stage).
+    Uses the chroma mask (NOT rembg) for the anchor: the master idle is a
+    clean, single, immutable still on a solid green background, which is
+    exactly where chroma is the reliable signal — so the anchor never depends
+    on loading the U2Net model. The bbox-height sanity clamp below still
+    catches a masking failure (e.g. a chroma artifact eating most of the
+    character) and defends R3 at the anchor stage.
 
     Raises:
         ValueError: if the master idle has no foreground after masking, or
                     if the bbox height is below 50% of canvas height (signals
-                    rembg/chroma ate most of the character).
+                    the chroma key ate most of the character).
     """
-    masked = remove_background(source_frame, "both")
+    masked = remove_background(source_frame, "chroma")
     bbox = masked.getbbox()
     if bbox is None:
         raise ValueError(
@@ -846,31 +856,32 @@ def composite_onto_canvas(
     """Paste the character onto a chroma-green canvas with its bottom at anchor_y.
 
     POSTCONDITION: every output pixel is either exactly (0, 255, 0, 255)
-    chroma OR a fully-opaque palette color. Hard alpha threshold:
-      alpha >= 128 → keep the palette-quantized RGB at full opacity.
-      alpha <  128 → replace with (0, 255, 0, 255).
-    No semi-transparent edges, no blended green-tinted boundary pixels. The
-    downstream chroma-key in process_character_sprites.py only removes pixels
-    where (G-R > 40) and (G-B > 40), so anti-aliased green edges would bake
-    green-tinted pixels into the final asset if this postcondition were
-    relaxed.
-    """
-    canvas = Image.new("RGBA", (canvas_w, canvas_h), CHROMA_GREEN_RGBA)
-    paste_x = (canvas_w - char.width) // 2
-    paste_y = anchor_y - char.height + 1
-    canvas.paste(char, (paste_x, paste_y), char)
+    chroma OR a fully-opaque palette color. No semi-transparent edges, no
+    blended green-tinted boundary pixels. The downstream chroma-key in
+    process_character_sprites.py only removes pixels where (G-R > 40) and
+    (G-B > 40), so anti-aliased green edges would bake green-tinted pixels
+    into the final asset if this postcondition were relaxed.
 
-    # Enforce the postcondition: hard alpha threshold.
-    arr = np.array(canvas)
-    rgb = arr[..., :3]
-    alpha = arr[..., 3]
-    opaque = alpha >= ALPHA_THRESHOLD
-    out = np.empty_like(arr)
-    out[..., 0] = np.where(opaque, rgb[..., 0], CHROMA_GREEN[0])
-    out[..., 1] = np.where(opaque, rgb[..., 1], CHROMA_GREEN[1])
-    out[..., 2] = np.where(opaque, rgb[..., 2], CHROMA_GREEN[2])
-    out[..., 3] = 255
-    return Image.fromarray(out, mode="RGBA")
+    The threshold is applied to the character's OWN alpha BEFORE the paste:
+      alpha >= 128 → keep the palette-quantized RGB, paste at full opacity.
+      alpha <  128 → drop the pixel, so the chroma canvas shows through.
+    Thresholding after the paste would be too late — a soft edge would have
+    already blended its palette RGB with the green canvas into an off-palette
+    green-tinted colour that then survives the threshold.
+    """
+    # Harden the character's own alpha to a binary 0/255 mask first, so no
+    # soft edge ever blends with the green canvas.
+    char = char.convert("RGBA")
+    arr = np.array(char)
+    arr[..., 3] = np.where(arr[..., 3] >= ALPHA_THRESHOLD, 255, 0).astype(np.uint8)
+    hard_char = Image.fromarray(arr, mode="RGBA")
+
+    canvas = Image.new("RGBA", (canvas_w, canvas_h), CHROMA_GREEN_RGBA)
+    paste_x = (canvas_w - hard_char.width) // 2
+    paste_y = anchor_y - hard_char.height + 1
+    # Use the hardened alpha as the paste mask: 255 → char RGB, 0 → chroma.
+    canvas.paste(hard_char, (paste_x, paste_y), hard_char)
+    return canvas
 
 
 def pack_horizontal(frames: list[Image.Image]) -> Image.Image:
@@ -912,28 +923,48 @@ def assemble(
 ) -> tuple[Path, Path]:
     """Run the full Stage 4 pipeline.
 
+    Emits a SOURCE-RESOLUTION sheet (each frame sized to the master idle's
+    own canvas, like the existing 1536×1024-style AI sources), NOT the final
+    game frame size. process_character_sprites.py performs the sole downscale
+    to frame_width×frame_height, exactly as it does for any other AI source —
+    so Stage 4 must not pre-shrink frames to the game frame size or the
+    character would be clipped off-canvas and then downscaled twice.
+
     Returns:
         (raw_checkpoint, source_dir_copy) — the debug checkpoint
         03_assembled_raw.png AND the same sheet copied into
         <source_dir>/<animation>.png (where the canonical processing script
         looks for its input).
+
+    Raises:
+        ValueError: if animation == "idle" — the idle animation IS the master
+            idle seed (<source_dir>/idle.png); it is authored once and is not
+            regenerated through img2vid, so Stage 4 must never overwrite it.
     """
+    if animation == "idle":
+        raise ValueError(
+            "the 'idle' animation is the immutable master idle seed "
+            "(<source_dir>/idle.png); it is not generated through the img2vid "
+            "pipeline. Run the pipeline for the other animations only."
+        )
+
     work_dir = WORK_ROOT / character / animation
     dump_dir = work_dir / "02_dumps"
     raw_out = work_dir / "03_assembled_raw.png"
 
     char_json = CHAR_DEF_ROOT / f"{character}.json"
     config = load_character_config(char_json)
-    canvas_w = int(config["frame_width"])
-    canvas_h = int(config["frame_height"])
     source_dir = (PROJECT_ROOT / config["source_dir"]).resolve()
     palette = load_palette_for(character)
 
     # Scale/anchor reference: the character's immutable master idle still.
     # Computed once and applied to every dump frame so the whole animation
-    # shares one baseline and scale.
+    # shares one baseline and scale. The idle's own dimensions are also the
+    # Stage-4 canvas size, so the output sheet is at source resolution and
+    # process_character_sprites.py owns the single downscale to the game frame.
     master_idle_path = source_dir / "idle.png"
     master_idle = Image.open(master_idle_path).convert("RGBA")
+    canvas_w, canvas_h = master_idle.width, master_idle.height
     source_bbox_h, source_anchor_y = compute_source_anchor(
         master_idle, master_idle_path
     )
@@ -947,10 +978,17 @@ def assemble(
             print(f"warn: empty crop for {dump_path}, skipping")
             continue
 
-        scale_pct = 100.0 * cropped.height / max(source_bbox_h, 1)
-        if abs(scale_pct - 100.0) > warn_scale_pct:
-            print(f"warn: {dump_path.name} bbox height differs from master "
-                  f"idle by {scale_pct - 100:+.1f}%")
+        # Drift check: compare the character's height as a FRACTION of its
+        # own frame in each pixel space (video-native dump vs idle.png-native)
+        # before diffing, so the warning reflects genuine zoom/pan drift and
+        # not a resolution difference between the clip and the master idle.
+        frame_frac = cropped.height / max(raw.height, 1)
+        idle_frac = source_bbox_h / max(canvas_h, 1)
+        drift_pct = 100.0 * (frame_frac / max(idle_frac, 1e-6) - 1.0)
+        if abs(drift_pct) > warn_scale_pct:
+            print(f"warn: {dump_path.name} character height differs from the "
+                  f"master idle by {drift_pct:+.1f}% (each as a fraction of "
+                  f"its own frame)")
 
         scaled = downsample_to_height(cropped, source_bbox_h)
         quantized = palette_quantize(scaled, palette)
@@ -1007,8 +1045,13 @@ def chain_process_script(character: str, animation: str) -> Path:
     broken — raise loudly rather than silently skipping (which would cause
     every non-Balchar character to ship with no final asset).
 
-    After the subprocess returns 0, verifies that the animation's resolved
-    output file exists under <output_dir>; raises if missing.
+    process_character_sprites.py walks EVERY animation entry in the JSON and
+    exits 1 if any source PNG is missing. On a partially-generated character
+    (only idle.png plus the one animation we just assembled), that non-zero
+    exit is expected and does NOT mean our target failed — so this must NOT
+    use check=True. Success is defined as "the animation's resolved output
+    file exists under <output_dir> after the run"; that check (below) is the
+    authority, and it raises if the target is missing.
     """
     script = PROJECT_ROOT / "tools" / "process_character_sprites.py"
     if not script.exists():
@@ -1018,8 +1061,11 @@ def chain_process_script(character: str, animation: str) -> Path:
             f"add silent-skip fallbacks here.)"
         )
     char_json = CHAR_DEF_ROOT / f"{character}.json"
+    # check=False on purpose: a non-zero exit only means some OTHER animation's
+    # source is absent, which is normal mid-generation. The target-output check
+    # below decides success/failure for the animation we care about.
     subprocess.run(
-        [sys.executable, str(script), str(char_json)], check=True
+        [sys.executable, str(script), str(char_json)], check=False
     )
 
     # Verify the output file actually landed where we expect. Resolve the
@@ -1087,11 +1133,13 @@ feat(img2vid): add tools/assemble_sprite_sheet.py (Stage 4)
 
 Assembles a clean sprite sheet from img2vid dump frames. Per surviving
 frame: rembg-primary + connected-component chroma rescue for bg removal
-(both by default), tight crop, downsample to match the master idle's
-character height, palette quantize against assets/palettes/<character>.gpl
-(same parser as clean_sprites.py — idempotent), composite onto chroma-green
-canvas anchored at the master idle's baseline with hard alpha threshold
-postcondition. Pack horizontal, write 03_assembled_raw.png plus a copy into
+(both by default), tight crop, scale to the master idle's body height,
+palette quantize against assets/palettes/<character>.gpl (same parser as
+clean_sprites.py — idempotent), composite onto a source-resolution
+chroma-green canvas (master idle dims — process_character_sprites.py owns
+the single downscale to the game frame) anchored at the master idle's
+baseline with a hard alpha-threshold postcondition. Pack horizontal, write
+03_assembled_raw.png plus a copy into
 the character's source_dir, then invoke tools/process_character_sprites.py
 <character>.json as a subprocess and verify the final output landed at the
 animation's resolved output filename in output_dir
@@ -1205,6 +1253,6 @@ Write a short report at `docs/reports/2026-06-23-img2vid-pipeline-verification.m
 
 Per CLAUDE.md Rule #1.1, the PM (Na Francina) does not write or modify code. This plan must be executed by a developer agent (N'Andreu). The PM will dispatch N'Andreu with worktree isolation (per CLAUDE.md memory `feedback_worktree_isolation.md`), monitor PR progress, ensure review by En Pau + En Miquel, and gate merges on explicit Toni approval.
 
-**Suggested PR sequence:** Tasks 1 → 2 → 3 ship as three sequential PRs (each landing before the next starts), since Task 3's tests reference no new infrastructure beyond what Task 2 establishes (work folder layout). Task 4 (end-to-end verification) runs once Task 3 is merged. (The old sheet-split task is dropped — PR #129 `feat/img2vid-t2-split` should be closed.)
+**Suggested PR sequence:** Tasks 1 → 2 → 3 ship as three sequential PRs (each landing before the next starts), since Task 3's tests reference no new infrastructure beyond what Task 2 establishes (work folder layout). Task 4 (end-to-end verification) runs once Task 3 is merged. There is no sheet-split task — the corrected pipeline has no sheet to split.
 
 Task 1 is the highest-value first ship — it improves the existing pipeline today without any code risk, and can be reviewed by En Pau / En Miquel as a pure docs PR.

@@ -18,39 +18,37 @@ This folder contains:
 ## Pipeline overview
 
 ```
+Prereq    Master idle still (one-time per character, immutable)   [existing]
+            → <source_dir>/idle.png  (img2vid seed + scale/anchor ref)
+
 Stage 1   Prompt (asset_prompts/shared.md or world1.md)           [docs]
             ↓
-Stage 2   AI sprite sheet generation                              [manual]
-            ↓                                                     → 01_source_sheet.png
-Stage 3   tools/split_sprite_sheet.py                             [NEW, automated]
-            ↓                                                     → 02_split_frames/
-Stage 4   Image→Video (Meta AI today, API later)                  [manual, hybrid-ready]
-            ↓                                                     → 03_videos/
-Stage 5   tools/dump_video_frames.py + manual prune               [NEW + user]
-            ↓                                                     → 04_dumps/
-Stage 6   tools/assemble_sprite_sheet.py                          [NEW, automated]
-            ↓                                                     → 05_assembled_raw.png
+Stage 2   Image→Video: master idle + animation prompt → ONE video [manual, hybrid-ready]
+            ↓                                                     → 01_video.mp4
+Stage 3   tools/dump_video_frames.py + manual prune               [NEW + user]
+            ↓                                                     → 02_dumps/
+Stage 4   tools/assemble_sprite_sheet.py                          [NEW, automated]
+            ↓                                                     → 03_assembled_raw.png
           tools/process_character_sprites.py <character>.json     [canonical]
-                                                                  → 06_assembled_final.png
+                                                                  → 04_assembled_final.png
                                                                   → assets/sprites/...
 ```
 
-Work folders live under `assets/ai_sources/img2vid/<character>/<animation>/`
-and are gitignored. Each stage is an independent CLI: any stage can be
-re-run in isolation without re-running earlier ones.
+The seed is the character's immutable master idle still, reused for every
+animation. Per-animation work folders live under
+`assets/ai_sources/img2vid/<character>/<animation>/` and are gitignored.
+Each stage is an independent CLI: any stage can be re-run in isolation
+without re-running earlier ones.
 
 ## Quick start
 
 ```bash
 conda activate safona
 
-# Stage 3 — slice the AI sheet into per-frame PNGs
-python tools/split_sprite_sheet.py <character> <animation>
-
-# Stage 5 — dump frames from each video (every Kth frame)
+# Stage 3 — dump frames from the single animation video (every Kth frame)
 python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
 
-# Stage 6 — assemble cleaned sprite sheet (chains into the canonical
+# Stage 4 — assemble cleaned sprite sheet (chains into the canonical
 # tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json)
 python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}]
 

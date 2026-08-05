@@ -76,28 +76,29 @@ existing files.
      follows a master idle.
 3. **Generate the master idle FIRST** if this is a new character. The master
    idle becomes the visual authority all other animations reference.
-4. **Run the img2vid pipeline** to produce the final sprite sheet. Each
-   numbered sub-step below maps to a folder under
+4. **Run the img2vid pipeline** to produce the final sprite sheet. The
+   img2vid **seed** is the character's immutable master idle still at
+   `<source_dir>/idle.png` (from step 3 / Section 2) — it is fed to img2vid
+   for *every* animation and is reused, never regenerated per animation.
+   Each numbered sub-step below maps to a folder under
    `assets/ai_sources/img2vid/<character>/<animation>/` (see Section 8 for
    the pipeline diagram and Section 9 for the directory layout). The
    prompt itself was already written in outer step 2 above — don't
    duplicate that here.
-   1. Generate the sprite sheet via your image AI. Save as
-      `assets/ai_sources/img2vid/<character>/<animation>/01_source_sheet.png`.
-   2. Run: `python tools/split_sprite_sheet.py <character> <animation>`
-      → produces `02_split_frames/`.
-   3. For each `frame_NN.png` in `02_split_frames/`, upload to Meta AI
-      img2vid (or future API) with the same prompt. Save resulting MP4
-      as `03_videos/frame_NN.mp4`.
-   4. Run: `python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]`
-      → produces `04_dumps/frame_NN/dump_*.png`.
-   5. Browse `04_dumps/frame_NN/` folders; delete frames you don't want.
-   6. Run: `python tools/assemble_sprite_sheet.py <character> <animation>`
-      → produces `05_assembled_raw.png` (debug checkpoint) AND chains
+   1. Upload the master idle still (`<source_dir>/idle.png`) to Meta AI
+      img2vid (or future API) together with this animation's prompt. img2vid
+      creates the motion from that single seed. Save the resulting MP4 as
+      `assets/ai_sources/img2vid/<character>/<animation>/01_video.mp4`.
+   2. Run: `python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]`
+      → produces `02_dumps/dump_*.png`.
+   3. Browse `02_dumps/`; delete frames you don't want (keep the ones that
+      best trace the animation cycle, in filename order).
+   4. Run: `python tools/assemble_sprite_sheet.py <character> <animation>`
+      → produces `03_assembled_raw.png` (debug checkpoint) AND chains
       into `tools/process_character_sprites.py tools/sprite_defs/characters/<character>.json`,
       which produces the final game asset at
       `assets/sprites/<character>/<output>.png` (a.k.a.
-      `06_assembled_final.png` in debug terms), where `<output>` is the
+      `04_assembled_final.png` in debug terms), where `<output>` is the
       animation entry's `output` field if set, or `<animation>` otherwise —
       e.g. `balchar.json`'s `sling_attack` entry sets `"output": "sling.png"`,
       so the file lands at `assets/sprites/balchar/sling.png`, not
@@ -105,7 +106,7 @@ existing files.
 5. **Add the processing config** at
    `tools/sprite_defs/characters/<asset_name>.json` — see [Processing
    pipeline & JSON config format](#processing-pipeline--json-config-format)
-   below. Sub-step 6 above (`assemble_sprite_sheet.py`) chains into the
+   below. Sub-step 4 above (`assemble_sprite_sheet.py`) chains into the
    canonical `tools/process_character_sprites.py` script, which reads this
    config to find `source_dir`, `output_dir`, and the per-animation entries.
 6. **Tune `scale_pct` per animation** by visual inspection until the body
@@ -296,11 +297,14 @@ enforced across animations.
 
 ### Img2Vid stage
 
-After generating the AI sprite sheet, each keyframe is fed through an
-image-to-video AI to produce continuous motion. Frames are sampled from
-the resulting videos and assembled into a higher-quality sprite sheet.
-See Section 8 for the CLI commands. The img2vid stage is a *better source*
-for the same downstream pipeline — the final processing step is unchanged.
+Once the animation prompt is authored, the character's **master idle still**
+(`<source_dir>/idle.png`) is fed through an image-to-video AI *together with
+that animation's prompt* to produce one continuous-motion video. img2vid
+creates the in-between motion from the single idle seed — there is no
+per-animation sprite sheet to generate or split. Frames are then sampled
+from the video and assembled into the final sprite sheet. See Section 8 for
+the CLI commands. The img2vid stage is a *better source* for the same
+downstream pipeline — the final processing step is unchanged.
 
 ---
 
@@ -388,28 +392,33 @@ If any check fails: regenerate or hand-fix.
 
 ## 8. Processing pipeline & JSON config format
 
-The full pipeline has six stages. Three are existing tools we reuse, three
-are new img2vid stages added on top.
+The full pipeline has four stages plus a one-time prerequisite. Two of the
+four stages are existing/manual, two are new img2vid tools added on top.
+
+The **seed** is the character's immutable master idle still (Section 2 —
+generated once per character, never regenerated per animation). It is the
+img2vid seed for *every* animation and the scale/anchor reference during
+assembly; it lives at `<source_dir>/idle.png`, outside the per-animation
+work folder.
 
 ```
+Prereq    Master idle still (one-time per character, immutable)   [existing]
+            → <source_dir>/idle.png  (img2vid seed + scale/anchor ref)
+
 Stage 1   Prompt (asset_prompts/shared.md or world1.md)           [docs]
             ↓
-Stage 2   AI sprite sheet generation                              [manual]
-            ↓                                                     → 01_source_sheet.png
-Stage 3   tools/split_sprite_sheet.py                             [NEW, automated]
-            ↓                                                     → 02_split_frames/
-Stage 4   Image→Video (Meta AI today, API later)                  [manual, hybrid-ready]
-            ↓                                                     → 03_videos/
-Stage 5   tools/dump_video_frames.py + manual prune               [NEW + user]
-            ↓                                                     → 04_dumps/
-Stage 6   tools/assemble_sprite_sheet.py                          [NEW, automated]
-            ↓                                                     → 05_assembled_raw.png
+Stage 2   Image→Video: master idle + animation prompt → ONE video [manual, hybrid-ready]
+            ↓                                                     → 01_video.mp4
+Stage 3   tools/dump_video_frames.py + manual prune               [NEW + user]
+            ↓                                                     → 02_dumps/
+Stage 4   tools/assemble_sprite_sheet.py                          [NEW, automated]
+            ↓                                                     → 03_assembled_raw.png
           tools/process_character_sprites.py <character>.json     [canonical]
-                                                                  → 06_assembled_final.png
+                                                                  → 04_assembled_final.png
                                                                   → assets/sprites/...
 ```
 
-**Key invariant:** Stage 6's output is shaped to match what the canonical
+**Key invariant:** Stage 4's output is shaped to match what the canonical
 `tools/process_character_sprites.py` already expects: chroma-green background
 where every pixel is *exactly* `(0, 255, 0)` or a palette color (no
 semi-transparent edges); target frame dimensions; palette-quantized against
@@ -425,18 +434,15 @@ earlier ones.
 ```bash
 conda activate safona
 
-# Stage 3 — slice the AI sheet into per-frame PNGs
-python tools/split_sprite_sheet.py <character> <animation>
-
-# Stage 5 — dump frames from each video (every Kth frame)
+# Stage 3 — dump frames from the single animation video (every Kth frame)
 python tools/dump_video_frames.py <character> <animation> [--k 10] [--reset]
 
-# Stage 6 — assemble cleaned sprite sheet (chains into
+# Stage 4 — assemble cleaned sprite sheet (chains into
 # tools/process_character_sprites.py <character>.json automatically)
 python tools/assemble_sprite_sheet.py <character> <animation> [--bg-mode {rembg,chroma,both}]
 
 # Final character-processing pass (canonical chain — runs automatically
-# from Stage 6; shown here in case you want to re-run it manually)
+# from Stage 4; shown here in case you want to re-run it manually)
 python tools/process_character_sprites.py tools/sprite_defs/characters/balchar.json
 
 # Process all characters
@@ -451,26 +457,26 @@ bash tools/reprocess_all_sprites.sh
 
 - Advanced/debug flag (optional): `python tools/assemble_sprite_sheet.py
   <character> <animation> --warn-scale-pct N` warns when any dump frame's
-  bbox height differs from the source split frame's by more than N%
+  bbox height differs from the master idle's by more than N%
   (default 15). Useful when chasing R3 scale drift; leave at default for
   normal runs.
-- Stage 5 requires ffmpeg >= 5.1 (uses `-fps_mode vfr`, which replaced the
+- Stage 3 requires ffmpeg >= 5.1 (uses `-fps_mode vfr`, which replaced the
   deprecated `-vsync vfr`).
 
 ### Debug artifacts
 
 When the final asset looks wrong, inspect
-`assets/ai_sources/img2vid/<character>/<animation>/05_assembled_raw.png`
-first. This is the Stage 6 output **before** `tools/process_character_sprites.py`
-runs. Comparing it against `06_assembled_final.png` localizes the bug:
+`assets/ai_sources/img2vid/<character>/<animation>/03_assembled_raw.png`
+first. This is the Stage 4 output **before** `tools/process_character_sprites.py`
+runs. Comparing it against `04_assembled_final.png` localizes the bug:
 
-- If `05_assembled_raw.png` is already wrong → the bug is in the img2vid
+- If `03_assembled_raw.png` is already wrong → the bug is in the img2vid
   assembly (background removal, downsample, palette quantize, anchor).
-- If `05` looks fine but `06` is worse → the bug is in the canonical
+- If `03` looks fine but `04` is worse → the bug is in the canonical
   `tools/process_character_sprites.py` or `tools/clean_sprites.py` chain.
 
-Each stage's intermediate folders (`02_split_frames/`, `03_videos/`,
-`04_dumps/`) are also preserved so any stage can be re-run in isolation.
+The intermediate `01_video.mp4` and `02_dumps/` are also preserved so any
+stage can be re-run in isolation.
 
 ### Canonical processing chain (also used for non-img2vid sources)
 
@@ -481,7 +487,7 @@ places them in a fixed-size frame, and assembles horizontal sprite sheets.
 character's `.gpl`) and an optional pixel outline to the raw sprite sheets.
 Both are run by `tools/reprocess_all_sprites.sh` for the full batch (Phase 1
 runs `process_character_sprites.py` for every `tools/sprite_defs/characters/*.json`;
-Phase 3/4 runs `clean_sprites.py` per output PNG). Stage 6 of the img2vid
+Phase 3/4 runs `clean_sprites.py` per output PNG). Stage 4 of the img2vid
 pipeline chains directly into `process_character_sprites.py` for the single
 animation being assembled; `clean_sprites.py` is run as part of the batch
 script when you want the palette/outline pass over everything.
@@ -673,16 +679,18 @@ for each animation; update it if anything changes.
 
 ```
 assets/ai_sources/img2vid/<character>/<animation>/
-├── 01_source_sheet.png       # Stage 2 (raw AI output)
-├── 02_split_frames/          # Stage 3 output
-├── 03_videos/                # Stage 4 drop zone (user places MP4s here)
-├── 04_dumps/                 # Stage 5 output (user prunes in place)
-├── 05_assembled_raw.png      # Stage 6 output (debug checkpoint)
-└── 06_assembled_final.png    # After tools/process_character_sprites.py <char>.json
+├── 01_video.mp4              # Stage 2 output (user drops the img2vid MP4 here)
+├── 02_dumps/                 # Stage 3 output (Kth-frame dumps; user prunes in place)
+├── 03_assembled_raw.png      # Stage 4 output (debug checkpoint)
+└── 04_assembled_final.png    # After tools/process_character_sprites.py <char>.json
 ```
 
-This whole subtree is **gitignored** — only the final game sprite in
-`assets/sprites/...` is committed. Each stage's folder is the input of the
+The img2vid seed / scale reference is **not** in this subtree — it is the
+character's single master idle still at `<source_dir>/idle.png` (e.g.
+`assets/ai_sources/balchar/idle.png`), reused for every animation.
+
+This whole `img2vid/` subtree is **gitignored** — only the final game sprite
+in `assets/sprites/...` is committed. Each stage's output is the input of the
 next, and any stage can be re-run in isolation.
 
 ---

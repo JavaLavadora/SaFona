@@ -304,7 +304,9 @@ def save_sheet(sheet: np.ndarray, path: Path) -> None:
 # Main processing pipeline
 # ---------------------------------------------------------------------------
 
-def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int, int]:
+def process_character(
+    config_path: Path, emit_preview: bool = True, only: str | None = None
+) -> tuple[int, int]:
     """Process all animations for one character from a JSON config file.
 
     Steps:
@@ -322,6 +324,13 @@ def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int
         config_path: Path to the character JSON config.
         emit_preview: When True (default), also write a preview GIF for each
             animation via export_sprite_gif.frames_to_gif.
+        only: When set, restrict which animation is *written to disk* to the
+            single entry whose ``source`` stem matches (e.g. ``"walk"``).
+            Steps 1-2 still load and measure EVERY entry unconditionally, so
+            ``base_scale`` is identical to a full run -- animations processed
+            later with ``--only`` stay scale-consistent with those from an
+            earlier full run. Only Step 3's save/GIF is skipped for the
+            other entries.
 
     Returns:
         ``(successes, failures)`` animation counts.
@@ -336,6 +345,16 @@ def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int
     anim_entries: list[dict[str, Any]] = config["animations"]
     min_area: int = config.get("min_area", 5000)
     split_mode: str = config.get("split_mode", "auto")
+
+    if only is not None:
+        valid = sorted(
+            Path(entry["source"]).stem for entry in anim_entries if "source" in entry
+        )
+        if only not in valid:
+            raise ValueError(
+                f"no animation '{only}' in sprite def; "
+                f"valid animations: {', '.join(valid) or '(none)'}"
+            )
 
     log.info("Character: %s", config_path.stem)
     log.info("  Frame: %dx%d, %d animations, split=%s", frame_w, frame_h, len(anim_entries), split_mode)
@@ -420,6 +439,12 @@ def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int
 
     for anim in animations:
         entry = anim["entry"]
+        animation = Path(entry["source"]).stem
+
+        if only is not None and animation != only:
+            log.info("  Skipped (--only=%s): %s", only, entry["source"])
+            continue
+
         output_path: Path = anim["output_path"]
         cropped_frames: list[np.ndarray] = anim["cropped_frames"]
         scale_pct: float = entry["scale_pct"]
@@ -449,7 +474,6 @@ def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int
         successes += 1
 
         if emit_preview:
-            animation = Path(entry["source"]).stem
             gif_frames = [Image.fromarray(f, "RGBA") for f in placed_frames]
             gif_path = frames_to_gif(
                 gif_frames, preview_gif_path(output_dir, animation)
@@ -488,6 +512,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip writing preview GIFs (assets/previews/<character>/*.gif)",
     )
+    parser.add_argument(
+        "--only",
+        default=None,
+        metavar="ANIMATION",
+        help="Only write this one animation's sheet + GIF (e.g. walk). "
+             "All animations are still loaded/measured so the shared base "
+             "scale is unchanged. Requires a single config path.",
+    )
     return parser
 
 
@@ -498,6 +530,12 @@ def main() -> None:
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    if args.only is not None and len(args.config) > 1:
+        parser.error(
+            "--only restricts a single character to one animation and cannot "
+            f"be combined with multiple config paths (got {len(args.config)})"
+        )
 
     total_successes = 0
     total_failures = 0
@@ -513,7 +551,7 @@ def main() -> None:
             continue
 
         successes, failures = process_character(
-            config_path, emit_preview=not args.no_preview_gif
+            config_path, emit_preview=not args.no_preview_gif, only=args.only
         )
         total_successes += successes
         total_failures += failures

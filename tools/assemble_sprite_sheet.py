@@ -538,8 +538,12 @@ def chain_process_script(character: str, animation: str) -> Path:
         )
     char_json = CHAR_DEF_ROOT / f"{character}.json"
     # check=False on purpose -- see docstring above.
+    # --only limits what gets *saved* to the one animation we just assembled;
+    # the script still loads every source (missing ones just log + continue),
+    # so the shared base scale is unaffected.
     subprocess.run(
-        [sys.executable, str(script), str(char_json)], check=False
+        [sys.executable, str(script), str(char_json), "--only", animation],
+        check=False,
     )
 
     # Resolve the expected output filename -- see resolve_output_filename().

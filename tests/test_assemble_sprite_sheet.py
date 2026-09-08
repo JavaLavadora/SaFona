@@ -231,9 +231,12 @@ def test_chain_treats_output_exists_as_success(tmp_path: Path):
     script.parent.mkdir(parents=True, exist_ok=True)
     script.write_text("")  # existence is all chain_process_script checks
 
+    seen_cmds: list[list[str]] = []
+
     def fake_run(cmd, check):
         # Simulate the canonical script producing the output despite a
         # non-zero exit for other missing animations.
+        seen_cmds.append(cmd)
         (output_dir / "walk.png").write_bytes(b"png")
         class R:  # noqa: D401 - trivial return stub
             returncode = 1
@@ -246,6 +249,9 @@ def test_chain_treats_output_exists_as_success(tmp_path: Path):
 
     assert result == output_dir / "walk.png"
     assert result.exists()
+    # Stage 4 only cares about the animation it just assembled: the subprocess
+    # must pass --only so the other 8 animations are not silently rewritten.
+    assert seen_cmds and seen_cmds[0][-2:] == ["--only", "walk"]
 
 
 def test_chain_raises_when_output_missing(tmp_path: Path):

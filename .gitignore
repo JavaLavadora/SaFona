@@ -30,3 +30,9 @@ saves/
 
 # img2vid scratch working folders — only final assets/sprites are committed
 assets/ai_sources/img2vid/**
+
+# Sprite GIF previews — generated debug artifacts, not shipped assets
+assets/previews/
+
+# Local MCP server config (machine-specific paths)
+.mcp.json

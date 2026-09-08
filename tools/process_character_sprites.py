@@ -49,6 +49,11 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
+try:
+    from tools.export_sprite_gif import frames_to_gif, preview_gif_path
+except ImportError:  # run as a script: tools/ is on sys.path[0], not the repo root
+    from export_sprite_gif import frames_to_gif, preview_gif_path
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 logging.basicConfig(
@@ -299,7 +304,7 @@ def save_sheet(sheet: np.ndarray, path: Path) -> None:
 # Main processing pipeline
 # ---------------------------------------------------------------------------
 
-def process_character(config_path: Path) -> tuple[int, int]:
+def process_character(config_path: Path, emit_preview: bool = True) -> tuple[int, int]:
     """Process all animations for one character from a JSON config file.
 
     Steps:
@@ -310,6 +315,16 @@ def process_character(config_path: Path) -> tuple[int, int]:
        At scale_pct=100 all animations share the same scale (bodies
        consistent). Lower values shrink individual animations.
     5. Scale, place using snap settings, assemble sheet, save.
+    6. Unless disabled, emit a preview GIF per animation at
+       ``assets/previews/<character>/<animation>.gif``.
+
+    Args:
+        config_path: Path to the character JSON config.
+        emit_preview: When True (default), also write a preview GIF for each
+            animation via export_sprite_gif.frames_to_gif.
+
+    Returns:
+        ``(successes, failures)`` animation counts.
     """
     with open(config_path) as f:
         config = json.load(f)
@@ -433,6 +448,18 @@ def process_character(config_path: Path) -> tuple[int, int]:
         save_sheet(sheet, output_path)
         successes += 1
 
+        if emit_preview:
+            animation = Path(entry["source"]).stem
+            gif_frames = [Image.fromarray(f, "RGBA") for f in placed_frames]
+            gif_path = frames_to_gif(
+                gif_frames, preview_gif_path(output_dir, animation)
+            )
+            try:
+                display_path = gif_path.relative_to(PROJECT_ROOT)
+            except ValueError:
+                display_path = gif_path
+            log.info("  Preview GIF: %s (%d frames)", display_path, len(gif_frames))
+
     return successes, failures
 
 
@@ -455,6 +482,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="verbose",
         help="Enable verbose logging",
+    )
+    parser.add_argument(
+        "--no-preview-gif",
+        action="store_true",
+        help="Skip writing preview GIFs (assets/previews/<character>/*.gif)",
     )
     return parser
 
@@ -480,7 +512,9 @@ def main() -> None:
             total_failures += 1
             continue
 
-        successes, failures = process_character(config_path)
+        successes, failures = process_character(
+            config_path, emit_preview=not args.no_preview_gif
+        )
         total_successes += successes
         total_failures += failures
         log.info("")

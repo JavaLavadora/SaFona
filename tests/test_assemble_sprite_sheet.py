@@ -24,6 +24,7 @@ from tools.assemble_sprite_sheet import (
     pack_horizontal,
     palette_quantize,
     remove_background,
+    resolve_master_idle_reference,
     resolve_output_filename,
     tight_crop,
 )
@@ -131,6 +132,65 @@ def test_compute_source_anchor_rejects_masking_failure():
 
     with pytest.raises(ValueError, match="masking failure"):
         compute_source_anchor(img)
+
+
+def test_compute_source_anchor_ignores_small_disconnected_artifact():
+    """A stray label/artifact disconnected from the body must not inflate the
+    bbox -- regression test for Balchar's idle.png, which has "1"/"2"/"3"/"4"
+    candidate labels baked in above the pose (see resolve_master_idle_reference).
+    The old raw-getbbox() implementation would have included the label,
+    pushing `top` upward and inflating `bbox_h`; the largest-connected-
+    component selection must ignore it entirely.
+    """
+    img = Image.new("RGBA", (32, 48), (0, 255, 0, 255))
+    # Main body: same 30px-tall block as test_compute_source_anchor_returns_
+    # bbox_height_and_y (30/48 = 62.5% of canvas height -- clears the masking
+    # -failure clamp on its own).
+    for y in range(18, 48):
+        for x in range(10, 22):
+            img.putpixel((x, y), (200, 100, 50, 255))
+    # Disconnected label artifact near the top, unconnected to the body.
+    for y in range(2, 6):
+        for x in range(14, 18):
+            img.putpixel((x, y), (240, 232, 216, 255))
+
+    height, anchor_y = compute_source_anchor(img)
+    assert height == 30
+    assert anchor_y == 47
+
+
+def test_resolve_master_idle_reference_prefers_override(tmp_path: Path):
+    source_dir = tmp_path
+    Image.new("RGBA", (100, 200), (0, 255, 0, 255)).save(source_dir / "idle.png")
+    override = Image.new("RGBA", (50, 90), (0, 255, 0, 255))
+    override.save(source_dir / "idle_master.png")
+
+    img, path = resolve_master_idle_reference(source_dir, {"animations": []})
+    assert img.size == (50, 90)
+    assert path == source_dir / "idle_master.png"
+
+
+def test_resolve_master_idle_reference_slices_multi_frame_idle(tmp_path: Path):
+    source_dir = tmp_path
+    sheet = Image.new("RGBA", (100, 50), (0, 255, 0, 255))
+    sheet.paste(Image.new("RGBA", (25, 50), (200, 0, 0, 255)), (0, 0))
+    sheet.save(source_dir / "idle.png")
+    config = {"animations": [{"source": "idle.png", "frames": 4}]}
+
+    img, path = resolve_master_idle_reference(source_dir, config)
+    assert img.size == (25, 50)
+    assert img.getpixel((0, 0))[:3] == (200, 0, 0)
+    assert path == source_dir / "idle.png"
+
+
+def test_resolve_master_idle_reference_passthrough_single_frame(tmp_path: Path):
+    source_dir = tmp_path
+    Image.new("RGBA", (40, 80), (0, 255, 0, 255)).save(source_dir / "idle.png")
+    config = {"animations": [{"source": "idle.png", "frames": 1}]}
+
+    img, path = resolve_master_idle_reference(source_dir, config)
+    assert img.size == (40, 80)
+    assert path == source_dir / "idle.png"
 
 
 def test_composite_onto_canvas_anchors_at_y():
@@ -335,6 +395,87 @@ def test_source_resolution_canvas_matches_master_idle(tmp_path: Path, monkeypatc
     allowed = {(0, 255, 0, 255), (200, 100, 50, 255), (100, 50, 25, 255)}
     seen = {tuple(p) for p in np.array(sheet).reshape(-1, 4)}
     assert seen.issubset(allowed), f"leaked: {seen - allowed}"
+
+
+def test_assemble_grows_canvas_for_frame_wider_than_master_idle(
+    tmp_path: Path, monkeypatch
+):
+    """A dynamic pose (e.g. a raised sling arm) can scale out wider than a
+    tightly-cropped master idle reference. composite_onto_canvas centers via
+    ``(canvas_w - char.width) // 2``, which silently clips via PIL's paste
+    when char.width > canvas_w -- so assemble() must grow the canvas to fit
+    the widest scaled frame instead of sizing it from the master idle alone.
+    Regression test for the idle_master.png override clipping a sling frame.
+    """
+    char = "toy"
+    idle_w, idle_h = 120, 200
+    source_dir = tmp_path / "src" / char
+    source_dir.mkdir(parents=True)
+    dump_dir = tmp_path / "img2vid" / char / "walk" / "02_dumps"
+    dump_dir.mkdir(parents=True)
+
+    # Master idle: narrow, tightly-cropped body (mimics a tight idle_master.png
+    # override with no lateral margin).
+    idle = Image.new("RGBA", (idle_w, idle_h), (0, 255, 0, 255))
+    for y in range(20, idle_h):
+        for x in range(40, 80):
+            idle.putpixel((x, y), (200, 100, 50, 255))
+    idle.save(source_dir / "idle.png")
+
+    # A dump frame with a WIDE body that, once scaled to the idle's body
+    # height, will exceed idle_w.
+    dump_w, dump_h = 300, 150
+    dump = Image.new("RGBA", (dump_w, dump_h), (0, 255, 0, 255))
+    for y in range(10, 150):
+        for x in range(10, 290):
+            dump.putpixel((x, y), (200, 100, 50, 255))
+    dump.save(dump_dir / "dump_0000.png")
+
+    config = {
+        "source_dir": (source_dir.relative_to(tmp_path)).as_posix(),
+        "output_dir": "out/toy",
+        "animations": [{"source": "walk.png", "frames": 1}],
+    }
+    char_json = tmp_path / f"{char}.json"
+    char_json.write_text(json.dumps(config))
+
+    monkeypatch.setattr("tools.assemble_sprite_sheet.PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr("tools.assemble_sprite_sheet.CHAR_DEF_ROOT", tmp_path)
+    monkeypatch.setattr("tools.assemble_sprite_sheet.WORK_ROOT",
+                        tmp_path / "img2vid")
+    monkeypatch.setattr(
+        "tools.assemble_sprite_sheet.load_palette_for",
+        lambda _c: np.array([(200, 100, 50), (100, 50, 25)]),
+    )
+
+    # Predict the scaled width via the same helpers assemble() uses, so the
+    # assertion checks against an independently-derived expectation, not a
+    # tautology of the implementation under test.
+    idle_bbox_h, _ = compute_source_anchor(idle)
+    dump_cropped = tight_crop(remove_background(dump, "chroma"), padding=1)
+    expected = downsample_to_height(dump_cropped, idle_bbox_h)
+    assert expected.width > idle_w, "test setup must actually exceed idle_w"
+
+    raw_out, _ = assemble(char, "walk", bg_mode="chroma", warn_scale_pct=1e9)
+    sheet = Image.open(raw_out)
+
+    assert sheet.width >= expected.width, (
+        "canvas must grow to fit the widest scaled frame, not stay pinned "
+        "to the master idle's width"
+    )
+    body_mask = chroma_key_mask(sheet)
+    xs = np.where(body_mask.any(axis=0))[0]
+    actual_width = int(xs.max() - xs.min() + 1)
+    # A few edge pixels can fall below the hard alpha threshold applied
+    # during compositing (soft bilinear-resize edges get thresholded to
+    # fully transparent) -- allow a small tolerance, but a real clipping
+    # regression would truncate the body down toward the old canvas width
+    # (120px), off by hundreds of pixels, not a handful.
+    assert abs(actual_width - expected.width) <= 5, (
+        f"the body's own width must survive largely uncut -- got "
+        f"{actual_width}px, expected ~{expected.width}px. A shortfall "
+        f"toward {idle_w}px would mean it was clipped by an undersized canvas"
+    )
 
 
 def test_assemble_excludes_fully_transparent_dump_frame(tmp_path: Path, monkeypatch):

@@ -114,6 +114,16 @@ Reads `01_video.mp4` from the animation's work folder and writes to `02_dumps/`;
 
 ### Stage 4 — `tools/assemble_sprite_sheet.py` (NEW, the substantive one)
 
+> **Amendment (first real run, Balchar):** this section assumed `idle.png` is
+> always a clean, canvas-filling single still. In practice a character's
+> `idle.png` can be shaped differently (Balchar's is a 4-up
+> candidate-selection sheet with baked-in number labels) — in which case the
+> scale/anchor reference comes from a dedicated `<source_dir>/idle_master.png`
+> override instead, kept in sync with `idle.png` by hand. See
+> `docs/asset_generation_guide.md` Section 8 for the current, maintained
+> description; treat the "clean, immutable still" wording below as the
+> original intent, not a guarantee `assemble_sprite_sheet.py` enforces.
+
 Reads the surviving PNGs in `02_dumps/` in filename order. Reads the character JSON
 (`tools/sprite_defs/characters/<character>.json`) for `source_dir` and
 `output_dir` (the `idle` animation itself is never assembled — it is the

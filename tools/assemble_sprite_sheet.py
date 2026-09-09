@@ -215,7 +215,11 @@ def compute_source_anchor(
     """
     masked = remove_background(source_frame, "chroma")
     mask = np.array(masked)[:, :, 3] > 0
-    labeled, n_features = ndimage.label(mask)
+    # 8-connectivity, matching the --bg-mode both rescue's structure=np.ones
+    # ((3, 3)) below: a diagonal-only bridge (a thin sling cord, a limb
+    # attached at a corner) must not shatter the body into separate
+    # components under the "largest component" selection.
+    labeled, n_features = ndimage.label(mask, structure=np.ones((3, 3)))
     if n_features == 0:
         raise ValueError(
             f"master idle at {source_path} has no foreground after "
@@ -223,7 +227,7 @@ def compute_source_anchor(
         )
     sizes = ndimage.sum(mask, labeled, range(1, n_features + 1))
     largest_id = int(np.argmax(sizes)) + 1
-    ys, xs = np.where(labeled == largest_id)
+    ys = np.where(labeled == largest_id)[0]
     top, bottom = int(ys.min()), int(ys.max()) + 1
     bbox_h = bottom - top
     if bbox_h < source_frame.height * 0.5:
@@ -474,12 +478,21 @@ def assemble(
     master_idle, master_idle_path = resolve_master_idle_reference(
         source_dir, config
     )
+    log.info("Scale/anchor reference: %s", master_idle_path)
     canvas_w, canvas_h = master_idle.width, master_idle.height
     source_bbox_h, source_anchor_y = compute_source_anchor(
         master_idle, master_idle_path
     )
 
-    all_processed: list[Image.Image] = []
+    # First pass: background-remove, crop, and scale every surviving dump to
+    # the master idle's body height -- WITHOUT compositing yet. A dynamic
+    # pose (e.g. a raised sling arm) can end up wider or taller than the
+    # master idle reference itself, especially when that reference is a
+    # tightly-cropped idle_master.png override with little to no margin; if
+    # the canvas were sized from the reference alone, composite_onto_canvas
+    # would silently clip such frames (negative paste offsets). So the
+    # canvas is sized AFTER seeing every frame -- see below.
+    scaled_frames: list[tuple[Path, Image.Image]] = []
     for dump_path in sorted(dump_dir.glob("dump_*.png")):
         raw = Image.open(dump_path).convert("RGBA")
         no_bg = remove_background(raw, bg_mode)
@@ -507,6 +520,26 @@ def assemble(
 
         scaled = downsample_to_height(cropped, source_bbox_h)
         quantized = palette_quantize(scaled, palette)
+        scaled_frames.append((dump_path, quantized))
+
+    # Grow the canvas (never shrink it) to fit the widest/tallest scaled
+    # frame, preserving the master idle's bottom margin so every frame's
+    # baseline still lands at the same relative position -- only the
+    # available headroom above it changes.
+    bottom_margin = canvas_h - 1 - source_anchor_y
+    max_frame_w = max((img.width for _, img in scaled_frames), default=0)
+    max_frame_h = max((img.height for _, img in scaled_frames), default=0)
+    if max_frame_w > canvas_w or max_frame_h + bottom_margin > canvas_h:
+        canvas_w = max(canvas_w, max_frame_w)
+        canvas_h = max(canvas_h, max_frame_h + bottom_margin)
+        source_anchor_y = canvas_h - 1 - bottom_margin
+        log.info(
+            "Grew Stage-4 canvas to %dx%d to avoid clipping a wider/taller "
+            "frame than the master idle reference", canvas_w, canvas_h,
+        )
+
+    all_processed: list[Image.Image] = []
+    for _, quantized in scaled_frames:
         composed = composite_onto_canvas(
             quantized, canvas_w, canvas_h, source_anchor_y
         )
@@ -590,8 +623,15 @@ def chain_process_script(character: str, animation: str) -> Path:
     char_json = CHAR_DEF_ROOT / f"{character}.json"
     # check=False on purpose -- see docstring above.
     # --only limits what gets *saved* to the one animation we just assembled;
-    # the script still loads every source (missing ones just log + continue),
-    # so the shared base scale is unaffected.
+    # the script still loads every PRESENT source (missing ones just log +
+    # continue) to compute the shared base scale, so scale stays consistent
+    # across whatever animations exist *right now*. On an incremental
+    # img2vid run (idle + only some animations generated so far), that scale
+    # is provisional: it's derived from `global_max_h` over present sources
+    # only (see process_character_sprites.py), so it can still shift once a
+    # not-yet-generated sibling turns out to be taller. A final full
+    # reprocess (no --only, once every animation is generated) is required
+    # to lock in the real final scale.
     subprocess.run(
         [sys.executable, str(script), str(char_json), "--only", animation],
         check=False,

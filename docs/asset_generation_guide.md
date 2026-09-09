@@ -403,15 +403,41 @@ four stages are existing/manual, two are new img2vid tools added on top.
 
 The **seed** is the character's immutable master idle still (Section 2 —
 generated once per character, never regenerated per animation). It is the
-img2vid seed for *every* animation and the scale/anchor reference during
-assembly; it lives at `<source_dir>/idle.png`, outside the per-animation
-work folder. The `idle` animation *is* this seed — it is never run through
-the pipeline (Stage 4 refuses to overwrite `idle.png`); the pipeline runs
-for the other animations only.
+img2vid seed for *every* animation; it lives at `<source_dir>/idle.png`,
+outside the per-animation work folder. The `idle` animation *is* this seed —
+it is never run through the pipeline (Stage 4 refuses to overwrite
+`idle.png`); the pipeline runs for the other animations only.
+
+**Scale/anchor reference — usually the same file, sometimes not.** Stage 4
+needs a single, tightly-cropped pose on a clean chroma background to measure
+the character's body height and baseline from. For a character whose
+`idle.png` *is* already one clean still, that's simply `idle.png` again —
+no extra file needed. But `idle.png` isn't always shaped that way: Balchar's,
+for example, is a **4-up candidate-selection sheet** (four numbered candidate
+poses side by side, left over from picking the final design) declared as
+`"frames": 4` in its JSON config — good enough for the old per-frame pipeline
+(which finds the character via connected-component detection and ignores the
+number labels/padding), but not a "canvas-filling single still," so Stage 4
+can't use it directly as the anchor reference.
+
+For that case, drop a tightly-cropped single pose at
+**`<source_dir>/idle_master.png`** — same still content as your chosen idle
+pose, just cropped down to (approximately) fill the canvas. `tools/assemble_sprite_sheet.py`'s
+`resolve_master_idle_reference()` checks for this file first and prefers it
+over `idle.png` whenever it exists; `assemble()` logs which reference file it
+resolved to, so a mismatch is visible in the run output. If you ever
+regenerate `idle.png` (a new character look), regenerate `idle_master.png`
+from the same new pose too — the two must depict the same character version,
+since Stage 4 has no way to detect a stale override on its own.
 
 ```
 Prereq    Master idle still (one-time per character, immutable)   [existing]
-            → <source_dir>/idle.png  (img2vid seed + scale/anchor ref)
+            → <source_dir>/idle.png          (img2vid seed, every animation)
+            → <source_dir>/idle_master.png   (optional; scale/anchor ref
+                                               override — only needed when
+                                               idle.png isn't itself a clean
+                                               single still, e.g. Balchar's
+                                               4-up candidate sheet)
 
 Stage 1   Prompt (asset_prompts/shared.md or world1.md)           [docs]
             ↓

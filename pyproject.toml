@@ -11,7 +11,11 @@ dependencies = [
 dev = [
     "pytest>=9.0",
     "pyinstaller>=6.0",
-    "imageio-ffmpeg>=0.5",  # ships a static ffmpeg binary for Stage 3
+    "imageio-ffmpeg>=0.5",    # ships a static ffmpeg binary for Stage 3
+    "rembg>=2.0.50,<3.0",     # U2Net by default — model is downloaded on first run
+    "onnxruntime>=1.16,<2.0", # rembg requires this for the model
+    "scipy>=1.11,<2.0",       # remove_background's connected-component rescue
+                              # (--bg-mode both combinator) imports scipy.ndimage
 ]
 
 [tool.setuptools.packages.find]

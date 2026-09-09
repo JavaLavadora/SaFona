@@ -3,9 +3,11 @@
 Stage 4 of the img2vid sprite pipeline. For each surviving dump frame in
 02_dumps/, removes the background, scales the character to the master idle's
 body height, palette-quantizes against the character's .gpl palette, and
-composites onto a chroma-green canvas the SIZE OF THE MASTER IDLE (i.e. at
-source resolution, like the existing AI sources -- not the final game frame
-size), anchored at the master idle's baseline. Packs the processed frames
+composites onto a chroma-green canvas sized to the master idle reference
+(i.e. at source resolution, like the existing AI sources -- not the final
+game frame size), grown beyond that when a dynamic pose scales out
+wider/taller than the reference itself, anchored at the master idle's
+baseline. Packs the processed frames
 into 03_assembled_raw.png, copies the same sheet into
 <source_dir>/<animation>.png, then invokes the canonical
 tools/process_character_sprites.py <character>.json as a subprocess for
@@ -472,9 +474,10 @@ def assemble(
 
     # Scale/anchor reference: the character's immutable master idle still.
     # Computed once and applied to every dump frame so the whole animation
-    # shares one baseline and scale. The idle's own dimensions are also the
-    # Stage-4 canvas size -- source-resolution rationale in the module
-    # docstring.
+    # shares one baseline and scale. The idle's own dimensions seed the
+    # Stage-4 canvas size (source-resolution rationale in the module
+    # docstring), but the canvas is grown below to fit any frame that scales
+    # out wider/taller than the reference itself.
     master_idle, master_idle_path = resolve_master_idle_reference(
         source_dir, config
     )

@@ -195,6 +195,12 @@ def compute_source_anchor(
     catches a masking failure (e.g. a chroma artifact eating most of the
     character) at the anchor stage.
 
+    Bbox comes from the LARGEST connected foreground component only, not the
+    raw mask -- some master idle stills carry small stray artifacts (e.g.
+    Balchar's idle.png still has "1"/"2"/"3"/"4" candidate labels baked in
+    above the pose), which would otherwise inflate the bbox with disconnected
+    pixels unrelated to the character body.
+
     Args:
         source_frame: The master idle still, RGBA.
         source_path: Path used only for error messages.
@@ -208,13 +214,17 @@ def compute_source_anchor(
             chroma key ate most of the character).
     """
     masked = remove_background(source_frame, "chroma")
-    bbox = masked.getbbox()
-    if bbox is None:
+    mask = np.array(masked)[:, :, 3] > 0
+    labeled, n_features = ndimage.label(mask)
+    if n_features == 0:
         raise ValueError(
             f"master idle at {source_path} has no foreground after "
             f"chroma-key; manually inspect and re-generate if needed."
         )
-    left, top, right, bottom = bbox
+    sizes = ndimage.sum(mask, labeled, range(1, n_features + 1))
+    largest_id = int(np.argmax(sizes)) + 1
+    ys, xs = np.where(labeled == largest_id)
+    top, bottom = int(ys.min()), int(ys.max()) + 1
     bbox_h = bottom - top
     if bbox_h < source_frame.height * 0.5:
         raise ValueError(
@@ -369,6 +379,46 @@ def load_character_config(char_json_path: Path) -> dict:
     return json.loads(char_json_path.read_text())
 
 
+def resolve_master_idle_reference(
+    source_dir: Path, config: dict
+) -> tuple[Image.Image, Path]:
+    """Resolve the single-pose still used as the Stage-4 scale/anchor reference.
+
+    Prefers ``<source_dir>/idle_master.png`` when present: a dedicated,
+    tightly-cropped single pose for characters whose production
+    ``<source_dir>/idle.png`` isn't shaped like a clean master still (e.g.
+    Balchar's is a 4-up candidate-selection sheet with number labels, built
+    for the old per-frame pipeline's connected-component cropping -- not a
+    canvas-filling still). Lives in ``source_dir`` (tracked in git, unlike
+    the img2vid work tree under WORK_ROOT, which is scratch-only) so the
+    override travels with the repo. Falls back to ``<source_dir>/idle.png``
+    itself, sliced to its first equal-width column when the idle entry
+    declares more than one frame (a multi-frame idle breathing loop).
+
+    Args:
+        source_dir: The character's AI source directory (has idle.png).
+        config: Parsed character JSON (as returned by load_character_config).
+
+    Returns:
+        Tuple of ``(reference_image, path_used_for_error_messages)``.
+    """
+    override_path = source_dir / "idle_master.png"
+    if override_path.exists():
+        return Image.open(override_path).convert("RGBA"), override_path
+
+    idle_path = source_dir / "idle.png"
+    master_idle = Image.open(idle_path).convert("RGBA")
+    idle_frames = 1
+    for entry in config.get("animations", []):
+        if entry.get("source") == "idle.png":
+            idle_frames = entry.get("frames", 1)
+            break
+    if idle_frames <= 1:
+        return master_idle, idle_path
+    frame_w = master_idle.width // idle_frames
+    return master_idle.crop((0, 0, frame_w, master_idle.height)), idle_path
+
+
 def assemble(
     character: str,
     animation: str,
@@ -421,8 +471,9 @@ def assemble(
     # shares one baseline and scale. The idle's own dimensions are also the
     # Stage-4 canvas size -- source-resolution rationale in the module
     # docstring.
-    master_idle_path = source_dir / "idle.png"
-    master_idle = Image.open(master_idle_path).convert("RGBA")
+    master_idle, master_idle_path = resolve_master_idle_reference(
+        source_dir, config
+    )
     canvas_w, canvas_h = master_idle.width, master_idle.height
     source_bbox_h, source_anchor_y = compute_source_anchor(
         master_idle, master_idle_path

@@ -1,53 +1,44 @@
-# Balchar articulated walk — visual approval checkpoint
+# Balchar articulated walk — leg appearance review
 
 **Artist:** Na Margalida (Graphic Designer & Pixel Artist)
+
+**Packaging / verification:** N'Andreu (Engine Programmer)
 
 **Date:** 2026-09-10
 
 **Branch:** `art/balchar-walk-articulated`
 
-**Status:** Third contour refinement complete; **draft review package, not approved for integration**. **WAIT for Toni's explicit visual approval.** En Pau and En Miquel reviews are also pending; no merge or original-asset installation is authorized.
+**Status:** Toni's feedback accepts the motion loop; **motion is locked, leg/boot appearance review is pending**. [PR #133](https://github.com/JavaLavadora/SaFona/pull/133) remains draft. En Pau and En Miquel reviewed the previous commit `7c59699`; review of this appearance follow-up is pending. No integration or merge is authorized.
 
 ## Deliverables
 
-All paths below are relative to the SaFona workspace root.
+All paths below are relative to the SaFona workspace root. The original and before strip are unchanged from the previous commit.
 
 | File | Dimensions | Frames / purpose |
 | --- | --- | --- |
 | [assets/sprites/player/balchar.aseprite](../../assets/sprites/player/balchar.aseprite) | 48×64 RGBA | Approved original baseline from earlier work: all 23 frames, 8 layers, unchanged |
-| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | 48×64 RGBA | 23 frames, 12 editable layers; walk is frames 5–10 |
+| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | 48×64 RGBA | Appearance candidate: 23 frames, 12 editable layers; walk is frames 5–10 |
+| [assets/sprites/player/balchar_walk_motion_approved.aseprite](../../assets/sprites/player/balchar_walk_motion_approved.aseprite) | 48×64 RGBA | Immutable pre-appearance rollback; byte-identical to the previous committed candidate |
 | [assets/sprites/player/preview/walk_articulated/before.png](../../assets/sprites/player/preview/walk_articulated/before.png) | 288×64 | Exact transparent strip of the original walk, frames 5–10 |
 | [assets/sprites/player/preview/walk_articulated/walk_after.png](../../assets/sprites/player/preview/walk_articulated/walk_after.png) | 288×64 | Six 48×64 cells, transparent horizontal strip |
 | [assets/sprites/player/preview/walk_articulated/walk_after_6x.png](../../assets/sprites/player/preview/walk_articulated/walk_after_6x.png) | 1728×384 | Same strip, transparent, nearest-neighbor 6× |
 | [assets/sprites/player/preview/walk_articulated/walk_after.gif](../../assets/sprites/player/preview/walk_articulated/walk_after.gif) | 288×384 | Six-frame 6× preview on a neutral checkerboard |
 | [assets/sprites/player/preview/walk_articulated/before_after_6x.png](../../assets/sprites/player/preview/walk_articulated/before_after_6x.png) | 1728×768 | Approved source above; candidate below, on a checkerboard |
+| [assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png](../../assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png) | 1740×480 | Three rows: original / motion checkpoint / refined candidate; six crops per row, x10–38 and y48–63 inclusive, nearest-neighbor 10× |
 
-**Replaces:** Nothing. Both editable projects were previously untracked local work: this PR adds the complete baseline project and a separate alternative, not a runtime replacement. No runtime PNGs, manifests, or game code were changed. Candidate origin remains `(0, 0)`, with the original 48×64 canvas and planted soles at `y=63`.
+**Replaces:** No runtime asset. The candidate remains separate, with origin `(0, 0)`, the original 48×64 canvas, and planted soles at `y=63`. No runtime PNGs, manifests, game code, or original artwork were changed.
 
-**Preservation / rollback:** The original and both local backups are intentionally unchanged. No rollback is needed because nothing is installed. Keep the candidate separate; any future integration requires explicit authorization. Earlier artwork checkpoints, intermediate backups, diagnostics, and scripts remain local and are excluded from this package.
+**Rollback:** The committed motion checkpoint preserves the exact pre-appearance candidate. It is not final appearance approval. Other local checkpoints, backups, diagnostics, and scripts are excluded and untouched.
 
-## Artwork method and layer changes
+## Appearance scope
 
-Artwork was drawn directly through Aseprite MCP using inline Lua `Image:drawPixel` operations. There was no Python, CLI image generation, external image service, cropped-boot rotation, or whole-limb cut-out translation. The saved candidate is not flattened. Enlarged previews use separate images/a temporary preview sprite, not a resized candidate.
+The artist refined **only 12 cels**: frames **5–10** on `walk_leg_far_L` and `walk_leg_near_R`. The reference comparison emphasizes exposed warm knees, fuller calves, and stepped boots drawn from the source design. **Trailing boots remain more angular than the reference**; this is a known visual acceptance gate, not a technical error. Toni has been shown the PNGs. No further artwork iteration is authorized without user feedback.
 
-- **Both legs:** Separate pixel-row contours for the twelve boots, plus localized knee highlights. Ankles taper to three or four pixels; heels have a one-pixel contour step, insteps slope into low toe tips, and cuff/calf highlights use varied source shades. Trailing toes end at x24 in both contacts. Far limbs retain darker source colors rather than a black silhouette.
-- **Near arm:** Tapered elbow/forearm contours, textured bracers, and three-pixel fist cores with a one-pixel thumb in the original `arm_back` walk cels. Forearms are approximately four pixels wide. These cels retain `zIndex=8`; the third refinement preserves the received sleeve/shoulder pixels through y40.
-- **Far arm:** Separate elbow, bracer, and small-fist drawings on `walk_arm_far_L`; the existing shoulder attachment remains intact. The third refinement removes no clothing from `arm_front`.
-- **Clothing:** Source frame 5 supplies the detailed clothing/sleeve template across the six walk poses. `torso`, `belt`, `arm_front`, and the salvaged tunic area in `legs` retain that template's pixel detail. Waist/cloth and lower near-arm content dip one pixel in frames 6 and 9, with a connection below the fixed neck. This stabilizes clothing rather than preserving each original walk frame's incidental fold variations.
-- **Original `legs` layer:** Holds salvaged cloth only in walk frames. Obsolete limbs, the hanging accessory fragment, and the artificial bottom baseline were cleared from those cels.
-- **Sling:** The existing short cord and pouch were repositioned to follow the refined hands in frames 7–10; frames 5–6 remain unchanged.
-- **Head:** `headband_ribbon` and `hair_face` remain untouched.
+All other art parts retain the motion checkpoint exactly: arms, sling, head/eyes, clothing, palette, layer order, and cel placement. The candidate is not flattened. Its four walk-only layers remain `walk_leg_far_L`, `walk_leg_near_R`, `walk_arm_far_L`, and `walk_sling_followthrough`, each with six cels.
 
-The optional contact chest shift was deliberately omitted: preserving the overlapping tunic fragments took priority over adding lean. The artist verified all 24 clothing cels on `torso`, `belt`, `arm_front`, and `legs` against the retained second-pass checkpoint. The existing low-frame dip remains.
+**Inherited distinction from the original:** Clothing uses the source-frame-5 template with a one-pixel low dip in frames 6 and 9; torso lean is minimal. The previously reviewed 67 collar-pixel differences at y34–35 remain, not additional head or clothing edits. Motion acceptance is Toni's feedback, not a claim that static checks establish artistic quality.
 
-Four added layers contain exactly six cels each, exclusively in frames 5–10:
-
-1. `walk_leg_far_L`
-2. `walk_leg_near_R`
-3. `walk_arm_far_L`
-4. `walk_sling_followthrough`
-
-The eight original named layers retain their relative stack order. Far leg is below near leg; both are below retained clothing. The sling is independently editable.
+Packaging made no artwork or timing edits and used no Python, external generation, or export writes.
 
 ## Pose timing and anchors
 
@@ -62,54 +53,36 @@ The eight original named layers retain their relative stack order. Far leg is be
 
 Each frame is **100 ms**; cycle length is **600 ms**. The original forward walk tag is preserved. Each support sole moves backward exactly three pixels per frame through its stance. Passing boots end at y60, three pixels above the y63 baseline, with the swinging knee ahead of the supporting leg. Arms oppose the leg contacts.
 
-Frame 5's trailing ankle spans x17–20 at y59, centered at x18.5. Its toe ends at x24, leaving three transparent baseline pixels (x25–27) before the near sole. Frame 8 leaves four (x25–28) before the far sole. Both contact composites were checked for baseline bridges. The two leg layers and the far-arm layer are each four-connected in every walk frame; no detached joint or boot islands were found.
+Frame 5 retains three transparent baseline pixels (x25–27); frame 8 retains four (x25–28). No baseline bridges were found. All 18 leg/far-arm cels are four-connected, with no detached islands.
 
-The GIF was reopened for metadata validation: six 288×384 checkerboard frames at 100 ms each. Animated preview playback is available through the local browser preview server; successful browser playback is **not** Toni's visual approval.
+## Read-only verification
 
-## Palette and preservation checks
+Independent Aseprite MCP checks compared the appearance candidate with the immutable motion checkpoint:
 
-The candidate remains RGBA. Its 15 palette entries are retained **as swatches**, not used to clamp image colors. Every nontransparent cel color occurs in the source. Boot/calf accents include `#BF8441`, `#CB9D61`, `#B98E62`, and `#A47D54` alongside the source's darker leather shades. Near-arm clusters use `#A66A2F`, `#D78D3A`, `#EFA247`, and `#FAB759`. No GDD-palette conversion or palette cleanup was performed. GIF palette encoding affects only that preview, not the RGBA candidate or PNGs.
+- **12 changed cels; 196 other cels byte-identical; 68 empty slots preserved.** Changes are confined to x10–38, y48–63 in the two leg layers, frames 5–10.
+- **All cel metadata preserved:** image dimensions/mode, position, opacity, z-index, and user data. **21,528 linked/unlinked cel-pair relationships** match.
+- **Sprite/layer properties, 23 durations, nine animation tags, and 15 palette entries/placement** match. Durations and tags also match the original. The palette remains swatches, not an indexed-color clamp.
+- **17 non-walk renders and all 67,872 composite pixels outside the permitted walk crop** are identical. There are 436 changed composite pixels inside the crop.
+- **Source colors / alpha:** Every nontransparent candidate cel color occurs in the original. All 20 partially transparent walk pixels match the checkpoint; no new partial-alpha pixels were introduced.
+- **Timing / geometry:** The support spans and swing-foot bottoms in the table, 3/4-pixel contact gaps, and limb connectivity pass.
+- **PNG exports:** Native before/after strips exactly match fresh in-memory renders of the original/candidate. The enlarged after strip is exact nearest-neighbor 6×. Both rows of the 6× comparison match their renders over its checkerboard. The three-row leg comparison exactly matches the original/checkpoint/candidate crops at 10×.
+- **GIF metadata only:** Reopened as data, not displayed through image transport: six 288×384 frames, each 100 ms, 600 ms total.
 
-Independent read-only Aseprite MCP checks by N'Andreu during packaging confirmed:
+No sprite or preview was saved by verification. Earlier En Pau/En Miquel checks of the motion checkpoint established preservation against the original: 136 original-layer non-walk cel slots, 17 non-walk renders, and 46 head cels. The appearance delta leaves those areas unchanged.
 
-- **136/136 original-layer non-walk cel slots:** Identical pixel bytes, image size/mode, position, opacity, and z-index.
-- **17/17 non-walk composite frames:** Pixel-identical.
-- **1,088 non-walk cel-pair checks:** Linked/unlinked relationships preserved.
-- **23/23 frame durations, 9/9 animation tags, 15/15 palette entries:** Preserved, including palette frame placement, tag ranges/direction/repeats/color, and original layer properties.
-- **46/46 head-layer cels across all 23 frames:** Pixel- and cel-metadata-identical. Walk composite pixels through `y=33`, including the face and eyes, are unchanged. The inherited clothing-template stabilization differs from the original in 67 pixels across collar rows `y=34–35`; the artist reports no additional clothing or collar edits in the third refinement.
-- **New layers:** No cels outside the walk range.
-- **Transparency:** Newly drawn pixels are fully opaque over a transparent canvas. The 20 partially transparent source pixels across the six original walk composites remain identical at their original coordinates; they were not hardened or recolored.
-- **Native PNGs:** Before and after strips are pixel-identical to fresh in-memory renders of their respective projects. The transparent enlarged strip is exact integer 6× nearest-neighbor; the comparison matches both renders composited over its checkerboard at 6×.
-- **GIF metadata:** Six 288×384 frames, each 100 ms; 600 ms cycle.
+## Content hashes
 
-No files were saved by these checks. Protected source hashes are unchanged:
-
-| Protected file | SHA-256 |
+| Artifact | SHA-256 |
 | --- | --- |
 | [assets/sprites/player/balchar.aseprite](../../assets/sprites/player/balchar.aseprite) | `f23aeb30d1fe56071e1c138f8df02fe762ec4f2a3f2f85cb58c79e747951d739` |
-| First local backup (.bak), excluded from PR | `0fdbbe9a1f730eff0d5ebb0b301a69989136c27e43cb9e492c16276b1fa551ca` |
 | Second local backup (.bak2), excluded from PR | `f23aeb30d1fe56071e1c138f8df02fe762ec4f2a3f2f85cb58c79e747951d739` |
-
-| Review candidate | SHA-256 |
-| --- | --- |
-| Third contour refinement | `32ece2a7d0cba26385d8bbd469198cacf44b7819b5a3dc166f503b8ec93b6ca8` |
-
-The retained first and second passes serve only as local checkpoints. The third refinement includes limb-contour, color, and sling-position changes; packaging makes no artwork changes.
-
-## Visual observations and open concerns
-
-The requested before/after comparison and native-size PNG strip were inspected after export. Contact silhouettes have separated soles; the boot tips are low and the hands have smaller thumbed contours. Compared with the detailed source torso, the limbs still have simpler clusters. PNG inspection, metadata checks, and browser preview availability do not constitute final artistic approval.
-
-**Remaining concerns**, covered by existing [Issue #132](https://github.com/JavaLavadora/SaFona/issues/132):
-
-- Torso lean remains minimal; the optional chest shift was omitted to protect clothing. The one-pixel low dip in frames 6 and 9 remains.
-- The trailing feet use a lifted heel and a three-pixel toe contact. Their weight, calf volume, and comparatively simple limb texture still need Toni's judgment at native scale and during playback.
-- The frame 10→5 transition and overall rhythm still require Toni's playback review.
+| [assets/sprites/player/balchar_walk_motion_approved.aseprite](../../assets/sprites/player/balchar_walk_motion_approved.aseprite) | `32ece2a7d0cba26385d8bbd469198cacf44b7819b5a3dc166f503b8ec93b6ca8` |
+| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | `fb7cbc1142125ed3efca7558b55c70c032ddbe182c47d565facf3947fcb00f1d` |
 
 ## Review handoff
 
-This art-only draft targets `master` from `art/balchar-walk-articulated`; master remains unchanged. The package contains the seven artifacts listed above and this report only. No source code, validation scripts, runtime assets, or additional documentation are introduced. Runtime tests and a game launch are not applicable to this packaging-only change and were not run.
+This follow-up contains exactly eight files: the candidate, motion rollback, leg comparison, four updated after/comparison exports, and this report. The tracked original and before strip remain untouched; no other files are included. Runtime tests and a game launch were not run because this is asset-review packaging only.
 
-Review the native before/after strips, the 6× comparison, and the animated GIF linked above; open the separate candidate in Aseprite to inspect editable layers. The existing local browser preview server remains running; no game or display service is required for this review.
+Open the committed PNGs and [animated GIF](../../assets/sprites/player/preview/walk_articulated/walk_after.gif) directly, or use a local preview server for playback. No game/display service is required. The editable candidate and immutable motion checkpoint support direct Aseprite comparison without session-specific services.
 
-En Pau (Senior Engineer) and En Miquel (Software Architect) must review next. **WAIT for Toni's explicit visual approval before any integration or merge.** [Issue #132](https://github.com/JavaLavadora/SaFona/issues/132) remains open; neither this report nor the draft PR closes or approves the artwork.
+**Next gate:** Toni's appearance decision against the three-row reference comparison, plus En Pau/En Miquel follow-up review. [Issue #132](https://github.com/JavaLavadora/SaFona/issues/132) remains open. No further art pass, runtime installation, or merge without explicit authorization.

@@ -9,8 +9,10 @@
 - Base: `96432105abe5363ff788f6fbe88b41fbda2771c2` (the supplied fetched
   `origin/master`); no old art commits were cherry-picked.
 - Local-only delivery. No GitHub requests, push, PR creation, authentication
-  changes, review claims, or merge. The requester coordinates En Pau and
-  En Miquel reviews and publication. User approval is required before merge.
+  changes, or merge. The requester confirms independent En Pau and En Miquel
+  art-check PASS results for `ba75af0c`; this documentation-only follow-up
+  does not rerun those reviews. The requester handles publication, and user
+  approval is required before merge.
 - Related existing Balchar tracking: [#132](https://github.com/JavaLavadora/SaFona/issues/132)
   and [#134](https://github.com/JavaLavadora/SaFona/issues/134). These references
   come from existing handoffs; no issue was queried or updated for this task.
@@ -81,10 +83,17 @@ Four GIF frame counts, durations and infinite-loop metadata: PASS
 
 Preservation:
 498 unchanged tracked base files: byte-exact
-529 protected existing main files: byte-exact
+511 original protected main files outside the follow-up scope: byte-exact
 67 protected runtime/reference sprite PNGs: byte-exact
+20 final Aseprite hashes and all 8 preview files: unchanged by follow-up
 Main HEAD, branch and index: unchanged
 ```
+
+The initial consolidation preserved 529 existing main files. Separate user
+authorization on 2026-09-11 covers 15 legacy-file removals and three canonical
+specification edits, leaving 511 of that original protected set unchanged.
+Historical preservation inventories retain their original scope and results;
+the external `followup-*.json` inventories record this additional scope.
 
 The Aseprite audit compares color space/mode, transparent index, palette colors
 and placement, tag endpoints/direction/repeats, layer properties/order, absent
@@ -108,15 +117,18 @@ this source-only task; no gameplay or runtime integration validation is claimed.
 ## Main-workspace delivery and cleanup
 
 The 32 final asset/index/manifest/preview files are copied byte-identically into
-the main workspace, alongside this report. Existing main specifications are
-left untouched, including the dirty World 1 edit; specification changes are
-on the feature branch for review. Main remains on
+the main workspace, alongside this report. The three canonical specifications
+are mirrored byte-identically from the feature branch through scoped text
+patches: main's accepted four-frame sling and requested four-frame rush remain,
+and unrelated existing text is preserved. Main remains on
 `art/balchar-sling-four-frame`, HEAD
 `098c7984995c04448d8dbe78d5b470613da7bef7`, with index SHA-256
 `d8829583222004d732a1aeb22f9a2357e5d6550629c549ae4955cd9257f514af`.
-Authorized tracked checkpoint deletions are unstaged on that old branch.
+Authorized tracked deletions and specification edits are unstaged on that old
+branch; no user changes are staged.
 
-Exactly **337 files** were individually archived and then removed:
+Exactly **352 files** were individually archived and then removed: the original
+337 plus 15 separately authorized legacy files.
 
 | Authorized category | Files |
 | --- | ---: |
@@ -127,6 +139,15 @@ Exactly **337 files** were individually archived and then removed:
 | Player other-animation parts | 133 |
 | Bou projects/checkpoints | 6 |
 | Bou generated preview tree | 33 |
+| Agent-temporary scripts under `tools/aseprite_scripts/` | 13 |
+| Obsolete generated Balchar handoff reports | 2 |
+
+The two removed reports are `docs/reports/balchar-sling-four-frame.md` and
+`docs/reports/na-margalida-balchar-walk-articulated.md`; all other pre-existing
+reports are preserved. These 15 legacy files are absent from the clean feature
+base and are not introduced or deleted in the feature diff. A broad main text
+search found references to their paths only in this handoff; no other reference
+edits were needed.
 
 No wildcard deletion, reset, stash, broad Git clean, or worktree/branch removal
 was used. The cleaned player directory is empty; the boss directory contains
@@ -139,7 +160,9 @@ heads (`c5e1052` and `94e4481`).
 Recovery archive and exact cleanup inventory:
 
 - `/tmp/safona-final-character-animation-sources-20260910/cleanup-archive/`
-  mirrors all 337 removed file paths, including edited preview READMEs.
+  mirrors all 352 removed file paths, including edited preview READMEs and the
+  15 legacy files. Every archived file matches its original SHA-256; every
+  inventoried source file is absent from main.
 - `/tmp/safona-final-character-animation-sources-20260910/cleanup-inventory.json`
   lists every removed path explicitly.
 - The same temporary directory contains before/after preservation inventories,
@@ -155,8 +178,9 @@ Recovery archive and exact cleanup inventory:
 2. Open the corresponding Aseprite file; inspect its single tag, local timing,
    and editable layers. Compare against the exact original snapshot and source
    span recorded in the manifest.
-3. Verify file hashes against the manifests. External audit helpers support
-   read-only reruns; run the Aseprite helper with `params.audit_only=true`.
+3. Verify file hashes against the manifests. Audit reruns preserve artwork but
+  rewrite audit outputs; the Node helper can create missing manifests.
+  Run the Aseprite helper with `params.audit_only=true`.
 4. Review the feature branch, not the old dirty main art branch. No preview
    server or display process was started; direct file review needs no port
    forwarding. Port 6080 is only for a separately launched noVNC game session.
@@ -167,11 +191,3 @@ sling frames and two rush frames, and Bou's engine manifest retains legacy
 death/hurl metadata. No integration files are modified to disguise that gap.
 No new issue was filed because the requester explicitly deferred all GitHub
 activity; existing tracking references above remain available to the reviewer.
-
-The 13 legacy files under `tools/aseprite_scripts/` are inventoried and left
-untouched; they were outside the confirmed cleanup whitelist. Main-only
-historical reports `docs/reports/balchar-sling-four-frame.md` and
-`docs/reports/na-margalida-balchar-walk-articulated.md` are also preserved
-byte-for-byte. Their checkpoint links are historical after cleanup; any
-archival annotations or removal require a separate decision. They are not
-imported into this clean-base feature branch.

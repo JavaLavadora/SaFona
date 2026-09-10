@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "character": "balchar",
+  "color_mode": "RGBA",
+  "native_frame_size": [
+    48,
+    64
+  ],
+  "frame_numbering": "one-based inclusive",
+  "runtime_integration": "not integrated; runtime PNGs, processing configs and engine manifest unchanged",
+  "animations": [
+    {
+      "file": "idle.aseprite",
+      "sha256": "1ec838034731519c75e2012416be9fe303973c1438bd1250662636d2e1df3f73",
+      "tag": "idle",
+      "canonical_animation": "idle",
+      "frame_count": 4,
+      "durations_ms": [
+        150,
+        150,
+        150,
+        150
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "idle",
+        "frames": [
+          1,
+          4
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "walk_fixed.aseprite",
+      "sha256": "b59bb3d36e7d7bf4db2e955bc8164513516b140c619c5df08bbe1284f21d2821",
+      "tag": "walk_fixed",
+      "canonical_animation": "walk",
+      "frame_count": 6,
+      "durations_ms": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "walk",
+        "frames": [
+          5,
+          10
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "Layer 1 (empty, all frames now split into part layers)",
+        "sling_cord_far",
+        "sling_arm",
+        "headband_ribbon",
+        "hair_face",
+        "walk_leg_far_L",
+        "walk_leg_near_R",
+        "walk_arm_far_L",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs",
+        "walk_sling_followthrough",
+        "sling_cord_near"
+      ],
+      "preserves_empty_zindex_slots": true
+    },
+    {
+      "file": "walk_parallel.aseprite",
+      "sha256": "f0e542022e58f472c602e966fda27e84b59266fb1b9a548b496164f11c3eabcf",
+      "tag": "walk_parallel",
+      "canonical_animation": "walk",
+      "frame_count": 8,
+      "durations_ms": [
+        90,
+        90,
+        90,
+        90,
+        90,
+        90,
+        90,
+        90
+      ],
+      "source": {
+        "document": "balchar_walk_alternate.aseprite",
+        "sha256": "521100cd2359fbd591091a7ac17f66f6f04366a4bdf5a3338201cec371f688ba",
+        "tag": "walk_alt",
+        "frames": [
+          25,
+          32
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "walk_alt_arm_far",
+        "walk_alt_leg_far",
+        "walk_alt_leg_near",
+        "walk_alt_body",
+        "walk_alt_head",
+        "walk_alt_arm_near",
+        "walk_alt_ribbon"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "jump.aseprite",
+      "sha256": "420fabc2f38458c1d62a3b04a31fea1139ed5604cd8dc4e158b4880d9eb11317",
+      "tag": "jump",
+      "canonical_animation": "jump",
+      "frame_count": 2,
+      "durations_ms": [
+        150,
+        150
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "jump",
+        "frames": [
+          11,
+          12
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "wall_slide.aseprite",
+      "sha256": "af6be8ea89c2eef2f2b805af50c7430c32c07bf1933076c517866560fd1b5c1f",
+      "tag": "wall_slide",
+      "canonical_animation": "wall_slide",
+      "frame_count": 2,
+      "durations_ms": [
+        150,
+        150
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "wall_slide",
+        "frames": [
+          13,
+          14
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "wall_jump.aseprite",
+      "sha256": "799dd9a0602ee2e82760bbc5d15fdffc42418caf9d06903208de028978dad91c",
+      "tag": "wall_jump",
+      "canonical_animation": "wall_jump",
+      "frame_count": 2,
+      "durations_ms": [
+        150,
+        150
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "wall_jump",
+        "frames": [
+          15,
+          16
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "sling_attack.aseprite",
+      "sha256": "5636b889b2d6ff87cf4871b17c10b3bd95b1fbb2abe1cd4e49c3660e7214fcc8",
+      "tag": "sling_attack",
+      "canonical_animation": "sling_attack",
+      "frame_count": 4,
+      "durations_ms": [
+        300,
+        100,
+        100,
+        200
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "sling",
+        "frames": [
+          17,
+          20
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "Layer 1 (empty, all frames now split into part layers)",
+        "sling_cord_far",
+        "sling_arm",
+        "headband_ribbon",
+        "hair_face",
+        "walk_leg_far_L",
+        "walk_leg_near_R",
+        "walk_arm_far_L",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs",
+        "walk_sling_followthrough",
+        "sling_cord_near"
+      ],
+      "preserves_empty_zindex_slots": true
+    },
+    {
+      "file": "hit.aseprite",
+      "sha256": "f274952d46ce5d596784db7054d8c3590be1f108f5da364c0e74cf317e3bd8c7",
+      "tag": "hit",
+      "canonical_animation": "hit",
+      "frame_count": 1,
+      "durations_ms": [
+        400
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "hit",
+        "frames": [
+          21,
+          21
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "death.aseprite",
+      "sha256": "07902cd13f428bfe72d2d146c4e250be2c681a5d546318a2bb765c8d0b605e25",
+      "tag": "death",
+      "canonical_animation": "death",
+      "frame_count": 1,
+      "durations_ms": [
+        600
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "death",
+        "frames": [
+          22,
+          22
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "crouch.aseprite",
+      "sha256": "ea50afa2f1ac60c8dffdfd129d749de8a78b86fda21cab66dc99ddc0d240de20",
+      "tag": "crouch",
+      "canonical_animation": "crouch",
+      "frame_count": 2,
+      "durations_ms": [
+        150,
+        150
+      ],
+      "source": {
+        "document": "balchar_sling_candidate.aseprite",
+        "sha256": "a1bd990c662d98abc8a49b479f02518e5ebc14056599aa9929ef642c995fa656",
+        "tag": "crouch",
+        "frames": [
+          23,
+          24
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headband_ribbon",
+        "hair_face",
+        "arm_back",
+        "arm_front",
+        "torso",
+        "belt",
+        "legs"
+      ],
+      "preserves_empty_zindex_slots": false
+    }
+  ]
+}

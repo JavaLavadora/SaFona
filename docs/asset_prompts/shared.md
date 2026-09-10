@@ -138,6 +138,15 @@ See [`world1.md`](world1.md) for the World 1 style chain and generation order.
 **AI prompt source size**: 32x48 per frame (8px headroom above body)
 **Processed output size** (from `tools/sprite_defs/characters/balchar.json`): 48x64 per frame
 
+**Editable finals**: [Balchar source index](../../assets/ai_sources/balchar/README.md).
+The native files are 48x64 RGBA, one per animation, with two separate walk
+alternatives and shared animations stored only once. Neither walk is selected
+for runtime integration. Reference **frame 1 of the final idle source** for
+the current character identity; native foot-contact baseline is **y=63**.
+The 32x48 anatomy coordinates and limited-palette prompts below describe the
+generation grid, not a request to resnap or palette-clamp approved source art.
+Follow the [approved-source exception](../asset_generation_guide.md#1-global-palette-lock).
+
 **Palette** (`assets/palettes/balchar.gpl` — 15 colors):
 
 ```
@@ -233,6 +242,11 @@ this exact design — proportions, face, clothing, colors.
 
 ## 1.2 Balchar — Walk Cycle (6 frames)
 
+**Fixed walk**: [walk_fixed.aseprite](../../assets/ai_sources/balchar/walk_fixed.aseprite),
+tag `walk_fixed`; six 100 ms frames, **600 ms** forward cycle. Native strip:
+288x64; prompt grid: six 32x48 frames, 192x48. This is the existing fixed gait,
+not an automatic choice over the parallel alternative below.
+
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
 ```
@@ -274,6 +288,22 @@ RULES:
   - Maintain readable silhouette at all frames
   - Background: solid green (#00FF00)
 ```
+
+### Parallel walk alternative (8 frames)
+
+[walk_parallel.aseprite](../../assets/ai_sources/balchar/walk_parallel.aseprite)
+contains the independent eight-pose walk, tag `walk_parallel`, eight 90 ms
+frames (**720 ms** forward cycle). Its canonical animation mapping is `walk`,
+the same as `walk_fixed`; choose only one during a separate integration pass.
+
+Prompt-grid variant of the walk specification: **eight 32x48 frames, 256x48**.
+Native editable canvas: **48x64 per frame**, 384x64 strip. Reference final idle
+frame 1, retaining its identity and existing colors rather than regenerating it.
+Poses 1-4 use near-leg support; poses 5-8 use far-leg support. The authored
+head/body bob is `[0, 1, 0, -1]` twice, with ribbon motion lagging one frame.
+Preserve the solid six-pixel boot soles, thicker legs, enlarged hands, and
+native support baseline y=63. These describe the preserved raster artwork,
+not an embedded skeletal rig. Both walk alternatives remain available for review.
 
 ## 1.3 Balchar — Jump (2 frames)
 
@@ -370,7 +400,15 @@ RULES:
   - Background: solid green (#00FF00)
 ```
 
-## 1.6 Balchar — Sling Attack (3 frames)
+## 1.6 Balchar — Sling Attack (4 frames)
+
+**Editable source**:
+[sling_attack.aseprite](../../assets/ai_sources/balchar/sling_attack.aseprite),
+tag `sling_attack`, native 48x64 RGBA; four frames at **300, 100, 100, 200 ms**.
+The two middle poses show opposite orbit phases. Preserve the sleeve join,
+arm layering, clear cord/pouch, and native foot registration. Native strip:
+192x64; prompt grid: four 32x48 frames, 128x48. The runtime PNG/config still
+contains three frames; this source specification does not change the importer.
 
 > Reference: [ATTACH MASTER IDLE SPRITE HERE]
 
@@ -382,8 +420,8 @@ CRITICAL IDENTITY LOCK (same as all Balchar animations).
 PALETTE: (same 15 colors — see Balchar palette above)
 
 SPRITE CONSTRAINTS:
-  - Sheet size:  96x48 (3 frames)
-  - Frame count: 3
+  - Sheet size:  128x48 (4 frames)
+  - Frame count: 4
   - Frame size:  32x48 each
   - Facing:      RIGHT
 
@@ -394,16 +432,18 @@ BODY stays the same size as idle — only the sling uses the extra space.
 ANIMATION DESCRIPTION:
   Frame 1: Wind-up — right arm pulled back with sling extended behind,
            body rotated slightly away from target, weight on back foot
-  Frame 2: Mid-rotation — sling swinging overhead in arc,
-           body rotating toward target, dynamic motion blur implied by sling position
-  Frame 3: Release — arm fully extended forward, sling snapping forward,
+  Frame 2: Mid-rotation — overhead sling arc parallel to the ground,
+           arm tilted slightly toward the back of the character
+  Frame 3: Opposite mid-rotation — overhead sling on the opposite orbit phase,
+           arm tilted slightly toward the front of the character
+  Frame 4: Release — arm fully extended forward, sling snapping forward,
            body leaning into throw, weight shifted to front foot
 
   The fona (sling) is the key element — show the cord and pouch clearly in each phase.
 
 RULES:
   - Same identity lock
-  - Sling must be clearly visible and readable in all 3 frames
+  - Sling must be clearly visible and readable in all 4 frames
   - Background: solid green (#00FF00)
 ```
 

@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "character": "boss_bou_de_pedra",
+  "color_mode": "RGBA",
+  "native_frame_size": [
+    80,
+    72
+  ],
+  "frame_numbering": "one-based inclusive",
+  "runtime_integration": "not integrated; runtime PNGs, processing configs and engine manifest unchanged",
+  "animations": [
+    {
+      "file": "idle_p1.aseprite",
+      "sha256": "29b154c3f7a6586983f701707479104778876d3e5a0cd4aa54fc45d00628fc4b",
+      "tag": "idle_p1",
+      "canonical_animation": "idle_p1",
+      "frame_count": 4,
+      "durations_ms": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "idle_p1",
+        "frames": [
+          1,
+          4
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "idle_p1"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "idle_p2.aseprite",
+      "sha256": "f0e555a598767d1d2aa4724ad9931450a97b83ece2898d22190cbe9bbba313a6",
+      "tag": "idle_p2",
+      "canonical_animation": "idle_p2",
+      "frame_count": 4,
+      "durations_ms": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "idle_p2",
+        "frames": [
+          5,
+          8
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "idle_p2"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "idle_p3.aseprite",
+      "sha256": "df2ea9d20f18f69b630d6339bc82f817c2f3a860c324e4f01e9622524cedd2f3",
+      "tag": "idle_p3",
+      "canonical_animation": "idle_p3",
+      "frame_count": 4,
+      "durations_ms": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "idle_p3",
+        "frames": [
+          9,
+          12
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "idle_p3"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "rush.aseprite",
+      "sha256": "51698b5df9691855e452692828a5cf13763e01c32494e33c9542484a6d785cfe",
+      "tag": "rush",
+      "canonical_animation": "rush",
+      "frame_count": 4,
+      "durations_ms": [
+        100,
+        100,
+        100,
+        100
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "rush",
+        "frames": [
+          13,
+          16
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "rush",
+        "rush_head_horns",
+        "rush_legs_near",
+        "rush_legs_far",
+        "rush_tail"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "headbutt.aseprite",
+      "sha256": "7965cd785c96ebb9befcf65011bb9edbee8aa88590ad4f53aa2ac76c3c21863d",
+      "tag": "headbutt",
+      "canonical_animation": "headbutt",
+      "frame_count": 2,
+      "durations_ms": [
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "headbutt",
+        "frames": [
+          17,
+          18
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "headbutt"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "stomp.aseprite",
+      "sha256": "ab6d29f3d525a376c9754c2866fbb6b50436163f846e008595927ebe1403f88b",
+      "tag": "stomp",
+      "canonical_animation": "stomp",
+      "frame_count": 2,
+      "durations_ms": [
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "stomp",
+        "frames": [
+          19,
+          20
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "stomp"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "hurl.aseprite",
+      "sha256": "055f532d5795d31cf014e761039f7a38f93b7a6b263d6446df0626e4c6f37f30",
+      "tag": "hurl",
+      "canonical_animation": "hurl",
+      "frame_count": 1,
+      "durations_ms": [
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "hurl",
+        "frames": [
+          21,
+          21
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "hurl"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "stunned.aseprite",
+      "sha256": "d240fdb2595af7e4a08f3a4a543d36780d08050b87366d206c11b3c2e5aae1a8",
+      "tag": "stunned",
+      "canonical_animation": "stunned",
+      "frame_count": 1,
+      "durations_ms": [
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "stunned",
+        "frames": [
+          22,
+          22
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "stunned"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "transition.aseprite",
+      "sha256": "f94fd248e8ba50b95e07b189da66a071cde724ea6398be905e307061abf18db7",
+      "tag": "transition",
+      "canonical_animation": "transition",
+      "frame_count": 1,
+      "durations_ms": [
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "transition",
+        "frames": [
+          23,
+          23
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "transition"
+      ],
+      "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "death.aseprite",
+      "sha256": "ed08c8be29ac0a5e75a8220561d259ede4aa3937569ba1c456bb5b2f94c19393",
+      "tag": "death",
+      "canonical_animation": "death",
+      "frame_count": 2,
+      "durations_ms": [
+        250,
+        250
+      ],
+      "source": {
+        "document": "bou_de_pedra.aseprite",
+        "sha256": "6ea78eb1bbe3f986467d71e1a7f845f71916417b9bf2f5e121df59495b45be55",
+        "tag": "death",
+        "frames": [
+          24,
+          25
+        ]
+      },
+      "layer_names_bottom_to_top": [
+        "death"
+      ],
+      "preserves_empty_zindex_slots": false
+    }
+  ]
+}

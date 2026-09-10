@@ -162,6 +162,14 @@ GLOBAL STYLE CONSTRAINTS (DO NOT VIOLATE):
 > The palette is a contract, not a suggestion.
 > Assets that introduce new colors are invalid.
 
+**Approved-source exception:** consolidation of the existing Balchar and Bou de
+Pedra editable sources is lossless, not another generation or cleanup pass.
+Their native RGBA colors, partial alpha, hidden RGB, palette entries, cel
+positions, and layer properties are authoritative. Do not palette-clamp,
+reprocess, resize, recenter, or redraw them to satisfy the generation rules.
+This exception does not relax the palette rules for newly generated assets.
+GIF color reduction applies to review previews only, never to these sources.
+
 Each character/world has its own `.gpl` file in `assets/palettes/`:
 
 | Palette file | Colors | Notes |
@@ -696,7 +704,12 @@ for the current Balchar prompt. If you find any other prompt files outside
 
 ```
 assets/
-├── ai_sources/<asset_name>/image.png   # raw AI output
+├── ai_sources/<asset_name>/
+│   ├── image.png                      # immutable raw AI output
+│   ├── <animation>.aseprite           # editable final, native canvas
+│   ├── final_manifest.json            # source hashes and native timelines
+│   ├── README.md                      # animation index and review links
+│   └── preview/                       # current review strips and GIFs only
 ├── palettes/<palette_name>.gpl         # locked color palettes
 ├── sprites/
 │   ├── balchar/
@@ -714,9 +727,32 @@ assets/
 └── ui/                                 # HUD, frames, title, game over
 ```
 
-The game's sprite loading system automatically picks up files from these
-paths. `sa_fona/data/asset_manifest.json` declares dimensions/frame counts
-for each animation; update it if anything changes.
+The game loads processed PNGs through `sa_fona/data/asset_manifest.json`;
+it does not import editable Aseprite sources or review previews. Update runtime
+PNGs, processing configs, and the engine manifest together in a separate,
+explicit integration change. A native source timeline is not runtime metadata.
+
+### Editable character finals
+
+- [Balchar source index](../assets/ai_sources/balchar/README.md): ten files,
+  one per animation except for two independent walk alternatives. Shared
+  animations are stored once, not duplicated into two whole-character projects.
+- [Bou de Pedra source index](../assets/ai_sources/boss_bou_de_pedra/README.md):
+  ten files, one per animation.
+
+Each file has one forward tag matching its filename, with local frames starting
+at 1. Keep native canvas dimensions, timing, editable part layers, cel data,
+and image-link relationships. Empty layer slots can be significant: nonzero
+cel z-index offsets depend on the absolute stack. Preserve those slots in
+Balchar's fixed walk and sling attack rather than altering compositing.
+Otherwise, wholly unused layers may be omitted; never flatten active parts.
+
+Verify saved/reopened files against the approved source: both full RGBA renders
+and raw cel bytes (including hidden RGB), positions, opacity, z-index, palette
+colors, timing, layer properties/order, and links must match. Provenance and
+SHA-256 hashes live in each source folder's manifest. Keep only current review
+previews beside the finals; temporary passes and rollback copies belong outside
+the working tree or in Git history. Preserve raw PNGs, maps, and video inputs.
 
 ### Img2Vid working layout
 

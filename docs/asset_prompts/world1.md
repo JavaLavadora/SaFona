@@ -72,6 +72,22 @@ Full generation order is at [§ 21 below](#21-generation-order-world-1).
 **Hitbox**: 40x36
 **Processed output size** (from `boss_bou_de_pedra.json`): 80x72 per frame
 
+**Editable finals**:
+[Bou de Pedra source index](../../assets/ai_sources/boss_bou_de_pedra/README.md).
+Ten native 80x72 RGBA files contain 25 frames in total. The three phase idles
+retain their aligned ground registration; all sources retain the existing
+alpha cleanup, and rush retains the polished neck/leg joins. No additional
+cleanup, redraw, rescaling, or palette clamp is part of consolidation; see the
+[approved-source exception](../asset_generation_guide.md#1-global-palette-lock).
+The 40x36 prompt grid below is separate from the native 80x72 canvas.
+
+Native editor durations: rush 100 ms per frame, every other animation 250 ms
+per frame. Non-idle 250 ms values are editor-preview defaults, **not runtime
+attack/recovery timing**. Runtime PNGs/configs still contain two rush frames;
+the engine manifest also has separate legacy death/hurl metadata. Integration
+requires an explicit PNG/config/manifest update, not reinterpretation of these
+source files as runtime-ready replacements.
+
 **Palette** (`assets/palettes/bou_de_pedra.gpl` — 12 colors):
 
 ```
@@ -190,19 +206,40 @@ the red core pulsing intensely.
 Background: solid green (#00FF00)
 ```
 
-## 3.4 Bou de Pedra — Rush Attack (2 frames)
+## 3.4 Bou de Pedra — Rush Attack (4 frames)
 
-> Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
+> Reference: [ATTACH BOU IDLE_P3 FRAME 1 HERE]
+
+Native source: [rush.aseprite](../../assets/ai_sources/boss_bou_de_pedra/rush.aseprite),
+tag `rush`, frames 1-4; **4 x 100 ms = 400 ms** cycle. Reference
+[idle_p3.aseprite](../../assets/ai_sources/boss_bou_de_pedra/idle_p3.aseprite)
+frame 1. The lowered head/horns and torso stay fixed through the cycle; limb
+articulation supplies the contact, compression, hindpush, and gather phases.
+Five editable layers retain the body, head/horns, near legs, far legs, and tail.
 
 ```
 CRITICAL IDENTITY LOCK — same stone bull design.
-PALETTE: Full 12 colors (show current phase glow as appropriate).
+Use Bou idle_p3 frame 1 as the explicit reference baseline for proportions,
+silhouette, crack topology, horn shape, and face profile.
+PALETTE: Preserve the provided idle_p3 frame 1 red-orange glow and existing
+colors; no additional palette clamp for Aseprite edit.
 
-Sheet: 80x36 (2 frames). Frame size: 40x36. Facing RIGHT.
+Sheet: 160x36 (4 frames) at source resolution (40x36 per frame).
+Native export target: 320x72 sheet (80x72 per frame).
+Facing RIGHT.
+Preview timing (editor only): 4x100ms.
 
-  Frame 1: Charging pose — head lowered, horns forward, legs in running stride,
-           dust implied at hooves, body angled forward aggressively
-  Frame 2: Full stride — opposite leg configuration, maximum forward momentum
+Preserve identity stability across all frames: red-cracked, stocky stone bull;
+no anatomy drift, no horn-length drift, no body-mass drift.
+
+  Frame 1 (contact): front hoof contact and weight transfer; head lowered,
+                     horns forward; initial forward bite into the rush
+  Frame 2 (compression): forelegs absorb weight below the fixed lowered head
+                         and torso; no body-compression squash
+  Frame 3 (hindpush): rear-leg drive and extension; strongest propulsion,
+                      consistent body anchor, no cel horizontal displacement
+  Frame 4 (gather/seam): recovery/gather step that resets limb spacing with a
+                         clean seam into Frame 1 (no pop)
 
 Background: solid green (#00FF00)
 ```
@@ -268,18 +305,23 @@ cracks in stone more visible, energy glow dimmed. Vulnerable state.
 Background: solid green (#00FF00)
 ```
 
-## 3.9 Bou de Pedra — Death (1 frame)
+## 3.9 Bou de Pedra — Death (2 frames)
+
+Native source: [death.aseprite](../../assets/ai_sources/boss_bou_de_pedra/death.aseprite),
+two 80x72 frames at 250 ms each. This is the source timeline; the engine
+manifest's legacy one-frame entry is not updated by source consolidation.
 
 > Reference: [ATTACH BOU PHASE 1 MASTER IDLE SPRITE HERE]
 
 ```
 CRITICAL IDENTITY LOCK. PALETTE: Full 12 colors.
 
-Sheet: 40x36 (1 frame). Facing RIGHT.
+Sheet: 80x36 (2 frames). Frame size: 40x36. Facing RIGHT.
 
-Pose: Crumbling — stone blocks separating and falling apart,
-energy fading from cracks, collapse in progress. Head tilted down,
-legs buckling. Not fully destroyed — mid-collapse moment.
+  Frame 1: Crumbling — stone blocks separating and falling apart,
+           energy fading from cracks, collapse in progress. Head tilted down,
+           legs buckling. Not fully destroyed — mid-collapse moment.
+  Frame 2: Remaining collapse fragments and debris.
 
 Background: solid green (#00FF00)
 ```

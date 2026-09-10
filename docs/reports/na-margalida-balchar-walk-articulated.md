@@ -1,4 +1,4 @@
-# Balchar articulated walk — leg appearance review
+# Balchar articulated walk — leg and boot size review
 
 **Artist:** Na Margalida (Graphic Designer & Pixel Artist)
 
@@ -8,81 +8,84 @@
 
 **Branch:** `art/balchar-walk-articulated`
 
-**Status:** Toni's feedback accepts the motion loop; **motion is locked, leg/boot appearance review is pending**. [PR #133](https://github.com/JavaLavadora/SaFona/pull/133) remains draft. En Pau and En Miquel reviewed the previous commit `7c59699`; review of this appearance follow-up is pending. No integration or merge is authorized.
+**Status:** Toni accepts the motion loop, but his latest feedback rejects the volatile leg/foot sizes. **The size repair has no visual approval; style remains pending.** [PR #133](https://github.com/JavaLavadora/SaFona/pull/133) remains draft. En Pau and En Miquel reviewed `7afe219`, the pre-size-repair state; their follow-up on this repair is pending. No integration or merge is authorized.
 
 ## Deliverables
 
-All paths below are relative to the SaFona workspace root. The original and before strip are unchanged from the previous commit.
+All paths below are relative to the SaFona workspace root. The original, motion checkpoint, and original before strip are unchanged.
 
 | File | Dimensions | Frames / purpose |
 | --- | --- | --- |
 | [assets/sprites/player/balchar.aseprite](../../assets/sprites/player/balchar.aseprite) | 48×64 RGBA | Approved original baseline from earlier work: all 23 frames, 8 layers, unchanged |
-| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | 48×64 RGBA | Appearance candidate: 23 frames, 12 editable layers; walk is frames 5–10 |
-| [assets/sprites/player/balchar_walk_motion_approved.aseprite](../../assets/sprites/player/balchar_walk_motion_approved.aseprite) | 48×64 RGBA | Immutable pre-appearance rollback; byte-identical to the previous committed candidate |
+| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | 48×64 RGBA | Size-repaired candidate: 23 frames, 12 editable layers; walk is frames 5–10 |
+| [assets/sprites/player/balchar_walk_motion_approved.aseprite](../../assets/sprites/player/balchar_walk_motion_approved.aseprite) | 48×64 RGBA | Immutable motion checkpoint from `7c59699`, not final appearance approval |
+| [assets/sprites/player/balchar_walk_before_size_fix.aseprite](../../assets/sprites/player/balchar_walk_before_size_fix.aseprite) | 48×64 RGBA | Separate immutable rollback; byte-identical to the candidate at `7afe219` |
 | [assets/sprites/player/preview/walk_articulated/before.png](../../assets/sprites/player/preview/walk_articulated/before.png) | 288×64 | Exact transparent strip of the original walk, frames 5–10 |
 | [assets/sprites/player/preview/walk_articulated/walk_after.png](../../assets/sprites/player/preview/walk_articulated/walk_after.png) | 288×64 | Six 48×64 cells, transparent horizontal strip |
-| [assets/sprites/player/preview/walk_articulated/walk_after_6x.png](../../assets/sprites/player/preview/walk_articulated/walk_after_6x.png) | 1728×384 | Same strip, transparent, nearest-neighbor 6× |
+| [assets/sprites/player/preview/walk_articulated/walk_after_6x.png](../../assets/sprites/player/preview/walk_articulated/walk_after_6x.png) | 1728×384 | Same strip on a checkerboard, nearest-neighbor 6× |
 | [assets/sprites/player/preview/walk_articulated/walk_after.gif](../../assets/sprites/player/preview/walk_articulated/walk_after.gif) | 288×384 | Six-frame 6× preview on a neutral checkerboard |
 | [assets/sprites/player/preview/walk_articulated/before_after_6x.png](../../assets/sprites/player/preview/walk_articulated/before_after_6x.png) | 1728×768 | Approved source above; candidate below, on a checkerboard |
-| [assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png](../../assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png) | 1740×480 | Three rows: original / motion checkpoint / refined candidate; six crops per row, x10–38 and y48–63 inclusive, nearest-neighbor 10× |
+| [assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png](../../assets/sprites/player/preview/walk_articulated/legs_reference_comparison_10x.png) | 2880×570 | Actual rows: original / pre-size checkpoint / current; full-width crops at y45–63, nearest-neighbor 10× |
+| [assets/sprites/player/preview/walk_articulated/size_stability_comparison_10x.png](../../assets/sprites/player/preview/walk_articulated/size_stability_comparison_10x.png) | 2880×380 | Pre-size checkpoint above / current below; full-width crops at y45–63, nearest-neighbor 10× |
+| [assets/sprites/player/preview/walk_articulated/boot_registration_sheet_8x.png](../../assets/sprites/player/preview/walk_articulated/boot_registration_sheet_8x.png) | 1152×512 | Isolated, registered boots across six phases; rows: near before / near after / far before / far after, nearest-neighbor 8× |
 
 **Replaces:** No runtime asset. The candidate remains separate, with origin `(0, 0)`, the original 48×64 canvas, and planted soles at `y=63`. No runtime PNGs, manifests, game code, or original artwork were changed.
 
-**Rollback:** The committed motion checkpoint preserves the exact pre-appearance candidate. It is not final appearance approval. Other local checkpoints, backups, diagnostics, and scripts are excluded and untouched.
+**Rollback:** The pre-size checkpoint preserves the exact incoming candidate independently of the older motion checkpoint. Other local checkpoints, backups, diagnostics, and scripts are excluded and untouched.
 
-## Appearance scope
+## Size-repair scope and visual limits
 
-The artist refined **only 12 cels**: frames **5–10** on `walk_leg_far_L` and `walk_leg_near_R`. The reference comparison emphasizes exposed warm knees, fuller calves, and stepped boots drawn from the source design. **Trailing boots remain more angular than the reference**; this is a known visual acceptance gate, not a technical error. Toni has been shown the PNGs. No further artwork iteration is authorized without user feedback.
+The artist's two-stage anatomy/volume repair changes **only 12 cel images**: frames **5–10** on `walk_leg_far_L` and `walk_leg_near_R`. The earlier appearance pass is the disputed pre-size state, not an approved finish. The source design remains the reference.
 
-All other art parts retain the motion checkpoint exactly: arms, sling, head/eyes, clothing, palette, layer order, and cel placement. The candidate is not flattened. Its four walk-only layers remain `walk_leg_far_L`, `walk_leg_near_R`, `walk_arm_far_L`, and `walk_sling_followthrough`, each with six cels.
+The artist reconstructed knees using fixed **6 px thigh / 6.5 px shin guides**, rather than preserving the earlier guessed knee coordinates. Foot trajectories and gait timing remain unchanged. Shared flat, leaning, and heel-raised boot profiles replace individually drawn outlines. **The boots still have squarer contours than the reference**; size consistency is not proof of full polish or style approval. Toni has already been shown the latest PNG.
 
-**Inherited distinction from the original:** Clothing uses the source-frame-5 template with a one-pixel low dip in frames 6 and 9; torso lean is minimal. The previously reviewed 67 collar-pixel differences at y34–35 remain, not additional head or clothing edits. Motion acceptance is Toni's feedback, not a claim that static checks establish artistic quality.
+All other parts preserve the incoming pre-size candidate exactly: arms, sling, head/eyes, clothing, palette, layer order, and cel placement. The four walk-only layers remain `walk_leg_far_L`, `walk_leg_near_R`, `walk_arm_far_L`, and `walk_sling_followthrough`, each with six editable cels. The candidate is not flattened or quantized.
 
-Packaging made no artwork or timing edits and used no Python, external generation, or export writes.
+**Inherited distinction from the original:** Clothing uses the source-frame-5 template with a one-pixel low dip in frames 6 and 9; torso lean is minimal. The previously reviewed 67 collar-pixel differences at y34–35 remain, not additional head or clothing edits.
 
-## Pose timing and anchors
+### Boot measurements: evidence and limits
 
-| Source frame | Pose | Support sole x-range | Swing-foot bottom |
-| --- | --- | --- | --- |
-| 5 | Right/near contact | Right: 28–34 | Both feet contact |
-| 6 | Low onto right | Right: 25–31 | Left: y=62 |
-| 7 | Left passing | Right: 22–28 | Left: y=60 |
-| 8 | Left/far contact | Left: 29–35 | Both feet contact |
-| 9 | Low onto left | Left: 26–32 | Right: y=62 |
-| 10 | Right passing | Left: 23–29 | Right: y=60 |
+- Artist-reported profile areas: **41 / 43 / 43 pixels**, compared with **32–45** previously and **40** for the sampled original boot.
+- Independently counted foreground pixels in the registration PNG: near before `45,45,45,39,32,35`; near after `41,43,43,43,43,41`; far before `39,32,35,45,45,45`; far after `43,43,41,41,43,43`. Every foreground pixel matches its claimed source layer/frame under translation; every 8× block is exact. Current near/far opposite-phase silhouettes match in registered coordinates.
+- These are checks of the supplied diagnostic masks, **not independent anatomical segmentation** of the source. No separate latest measurement masks/helpers were located in the inspected asset and MCP temporary directories. The original sample area and shaft-normal estimates were not independently remeasured.
+- Artist-reported minimum shaft-normal widths for the three profiles: **4.03 / 4.27 / 4.47 px** overall, including joins; **3.02 / 3.20 / 3.35 px** for the interior. These geometric estimates do not establish visual quality.
 
-Each frame is **100 ms**; cycle length is **600 ms**. The original forward walk tag is preserved. Each support sole moves backward exactly three pixels per frame through its stance. Passing boots end at y60, three pixels above the y63 baseline, with the swinging knee ahead of the supporting leg. Arms oppose the leg contacts.
+## Timing and contact geometry
 
-Frame 5 retains three transparent baseline pixels (x25–27); frame 8 retains four (x25–28). No baseline bridges were found. All 18 leg/far-arm cels are four-connected, with no detached islands.
+Each of frames **5–10 is 100 ms**: a **600 ms** cycle with the original forward walk tag. Grounded soles end at **y=63**, recovering feet at **y=62** in frames 6/9, and passing feet at **y=60** in frames 7/10. Support-foot baseline extents move backward three pixels per stance frame; outline pixels need not form a solid interval.
+
+Contact-pose silhouette spacing is **2 pixels in frame 5 / 3 in frame 8** at y56. The narrower baseline-only measurement is different: y63 retains **3 / 4 transparent pixels**, respectively. No baseline bridge is present. The older 3/4 figure must not be presented as the full boot-to-boot negative-space clearance.
 
 ## Read-only verification
 
-Independent Aseprite MCP checks compared the appearance candidate with the immutable motion checkpoint:
+Independent Aseprite MCP checks compare the current candidate with the **pre-size checkpoint**, unless stated otherwise:
 
-- **12 changed cels; 196 other cels byte-identical; 68 empty slots preserved.** Changes are confined to x10–38, y48–63 in the two leg layers, frames 5–10.
-- **All cel metadata preserved:** image dimensions/mode, position, opacity, z-index, and user data. **21,528 linked/unlinked cel-pair relationships** match.
-- **Sprite/layer properties, 23 durations, nine animation tags, and 15 palette entries/placement** match. Durations and tags also match the original. The palette remains swatches, not an indexed-color clamp.
-- **17 non-walk renders and all 67,872 composite pixels outside the permitted walk crop** are identical. There are 436 changed composite pixels inside the crop.
-- **Source colors / alpha:** Every nontransparent candidate cel color occurs in the original. All 20 partially transparent walk pixels match the checkpoint; no new partial-alpha pixels were introduced.
-- **Timing / geometry:** The support spans and swing-foot bottoms in the table, 3/4-pixel contact gaps, and limb connectivity pass.
-- **PNG exports:** Native before/after strips exactly match fresh in-memory renders of the original/candidate. The enlarged after strip is exact nearest-neighbor 6×. Both rows of the 6× comparison match their renders over its checkerboard. The three-row leg comparison exactly matches the original/checkpoint/candidate crops at 10×.
-- **GIF metadata only:** Reopened as data, not displayed through image transport: six 288×384 frames, each 100 ms, 600 ms total.
+- **276 layer/frame slots = 208 present cels + 68 empty slots.** Exactly **12 present cel images changed; 196 present cel images are byte-identical**. Empty slots are counted separately. Raw changed pixels span **x16–36, y47–63**, exclusively in the two leg layers, frames 5–10; y47 edits are hidden in the composite.
+- **Cel metadata preserved:** image dimensions/mode, position, opacity, z-index, color, and user data. All **21,528 linked/unlinked pairs** among the 208 present cels match.
+- **Sprite/layer properties** checked include canvas/color mode, transparent index, grid/pixel ratio, layer order/names, visibility/editability, opacity, blend mode, flags, color, and user data. **23 durations, nine tags, and 15 palette entries/placement** match. Durations and tags also match the original and motion checkpoint.
+- **17 non-walk renders** match both the pre-size checkpoint and original. All **67,872 protected composite pixels** outside the walk crop x10–38/y48–63 match the pre-size checkpoint. The **600 changed composite pixels** lie within x16–36/y49–63.
+- **Source colors / alpha:** Every nontransparent candidate cel color occurs in the original; all **20 partially transparent walk pixels** match the pre-size checkpoint. No new partial-alpha pixels were introduced.
+- **PNG exports:** Native before/after strips exactly match original/current in-memory renders. The 6× after strip and before/after comparison match exact checkerboard composites and scaling. Both 10× comparisons match full-width y45–63 crops and scaling.
+- **Reference-sheet labeling discrepancy:** Its middle row matches the **pre-size checkpoint exactly**, not the motion checkpoint (436 native pixels differ from that older checkpoint). The actual row order is documented above; packaging did not regenerate or relabel the image itself.
+- **GIF metadata only:** Reopened as data, with no GIF image transport: six **288×384** frames, each **100 ms**, **600 ms** total.
 
-No sprite or preview was saved by verification. Earlier En Pau/En Miquel checks of the motion checkpoint established preservation against the original: 136 original-layer non-walk cel slots, 17 non-walk renders, and 46 head cels. The appearance delta leaves those areas unchanged.
+Packaging made no artwork, timing, palette, or export writes and used no Python or external generation. No sprite or preview was saved by verification. Earlier En Pau/En Miquel original-source checks remain historical evidence; this follow-up independently verifies the size-repair delta rather than reclassifying empty slots as cels.
 
 ## Content hashes
 
 | Artifact | SHA-256 |
 | --- | --- |
 | [assets/sprites/player/balchar.aseprite](../../assets/sprites/player/balchar.aseprite) | `f23aeb30d1fe56071e1c138f8df02fe762ec4f2a3f2f85cb58c79e747951d739` |
+| First local backup (.bak), excluded from PR | `0fdbbe9a1f730eff0d5ebb0b301a69989136c27e43cb9e492c16276b1fa551ca` |
 | Second local backup (.bak2), excluded from PR | `f23aeb30d1fe56071e1c138f8df02fe762ec4f2a3f2f85cb58c79e747951d739` |
 | [assets/sprites/player/balchar_walk_motion_approved.aseprite](../../assets/sprites/player/balchar_walk_motion_approved.aseprite) | `32ece2a7d0cba26385d8bbd469198cacf44b7819b5a3dc166f503b8ec93b6ca8` |
-| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | `fb7cbc1142125ed3efca7558b55c70c032ddbe182c47d565facf3947fcb00f1d` |
+| [assets/sprites/player/balchar_walk_before_size_fix.aseprite](../../assets/sprites/player/balchar_walk_before_size_fix.aseprite) | `fb7cbc1142125ed3efca7558b55c70c032ddbe182c47d565facf3947fcb00f1d` |
+| [assets/sprites/player/balchar_walk_candidate.aseprite](../../assets/sprites/player/balchar_walk_candidate.aseprite) | `c9e3b9ba52a3449f9c13de23448bea67882711b756113fec9f0f91f5cd1b328d` |
 
 ## Review handoff
 
-This follow-up contains exactly eight files: the candidate, motion rollback, leg comparison, four updated after/comparison exports, and this report. The tracked original and before strip remain untouched; no other files are included. Runtime tests and a game launch were not run because this is asset-review packaging only.
+The packaging delta is ten explicitly selected files: candidate, pre-size rollback, two new diagnostics, five refreshed standard previews, and this report. The original, motion checkpoint, original before strip, runtime assets, and unrelated local files are not included in this delta. The existing feature-branch worktree is preserved; no stash, cleanup, process management, or master changes are part of packaging. Runtime tests and a game launch were not run because this is art-only review packaging.
 
-Open the committed PNGs and [animated GIF](../../assets/sprites/player/preview/walk_articulated/walk_after.gif) directly, or use a local preview server for playback. No game/display service is required. The editable candidate and immutable motion checkpoint support direct Aseprite comparison without session-specific services.
+Open the committed PNGs and [animated GIF](../../assets/sprites/player/preview/walk_articulated/walk_after.gif) directly, or use a local preview server for playback. No game/display service or forwarded port is required. The editable candidate and both immutable checkpoints support direct Aseprite comparison.
 
-**Next gate:** Toni's appearance decision against the three-row reference comparison, plus En Pau/En Miquel follow-up review. [Issue #132](https://github.com/JavaLavadora/SaFona/issues/132) remains open. No further art pass, runtime installation, or merge without explicit authorization.
+**Next gate:** Toni's size/style decision and En Pau/En Miquel follow-up review. The size complaint is not approval of this repair. [Issue #132](https://github.com/JavaLavadora/SaFona/issues/132) remains open for visual acceptance. No further art pass, runtime installation, or merge without explicit authorization.

@@ -336,6 +336,59 @@
         "legs"
       ],
       "preserves_empty_zindex_slots": false
+    },
+    {
+      "file": "sling_attack_parallel.aseprite",
+      "sha256": "0ecefa9bfeaa0e0dd5693cc77524ee1bdb03d83f40337c7f58484d9d562debc8",
+      "tag": "sling_attack_parallel",
+      "canonical_animation": "sling_attack",
+      "frame_count": 10,
+      "durations_ms": [
+        150,
+        120,
+        100,
+        80,
+        60,
+        60,
+        70,
+        100,
+        110,
+        150
+      ],
+      "derivation": "authored_from_reference",
+      "source": {
+        "document": "idle.aseprite",
+        "sha256": "1ec838034731519c75e2012416be9fe303973c1438bd1250662636d2e1df3f73",
+        "tag": "idle",
+        "frames": [
+          1,
+          1
+        ],
+        "role": "visual_reference_only"
+      },
+      "layer_names_bottom_to_top": [
+        "cord_far",
+        "arm_far",
+        "legs",
+        "torso",
+        "head",
+        "ribbon",
+        "cord_near",
+        "arm_near",
+        "pouch",
+        "stone"
+      ],
+      "preserves_empty_zindex_slots": false,
+      "authoring": {
+        "method": "direct_pixel_authoring_via_aseprite_mcp",
+        "specification": "../../../docs/asset_prompts/shared.md#161-parallel-sling-alternative-10-frames",
+        "playback_intent": "one_shot",
+        "total_duration_ms": 1000,
+        "release_cue": {
+          "frame": 7,
+          "time_ms": 570
+        }
+      }
     }
   ]
 }

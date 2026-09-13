@@ -139,10 +139,10 @@ See [`world1.md`](world1.md) for the World 1 style chain and generation order.
 **Processed output size** (from `tools/sprite_defs/characters/balchar.json`): 48x64 per frame
 
 **Editable finals**: [Balchar source index](../../assets/ai_sources/balchar/README.md).
-The native files are 48x64 RGBA, one per animation, with two separate walk
-alternatives and shared animations stored only once. Neither walk is selected
-for runtime integration. Reference **frame 1 of the final idle source** for
-the current character identity; native foot-contact baseline is **y=63**.
+The native files are 48x64 RGBA, with two independent walk alternatives and
+two independent sling alternatives. Other animations are stored only once.
+Neither pair has a runtime selection. Reference **frame 1 of the final idle
+source** for the current character identity; native foot-contact baseline is **y=63**.
 The 32x48 anatomy coordinates and limited-palette prompts below describe the
 generation grid, not a request to resnap or palette-clamp approved source art.
 Follow the [approved-source exception](../asset_generation_guide.md#1-global-palette-lock).
@@ -446,6 +446,79 @@ RULES:
   - Sling must be clearly visible and readable in all 4 frames
   - Background: solid green (#00FF00)
 ```
+
+### 1.6.1 Parallel sling alternative (10 frames)
+
+**Editable source**:
+[sling_attack_parallel.aseprite](../../assets/ai_sources/balchar/sling_attack_parallel.aseprite),
+single forward tag `sling_attack_parallel`, local frames **1–10**, canonical
+animation `sling_attack`. This is independently authored raster animation
+from **[idle.aseprite](../../assets/ai_sources/balchar/idle.aseprite), frame 1**
+as its sole visual reference, not an extraction of ten idle frames or a reuse
+of the four-frame sling poses. Artwork is directly authored through Aseprite
+MCP; no external image generator is involved. The four-frame alternative in
+Section 1.6 remains unchanged and available; neither sling is selected.
+
+**Native specification**: **48x64 RGBA per frame**, facing **RIGHT**, transparent
+background; native horizontal strip **480x64**. All coordinates below are
+zero-based **1x native pixels**, not the 32x48 generator grid above.
+This authored alternative retains idle frame 1’s native RGBA style and source
+palette without palette-clamping.
+Retain the idle's face, hair, head fabric, material colors and partial alpha.
+The project palette retains its 15 source entries while the artwork carries
+richer RGBA colors, as with the accepted native walk art; do not palette-clamp
+or resnap this master to the generator specification.
+
+**Designed poses and timing**: ten frames, **1000 ms total**. Elbow and hand
+coordinates describe the near arm; pouch and free-tail coordinates describe
+the sling. These are raster pose guides, **not an embedded skeletal rig**.
+
+| Frame | Start / hold (ms) | Phase and visible action | Elbow → hand | Pouch; free tail | Upper lean x |
+| ---: | --- | --- | --- | --- | ---: |
+| 1 | 0 / 150 | Load — low hand, loaded pouch hanging behind | (17,42) → (17,47) | (10,53); closed | 0 |
+| 2 | 150 / 120 | Drawback — elbow and hand reach left, pouch trails below | (12,41) → (10,39) | (5,49); closed | -1 |
+| 3 | 270 / 100 | Lift — hand rises beside the head, pouch climbs upper-left | (12,36) → (11,29) | (4,18); closed | -1 |
+| 4 | 370 / 80 | Backswing — elbow folds upward, pouch reaches the rear overhead arc | (14,31) → (17,25) | (6,14); closed | 0 |
+| 5 | 450 / 60 | Forward orbit — raised hand carries the pouch across to upper-right | (15,30) → (19,23) | (35,14); closed | 0 |
+| 6 | 510 / 60 | Opposite orbit — hand advances while the pouch sweeps back upper-left | (21,29) → (25,23) | (8,16); closed | 0 |
+| 7 | 570 / 70 | Release — arm reaches right; stone separates above the open sling | (25,34) → (32,33) | (43,27); (41,36) | +1 |
+| 8 | 640 / 100 | Follow-through — hand drops forward, open cord and tail trail down | (26,38) → (30,42) | (41,45); (38,54) | +1 |
+| 9 | 740 / 110 | Recovery — elbow returns inward, slack sling lowers across the stance | (21,42) → (22,47) | (31,53); (26,57) | 0 |
+| 10 | 850 / 150 | Settle — low starting stance with an unloaded pouch | (17,42) → (17,47) | (10,53); closed | 0 |
+
+**Registration and anatomy**:
+- Preserve the exact reference leg pixels in **x=14..34, y=55..63** on the
+  legs layer in every frame. Both feet stay planted with no whole-body
+  horizontal drift; the entire composite baseline **y=63** retains the idle's
+  **18 opaque pixels**. Recovery cord overlap does not alter the leg layer.
+- Head and upper torso follow the listed x offsets without vertical bob;
+  torso rows **y>=41** stay fixed. The ribbon follows the lean with one-frame
+  lag. Preserve the shifted head-layer identity, not a broad face bounding
+  box that would wrongly reject legitimate foreground arm overlap.
+- Near and far arms use authored solid pixel/capsule anatomy with smooth
+  sleeve joins and connected shoulder–elbow–hand silhouettes. The active
+  hand must remain readable, with the pouch away from the hand and sufficient
+  clearance for the full rear/forward/opposite sling arc. Foreground arms may
+  occlude hair or forehead; they must not repaint the reference face layer.
+- Bottom-to-top editable layers: `cord_far`, `arm_far`, `legs`, `torso`,
+  `head`, `ribbon`, `cord_near`, `arm_near`, `pouch`, `stone`. There are **100
+  full-canvas 48x64 cels**; empty cels are intentional. Closed sling cords use
+  front/back order; frames 7–9 carry an open **hand → pouch → free-tail** chain
+  on `cord_near`, with `cord_far` empty. Keep cord endpoints attached.
+- The release cue starts at **frame 7, 570 ms** (sum of the first six holds).
+  Its stone is exactly three pixels: **(44,22), (45,22), (44,23)**, on `stone`
+  only in frame 7. The union of visible bounds is **x=3..45, y=13..63**:
+  three clear columns left, two right; the bottom-edge foot contact is
+  intentional, not cropping.
+- Frames 1 and 10 share the same body pose, but frame 1's pouch contains one
+  gray loaded pixel absent from frame 10. Do not require identical first/last
+  images or claim ten distinct full-body poses.
+
+**Playback boundary**: designed as a **one-shot** action. The review GIF loops
+the one-second sequence for inspection only; it does not specify ammunition
+reload or repeated firing logic. Runtime PNG/config still uses three sling
+frames. Selection, release-event wiring and integration are separate work;
+final artistic acceptance remains with the user.
 
 ## 1.7 Balchar — Hit (1 frame)
 

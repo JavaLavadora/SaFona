@@ -461,9 +461,10 @@ Section 1.6 remains unchanged and available; neither sling is selected.
 
 **Native specification**: **48x64 RGBA per frame**, facing **RIGHT**, transparent
 background; native horizontal strip **480x64**. All coordinates below are
-zero-based **1x native pixels**, not the 32x48 generator grid above. Use the
-[approved native-RGBA style exception](../asset_generation_guide.md#1-global-palette-lock):
-retain the idle's face, hair, head fabric, material colors and partial alpha.
+zero-based **1x native pixels**, not the 32x48 generator grid above.
+This authored alternative retains idle frame 1’s native RGBA style and source
+palette without palette-clamping.
+Retain the idle's face, hair, head fabric, material colors and partial alpha.
 The project palette retains its 15 source entries while the artwork carries
 richer RGBA colors, as with the accepted native walk art; do not palette-clamp
 or resnap this master to the generator specification.
